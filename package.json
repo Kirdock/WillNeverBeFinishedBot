@@ -1,0 +1,22 @@
+{
+  "name": "willneverbefinishedbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kirdock/WillNeverBeFinishedBot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kirdock/WillNeverBeFinishedBot/issues"
+  },
+  "homepage": "https://github.com/Kirdock/WillNeverBeFinishedBot#readme",
+  "dependencies": {
+    "discord.js": "^11.5.1"
+  }
+}
