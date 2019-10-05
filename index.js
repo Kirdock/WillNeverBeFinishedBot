@@ -1,3 +1,4 @@
+'use strict'
 const Discord = require('discord.js');
 const q = require('q');
 const fs = require('fs');
@@ -11,6 +12,9 @@ const playSoundDelay = 1000;
 const answers = ['Jo','Na','Frag doch einfach nochmal'];
 const commandAlias = ['command', 'commands', 'list', 'help', '?'];
 const botID = '630064403525533706';
+const isDirectory = source => fs.lstatSync(source).isDirectory();
+const getDirectories = source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory);
+require('./server/server.js')(client);
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -20,29 +24,41 @@ client.on('message', message => {
     let content = undefined;
     if(message.content.startsWith(prefix))
     {
-        content = message.content.substring(prefix.length).toLocaleLowerCase().trim();
+        content = message.content.substring(prefix.length);
     }
     else if(message.content.startsWith('<@'+botID+'>')){
-        content = message.content.substring(botID.length+3).trim();
+        content = message.content.substring(botID.length+3);
     }
     // else if(message.isMentioned(botID)){
     //     console.log(message.content);
     // }
     if(content){
+        content = content.toLocaleLowerCase().trim();
         if(commandAlias.indexOf(content) > -1){
-            const fileNames = fs.readdirSync(soundFolder);
-            message.reply(
-                '\n__***Befehle:***__'
-                +'```'
-                +'- Irgendeine Frage?\n'
-                +'- flip\n'
-                +'- play [Dateiname]\n'
-                +'```'
-                +'__***Verfügbare Sounds:***__\n'
-                + '```'
-                + '- ' + fileNames.join('\n- ')
-                +'```'
+            const dirs = getDirectories(soundFolder);
+            let fileNames = [];
+            dirs.forEach(dir => fileNames = fileNames.concat(fs.readdirSync(dir)));
+            
+            message.reply('\n__***Befehle:***__'
+            +'```'
+            +'- Irgendeine Frage?\n'
+            +'- flip\n'
+            +'- play [Dateiname]\n'
+            +'- stop'
+            +'```'
+            +'__***Verfügbare Sounds:***__\n'
             );
+            let start = 0;
+            for(let i = 40; i < fileNames.length; i+=20){
+                message.reply('```--'+fileNames.slice(start,i).join('\n- ')+'```');
+                start = i;
+            }
+        }
+        else if(content === 'ping'){
+            message.reply('pong');
+        }
+        else if(content === 'stop'){
+            disconnectVoice();
         }
         else if(content.endsWith('?'))
         {
@@ -55,21 +71,27 @@ client.on('message', message => {
         else if(content.startsWith(playCommand))
         {
             const command = content.substring(playCommand.length).trim();
-            const file = path.join(soundFolder,command+'.mp3');
-            if(!fs.existsSync(file))
-            {
-                message.reply('De Datei gibts nit du Volltrottl!');
+            const dirs = getDirectories(soundFolder);
+            let foundFile = undefined;
+            for(let i = 0; i < dirs.length; i++){
+                let file = path.join(dirs[i],command+'.mp3');
+                if(fs.existsSync(file))
+                {
+                    foundFile = file;
+                    break;
+                }
+            }
+            if(!foundFile){
                 return;
             }
             if(voiceConnection){
-                playSound(file);
+                playSound(foundFile);
             }
             else{
                 joinVoiceChannel(message)
                 .then(connection =>{
                     voiceConnection = connection;
-                    message.reply('Bin gejoint!');
-                    playSound(file);
+                    playSound(foundFile);
                 })
                 .catch(error =>{
                     if(error.message){
@@ -103,8 +125,7 @@ function playSound(file){
     setTimeout(()=>{
         const dispatcher = voiceConnection.playFile(file);
         dispatcher.on('end', () => {
-            voiceConnection.disconnect();
-            voiceConnection = undefined;
+            disconnectVoice();
         });
         
         dispatcher.on('error', e => {
@@ -123,6 +144,13 @@ function playSound(file){
         
         //   dispatcher.end(); // End the dispatcher, emits 'end' event
     },playSoundDelay);
+}
+
+function disconnectVoice(){
+    if(voiceConnection){
+        voiceConnection.disconnect();
+        voiceConnection = undefined;
+    }
 }
 
 client.login('NjMwMDY0NDAzNTI1NTMzNzA2.XZi3jQ.KY1Bs-WCWVZgx5JjVnNeUE5JaGw');

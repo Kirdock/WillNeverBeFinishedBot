@@ -18,10 +18,12 @@
   "homepage": "https://github.com/Kirdock/WillNeverBeFinishedBot#readme",
   "dependencies": {
     "discord.js": "^11.5.1",
+    "express": "^4.17.1",
     "ffmpeg-binaries": "^4.0.0",
     "fs": "0.0.1-security",
     "opusscript": "0.0.7",
     "path": "^0.12.7",
-    "q": "^1.5.1"
+    "q": "^1.5.1",
+    "winston": "^3.2.1"
   }
 }
