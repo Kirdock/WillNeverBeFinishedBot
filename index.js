@@ -9,7 +9,7 @@ let voiceConnection = undefined;
 const path = require('path');
 const playSoundDelay = 1000;
 const answers = ['Jo','Na','Frag doch einfach nochmal'];
-const commandAlias = ['commands', 'list', 'help', '?'];
+const commandAlias = ['command', 'commands', 'list', 'help', '?'];
 const botID = '630064403525533706';
 
 client.on('ready', () => {
