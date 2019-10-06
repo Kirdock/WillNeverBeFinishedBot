@@ -1,8 +1,6 @@
 'use strict'
 const path = require('path');
-const fs = require('fs');
-const isDirectory = source => fs.lstatSync(source).isDirectory();
-const getDirectories = source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory);
+const fileHelper = require('./../services/fileHelper.js')
 const playCommand = 'play';
 
 module.exports = (config, logger, voiceHelper) =>{
@@ -19,7 +17,7 @@ module.exports = (config, logger, voiceHelper) =>{
 
     function doWork(message, content){
         const command = content.substring(playCommand.length).trim();
-        const dirs = getDirectories(config.soundFolder);
+        const dirs = fileHelper.getDirectories(config.soundFolder);
         let foundFile = undefined;
         for(let i = 0; i < dirs.length; i++){
             let file = path.join(dirs[i],command+'.mp3');

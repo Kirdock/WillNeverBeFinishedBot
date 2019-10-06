@@ -1,8 +1,8 @@
 'use strict'
-const path = require('path');
+
 const fs = require('fs');
-const isDirectory = source => fs.lstatSync(source).isDirectory();
-const getDirectories = source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory);
+const fileHelper = require('./../services/fileHelper.js');
+
 const commandAlias = ['command', 'commands', 'list', 'help', '?'];
 
 module.exports = (config, logger) =>{
@@ -18,7 +18,7 @@ module.exports = (config, logger) =>{
     }
 
     function doWork(message){
-        const dirs = getDirectories(config.soundFolder);
+        const dirs = fileHelper.getDirectories(config.soundFolder);
         let fileNames = [];
         dirs.forEach(dir => fileNames = fileNames.concat(fs.readdirSync(dir)));
         
