@@ -1,50 +1,54 @@
-<head>
-    <title>WillNeverBeFinishedBot 0.1</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-</head>
 <html>
+    <head>
+        <title>WillNeverBeFinishedBot 0.1</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    </head>
     <body>
-        <div id="fetch" class="form-group">
-            <label class="control-label">Choose Server</label>
-            <select class="form-control col-md-2" v-model="selectedServer">
-                <option v-for="server in servers" v-bind:value="server.id">
-                    {{server.name}}
-                </option>
-            </select>
+        <div class="form-horizontal">
+            <div id="fetch" class="form-group">
+                <label class="control-label">Choose Server</label>
+                <select class="form-control col-md-2" v-model="selectedServer">
+                    <option v-for="server in servers" v-bind:value="server.id">
+                        {{server.name}}
+                    </option>
+                </select>
 
-            <label class="control-label">Choose sound category</label>
-            <select class="form-control col-md-2" v-model="selectedCategory">
-                <option v-for="category in soundCategories" v-bind:value="category">
-                    {{category}}
-                </option>
-            </select>
-            <label>File Upload
-                <input type="file" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
-            </label>
+                <label class="control-label">Choose sound category</label>
+                <select class="form-control col-md-2" v-model="selectedCategory">
+                    <option v-for="category in soundCategories" v-bind:value="category">
+                        {{category}}
+                    </option>
+                </select>
+                <label>File Upload
+                    <input type="file" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
+                </label>
 
-            <div class="form-group">
+                <div class="form-group">
                     <label class="control-label">Choose Channel</label>
                     <select class="form-control col-md-2" v-model="selectedChannel">
                         <option v-for="channel in channels" v-bind:value="channel.id">
                             {{channel.name}}
                         </option>
                     </select>
-            </div>
+                </div>
 
-            <div class="form-group">
-                <div v-for="category in soundCategories">
-                    <h1 class="control-label">{{category}}</h1>
-                    <div v-for="sound in sounds[category]">
-                        {{sound.name}}
-                        <button type="button" class="btn btn-primary" v-on:click="playSound(sound.path)">Play</button>
+                <div class="form-group">
+                    <label class="control-label">Create new Category</label>
+                    <input class="form-control col-md-2" v-model="newCatInput">
+                    <input type="button" class="btn btn-primary" value="Create New Cat" id="newCat" v-on:click="createNewCat()"></button>
+                </div>
+                
+                <div class="form-group">
+                    <div v-for="category in soundCategories">
+                        <h1 class="control-label">{{category}}</h1>
+                        <div v-for="sound in sounds[category]">
+                            {{sound.name}}
+                            <button type="button" class="btn btn-primary" v-on:click="playSound(sound.path)">Play</button>
+                        </div>
                     </div>
                 </div>
+                
             </div>
-            
-            <label class="control-label">Create new Categorie</label>
-            <input class="form-control col-md-2" v-model="newCatInput">
-            <input type="button" value="Create New Cat" id="newCat" v-on:click="createNewCat()"></button>
-
         </div>
 
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
