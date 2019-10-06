@@ -40,7 +40,7 @@ module.exports = (config, logger, voiceHelper) =>{
 
     function requestSound(path, serverId, channelId){
         return voiceHelper.joinVoiceChannelById(serverId, channelId).then(connection =>{
-            playSound(path,undefined,connection);
+            playSound(path,serverId,connection);
         });
     }
 

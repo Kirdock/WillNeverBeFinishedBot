@@ -2,6 +2,7 @@
 
 const express = require('express');
 const app = express();
+var body_parser = require('body-parser');
 
 module.exports = (discordClient, config, logger)=> {
 
@@ -19,6 +20,7 @@ module.exports = (discordClient, config, logger)=> {
         }
     };
     app.use(cors);
+    app.use(body_parser.json({limit: '20mb'}));
     app.use('/', express.static(__dirname + './../client'));
 
     var port = process.env.PORT || 5000;

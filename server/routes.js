@@ -30,7 +30,6 @@ module.exports = function (router, logger, discordClient, config) {
 
     router.route('/playSound')
 		.post(function (req, res) {
-      console.log(req.body)
       playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId).then(response =>{
         res.status(200).json(response);
       }).catch(error =>{
