@@ -30,4 +30,8 @@ module.exports = function (router, logger, discordClient, config) {
     .put(upload.single('file'),function (req, res){
 			//req.file, JSON.parse(req.body.metadata)
 		})
+    router.route('/users')
+		.get(function (req, res) {
+      res.status(200).json(discordClient.users.map(item =>{return {id: item.id, name: item.username, status: item.presence.status}}));
+    });
 }
