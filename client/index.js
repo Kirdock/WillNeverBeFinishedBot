@@ -8,6 +8,7 @@ var app = new Vue({
       sounds: [],
       channels: [],
       soundCategories: [],
+      volume: 0.5,
       selectedCategory: undefined,
       newCatInput: undefined,
       selectedServer: undefined,
@@ -65,10 +66,10 @@ var app = new Vue({
           });
       },
       playSound: function(path){
-          dataservice.playSound(path, this.selectedServer, this.selectedChannel).then(response =>{
+          dataservice.playSound(path, this.selectedServer, this.selectedChannel, this.volume).then(response =>{
 
           }).catch(error =>{
-              
+
           });
       }
     },

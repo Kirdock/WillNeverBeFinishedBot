@@ -19,6 +19,13 @@
                         {{category}}
                     </option>
                 </select>
+
+                <div class="form-group">
+                    <label class="control-label">Create new Category</label>
+                    <input class="form-control col-md-2" v-model="newCatInput">
+                    <input type="button" class="btn btn-primary" value="Create New Cat" id="newCat" v-on:click="createNewCat()"></button>
+                </div>
+
                 <label>File Upload
                     <input type="file" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
                 </label>
@@ -31,13 +38,12 @@
                         </option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label class="control-label">Create new Category</label>
-                    <input class="form-control col-md-2" v-model="newCatInput">
-                    <input type="button" class="btn btn-primary" value="Create New Cat" id="newCat" v-on:click="createNewCat()"></button>
-                </div>
                 
+                <div class="form-group">
+                    <label class="control-label">Volume</label>
+                    <input class="form-control col-md-1" type="number" v-model="volume" step="0.5">
+                </div>
+
                 <div class="form-group">
                     <div v-for="category in soundCategories">
                         <h1 class="control-label">{{category}}</h1>

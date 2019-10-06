@@ -1,6 +1,7 @@
 'use strict'
 const fileHelper = require('./../services/fileHelper.js')();
 const playCommand = 'play';
+const q = require('q');
 
 module.exports = (config, logger, voiceHelper) =>{
     let playSoundCommand = {
@@ -8,6 +9,7 @@ module.exports = (config, logger, voiceHelper) =>{
         isCommand: isCommand,
         requestSound: requestSound
     }
+    const fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
 
     return playSoundCommand;
 
@@ -19,7 +21,7 @@ module.exports = (config, logger, voiceHelper) =>{
         const command = content.substring(playCommand.length).trim();
         const foundFile = fileHelper.tryGetSoundFile(command);
         if(!foundFile){
-            message.reply('De Datei gibts nit du Volltrottl!');
+            message.reply(fileNotFoundMessage);
         }
         if(voiceHelper.hasConnection(message.guild.id)){
             playSound(foundFile, message.guild.id);
@@ -38,14 +40,19 @@ module.exports = (config, logger, voiceHelper) =>{
         }
     }
 
-    function requestSound(path, serverId, channelId){
-        return voiceHelper.joinVoiceChannelById(serverId, channelId).then(connection =>{
-            playSound(path,serverId,connection);
-        });
+    function requestSound(path, serverId, channelId, volumeMultiplier){
+        if(fileHelper.existsFile(path)){
+            return voiceHelper.joinVoiceChannelById(serverId, channelId).then(connection =>{
+                playSound(path,serverId,connection, volumeMultiplier);
+            });
+        }
+        else{
+            return q.reject(fileNotFoundMessage);
+        }
     }
 
 
-    function playSound(file, id, connection){
+    function playSound(file, id, connection, volumeMultiplier = 0.5){
         setTimeout(()=>{
             const dispatcher = (connection || voiceHelper.getConnection(id)).playFile(file);
             dispatcher.on('end', () => {
@@ -54,11 +61,11 @@ module.exports = (config, logger, voiceHelper) =>{
             
             dispatcher.on('error', e => {
             // Catch any errors that may arise
-                console.log(e);
+                logger.error(e);
             });
     
             dispatcher.on('start', () => {
-                dispatcher.setVolume(0.50);
+                dispatcher.setVolume(volumeMultiplier);
             });
             
             //   console.log(dispatcher.time); // The time in milliseconds that the stream dispatcher has been playing for

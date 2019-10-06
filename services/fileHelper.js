@@ -14,7 +14,8 @@ module.exports = () =>{
         moveToCategory: moveToCategory,
         tryGetSoundFile: tryGetSoundFile,
         getSounds: getSounds,
-        createCatFolder: createCatFolder
+        createCatFolder: createCatFolder,
+        existsFile: existsFile
     };
 
     checkAndCreateFolder();
@@ -35,6 +36,10 @@ module.exports = () =>{
             fs.mkdirSync(folder);
         }
         return folder;
+    }
+
+    function existsFile(folder){
+        return fs.existsSync(folder);
     }
 
     function getDirectoriesWithName(source){
