@@ -21,6 +21,11 @@ module.exports = function (router, logger, discordClient, config) {
       res.status(200).json(discordClient.guilds.map(item =>{return {id: item.id, name: item.name}}));
     });
 
+    router.route('/channels/:id')
+		.get(function (req, res) {
+      res.status(200).json(discordClient.guilds.get(req.params.id).channels.filter(channel => channel.type === 'voice').sort((channel1, channel2) => channel1.position > channel2.position).map(item =>{return {id: item.id, name: item.name}}));
+    });
+
     router.route('/soundCategories')
 		.get(function (req, res) {
       res.status(200).json(fileHelper.getDirectoriesWithName(config.soundFolder));

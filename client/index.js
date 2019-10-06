@@ -5,13 +5,18 @@ var app = new Vue({
     el: '#fetch',
     data: {
       servers: [],
+      channels: [],
       soundCategories: [],
-      selectedCategory: undefined
+      selectedServer: undefined,
+      selectedCategory: undefined,
+      selectedChannel: undefined
     },
     methods: {
       fetchServers: function () {
         dataservice.fetchServers().then(response => {
             this.servers = response.data;
+            this.selectedServer = this.servers[0].id;
+            this.fetchChannels();
         })
         .catch(error =>{
 
@@ -35,6 +40,14 @@ var app = new Vue({
           }).catch(error => {
 
           })
+      },
+      fetchChannels: function(){
+          dataservice.fetchChannels(this.selectedServer).then(response =>{
+              this.channels = response.data;
+              this.selectedChannel = this.channels[0].id;
+          }).catch(error => {
+
+          });
       }
     },
     created: function (){

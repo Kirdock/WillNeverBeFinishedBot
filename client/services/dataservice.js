@@ -3,7 +3,8 @@ import { config } from './config.js';
 let dataservice = {
     fetchServers: fetchServers,
     uploadFile: uploadFile,
-    fetchCategories: fetchCategories
+    fetchCategories: fetchCategories,
+    fetchChannels: fetchChannels
 }
 
 function fetchServers(){
@@ -23,6 +24,10 @@ function uploadFile(file){
             }
         }
     )
+}
+
+function fetchChannels(serverId){
+    return axios.get(config.api+'/Channels/'+serverId);
 }
 
 export {dataservice}
