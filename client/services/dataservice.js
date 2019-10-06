@@ -6,7 +6,7 @@ let dataservice = {
     fetchCategories: fetchCategories,
     fetchChannels: fetchChannels,
     fetchSounds: fetchSounds,
-    playSound: playSound
+    playSound: playSound,
     createNewCat: createNewCat,
     fetchChannels: fetchChannels
 }
