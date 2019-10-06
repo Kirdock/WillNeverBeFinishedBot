@@ -7,6 +7,8 @@ let dataservice = {
     fetchChannels: fetchChannels,
     fetchSounds: fetchSounds,
     playSound: playSound
+    createNewCat: createNewCat,
+    fetchChannels: fetchChannels
 }
 
 function fetchServers(){
@@ -46,6 +48,10 @@ function uploadFile(file){
 
 function fetchSounds(){
     return axios.get(config.api+'/sounds');
+}
+
+function createNewCat(newCatName){
+    return axios.put(config.api +  'addcat/' + newCatName)
 }
 
 function fetchChannels(serverId){

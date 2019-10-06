@@ -13,7 +13,8 @@ module.exports = () =>{
         getDirectoriesWithName: getDirectoriesWithName,
         moveToCategory: moveToCategory,
         tryGetSoundFile: tryGetSoundFile,
-        getSounds: getSounds
+        getSounds: getSounds,
+        createCatFolder: createCatFolder
     };
 
     checkAndCreateFolder();
@@ -26,6 +27,14 @@ module.exports = () =>{
 
     function getFiles(source){
         return fs.readdirSync(source).map(name => path.join(source, name)).filter(isFile);
+    }
+    
+    function createCatFolder(folderName){
+        const folder = path.join(config.soundFolder,folderName);
+        if(!fs.existsSync(folder)){
+            fs.mkdirSync(folder);
+        }
+        return folder;
     }
 
     function getDirectoriesWithName(source){
