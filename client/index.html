@@ -22,19 +22,19 @@
                 <input type="file" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
             </label>
 
+            <div class="form-group">
+                    <label class="control-label">Choose Channel</label>
+                    <select class="form-control col-md-2" v-model="selectedChannel">
+                        <option v-for="channel in channels" v-bind:value="channel.id">
+                            {{channel.name}}
+                        </option>
+                    </select>
+            </div>
             
             <label class="control-label">Create new Categorie</label>
             <input class="form-control col-md-2" v-model="newCatInput">
             <input type="button" value="Create New Cat" id="newCat" v-on:click="createNewCat()"></button>
-            
-            <div class="form-group">
-                <label class="control-label">Choose Channel</label>
-                <select class="form-control col-md-2" v-model="selectedChannel">
-                    <option v-for="channel in channels" v-bind:value="channel.id">
-                        {{channel.name}}
-                    </option>
-                </select>
-            </div>
+
         </div>
 
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
