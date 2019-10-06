@@ -44,13 +44,27 @@
                     <input class="form-control col-md-1" type="number" v-model="volume" step="0.5">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group col-md-6">
                     <div v-for="category in soundCategories">
                         <h1 class="control-label">{{category}}</h1>
-                        <div v-for="sound in sounds[category]">
-                            {{sound.name}}
-                            <button type="button" class="btn btn-primary" v-on:click="playSound(sound.path)">Play</button>
-                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th style="width: 100px">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="sound in sounds[category]">
+                                    <td>
+                                        {{sound.name}}
+                                    </td>
+                                    <td style="width: 100px">
+                                        <button type="button" class="btn btn-primary" v-on:click="playSound(sound.path)">Play</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 
