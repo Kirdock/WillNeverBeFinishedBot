@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const isDirectory = source => fs.lstatSync(source).isDirectory();
-
+const config = require('./../config.json');
 
 module.exports = () =>{
 
@@ -20,6 +20,6 @@ module.exports = () =>{
                     path: path.join(source, name),
                     name: name
                 }
-        }).filter(file => isDirectory(file.path)).map(file => file.name);
+        }).filter(file => isDirectory(file.path) && file.name !== config.uploadFolder).map(file => file.name);
     }
 }

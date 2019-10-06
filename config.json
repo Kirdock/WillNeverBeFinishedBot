@@ -2,5 +2,6 @@
     "soundFolder": "C:/Users/Klaus/Downloads/DiscordSounds",
     "botId": "630064403525533706",
     "token": "NjMwMDY0NDAzNTI1NTMzNzA2.XZi3jQ.KY1Bs-WCWVZgx5JjVnNeUE5JaGw",
-    "playSoundDelay": 1000
+    "playSoundDelay": 1000,
+    "uploadFolder": "uploads"
 }

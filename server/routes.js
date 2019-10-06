@@ -8,7 +8,7 @@ module.exports = function (router, logger, discordClient, config) {
 
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, path.join(config.soundFolder,'uploads'))
+      cb(null, path.join(config.soundFolder,config.uploadFolder))
     },
     filename: function (req, file, cb) {
       cb(null, file.originalname)
