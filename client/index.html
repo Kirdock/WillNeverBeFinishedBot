@@ -21,6 +21,11 @@
             <label>File Upload
                 <input type="file" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
             </label>
+
+            
+            <label class="control-label">Create new Categorie</label>
+            <input class="form-control col-md-2" v-model="newCatInput">
+            <input type="button" value="Create New Cat" id="newCat" v-on:click="createNewCat()"></button>
         </div>
 
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

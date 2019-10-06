@@ -10,13 +10,21 @@ module.exports = () =>{
     const fileHelper = {
         getDirectories: source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory),
         getDirectoriesWithName: getDirectoriesWithName,
-        moveToCategory: moveToCategory
+        moveToCategory: moveToCategory,
+        createCatFolder: createCatFolder
     };
 
     checkAndCreateFolder();
 
     return fileHelper;
 
+    function createCatFolder(folderName){
+        const folder = path.join(config.soundFolder,folderName);
+        if(!fs.existsSync(folder)){
+            fs.mkdirSync(folder);
+        }
+        return folder;
+    }
 
     function getDirectoriesWithName(source){
         return fs.readdirSync(source).map(name => {

@@ -3,7 +3,8 @@ import { config } from './config.js';
 let dataservice = {
     fetchServers: fetchServers,
     uploadFile: uploadFile,
-    fetchCategories: fetchCategories
+    fetchCategories: fetchCategories,
+    createNewCat: createNewCat
 }
 
 function fetchServers(){
@@ -23,6 +24,10 @@ function uploadFile(file){
             }
         }
     )
+}
+
+function createNewCat(newCatName){
+    return axios.put(config.api +  'addcat/' + newCatName)
 }
 
 export {dataservice}

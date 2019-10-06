@@ -6,9 +6,15 @@ var app = new Vue({
     data: {
       servers: [],
       soundCategories: [],
-      selectedCategory: undefined
+      selectedCategory: undefined,
+      newCatInput: undefined
     },
     methods: {
+      createNewCat: function () {
+        if(!this.soundCategories.includes(this.newCatInput)){
+          dataservice.createNewCat(this.newCatInput);
+        }
+      },
       fetchServers: function () {
         dataservice.fetchServers().then(response => {
             this.servers = response.data;
