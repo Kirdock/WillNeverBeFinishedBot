@@ -7,10 +7,14 @@ var app = new Vue({
     },
     methods: {
       fetchServers: function () {
-        // this.servers = [{id: 'saldfj', name:'sdlfj'}, {id:'212121', name:'wpeori'}];
         axios
         .get('./api/servers')
-        .then(response => (this.servers = response))
+        .then(response => {
+            this.servers = response.data;
+        })
+        .catch(error =>{
+
+        });
       }
     }
   });
