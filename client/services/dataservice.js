@@ -4,11 +4,29 @@ let dataservice = {
     fetchServers: fetchServers,
     uploadFile: uploadFile,
     fetchCategories: fetchCategories,
-    fetchChannels: fetchChannels
+    fetchChannels: fetchChannels,
+    fetchSounds: fetchSounds,
+    playSound: playSound
 }
 
 function fetchServers(){
     return axios.get(config.api+'/servers');
+}
+
+function playSound(path, serverId, channelId){
+    return axios.post(config.api+'/playSound', 
+    {
+        path: path,
+        serverId: serverId,
+        channelId: channelId
+    },
+    {
+        headers:{
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    }
+    );
 }
 
 function fetchCategories(){
@@ -24,6 +42,10 @@ function uploadFile(file){
             }
         }
     )
+}
+
+function fetchSounds(){
+    return axios.get(config.api+'/sounds');
 }
 
 function fetchChannels(serverId){

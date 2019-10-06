@@ -5,6 +5,7 @@ var app = new Vue({
     el: '#fetch',
     data: {
       servers: [],
+      sounds: [],
       channels: [],
       soundCategories: [],
       selectedServer: undefined,
@@ -48,11 +49,26 @@ var app = new Vue({
           }).catch(error => {
 
           });
+      },
+      fetchSounds: function(){
+          dataservice.fetchSounds().then(response =>{
+              this.sounds = response.data;
+          }).catch(error =>{
+
+          });
+      },
+      playSound: function(path){
+          dataservice.playSound(path, this.selectedServer, this.selectedChannel).then(response =>{
+
+          }).catch(error =>{
+              
+          });
       }
     },
     created: function (){
         this.fetchServers();
         this.fetchCategories();
+        this.fetchSounds();
     }
   });
 

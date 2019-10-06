@@ -6,6 +6,8 @@ const fileHelper = require('./../services/fileHelper.js')();
 
 module.exports = function (router, logger, discordClient, config) {
 
+  const voiceHelper = require('./../services/voiceHelper.js')(discordClient);
+  const playSound = require('./../modules/playSound.js')(config,logger,voiceHelper);
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, path.join(config.soundFolder,config.uploadFolder))
@@ -19,6 +21,23 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/servers')
 		.get(function (req, res) {
       res.status(200).json(discordClient.guilds.map(item =>{return {id: item.id, name: item.name}}));
+    });
+
+    router.route('/sounds')
+		.get(function (req, res) {
+      res.status(200).json(fileHelper.getSounds());
+    });
+
+    router.route('/playSound')
+		.post(function (req, res) {
+      console.log(req.body)
+      playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId).then(response =>{
+        res.status(200).json(response);
+      }).catch(error =>{
+        logger.error(error);
+        res.status(404).json(error);
+      })
+      
     });
 
     router.route('/channels/:id')

@@ -7,7 +7,8 @@ module.exports = (client) =>{
         joinVoiceChannel: joinVoiceChannel,
         disconnectVoice: disconnectVoice,
         hasConnection: hasConnection,
-        getConnection: getConnection
+        getConnection: getConnection,
+        joinVoiceChannelById: joinVoiceChannelById
     };
 
     return voiceHelper;
@@ -21,6 +22,10 @@ module.exports = (client) =>{
         {
             return q.reject({message:'I konn nit joinen du Volltogga!'});
         }
+    }
+
+    function joinVoiceChannelById(serverId, clientId){
+        return client.guilds.get(serverId).channels.get(clientId).join();
     }
 
     function hasConnection(id){

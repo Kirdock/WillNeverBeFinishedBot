@@ -1,13 +1,12 @@
 'use strict'
-const path = require('path');
-const fs = require('fs');
 const fileHelper = require('./../services/fileHelper.js')();
 const playCommand = 'play';
 
 module.exports = (config, logger, voiceHelper) =>{
     let playSoundCommand = {
         doWork: doWork,
-        isCommand: isCommand
+        isCommand: isCommand,
+        requestSound: requestSound
     }
 
     return playSoundCommand;
@@ -18,18 +17,9 @@ module.exports = (config, logger, voiceHelper) =>{
 
     function doWork(message, content){
         const command = content.substring(playCommand.length).trim();
-        const dirs = fileHelper.getDirectories(config.soundFolder);
-        let foundFile = undefined;
-        for(let i = 0; i < dirs.length; i++){
-            let file = path.join(dirs[i],command+'.mp3');
-            if(fs.existsSync(file))
-            {
-                foundFile = file;
-                break;
-            }
-        }
+        const foundFile = fileHelper.tryGetSoundFile(command);
         if(!foundFile){
-            return;
+            message.reply('De Datei gibts nit du Volltrottl!');
         }
         if(voiceHelper.hasConnection(message.guild.id)){
             playSound(foundFile, message.guild.id);
@@ -46,6 +36,12 @@ module.exports = (config, logger, voiceHelper) =>{
                 logger.error(error);
             });
         }
+    }
+
+    function requestSound(path, serverId, channelId){
+        return voiceHelper.joinVoiceChannelById(serverId, channelId).then(connection =>{
+            playSound(path,undefined,connection);
+        });
     }
 
 
