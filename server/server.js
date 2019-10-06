@@ -2,11 +2,8 @@
 
 const express = require('express');
 const app = express();
-let logger = null;
-logger = require( './modules/logger')( __dirname );
 
-
-module.exports = (discordClient)=> {
+module.exports = (discordClient, config, logger)=> {
 
     var cors = function (req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');
@@ -22,13 +19,12 @@ module.exports = (discordClient)=> {
         }
     };
     app.use(cors);
-    
     app.use('/', express.static(__dirname + './../client'));
 
     var port = process.env.PORT || 5000;
     var router = express.Router();
 
-    require('./routes.js')(router, logger, discordClient);
+    require('./routes.js')(router, logger, discordClient, config);
     app.use('/api',router);
     app.listen(port);
 };
