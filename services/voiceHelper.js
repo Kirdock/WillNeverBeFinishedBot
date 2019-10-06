@@ -2,10 +2,12 @@
 
 const q = require('q');
 
-module.exports = () =>{
+module.exports = (client) =>{
     let voiceHelper = {
         joinVoiceChannel: joinVoiceChannel,
-        disconnectVoice: disconnectVoice
+        disconnectVoice: disconnectVoice,
+        hasConnection: hasConnection,
+        getConnection: getConnection
     };
 
     return voiceHelper;
@@ -21,8 +23,16 @@ module.exports = () =>{
         }
     }
 
+    function hasConnection(id){
+        return client.voiceConnections.has(id);
+    }
+
+    function getConnection(id){
+        return client.voiceConnections.get(id);
+    }
+
     //serverID == key for voiceConnections
-    function disconnectVoice(client, id){
+    function disconnectVoice(id){
         client.voiceConnections.get(id).disconnect();
     }
 }

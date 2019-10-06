@@ -1,6 +1,6 @@
 'use strict';
 
-var Logger = function( config, root_folder ) {
+module.exports = ( config, root_folder ) => {
     var winston = require('winston');
 
     var options = {
@@ -46,4 +46,3 @@ var Logger = function( config, root_folder ) {
     };
 
 };
-module.exports = Logger;

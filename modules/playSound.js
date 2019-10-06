@@ -4,9 +4,8 @@ const fs = require('fs');
 const isDirectory = source => fs.lstatSync(source).isDirectory();
 const getDirectories = source => fs.readdirSync(source).map(name => path.join(source, name)).filter(isDirectory);
 const playCommand = 'play';
-const voiceHelper = require('../services/voiceHelper.js')();
 
-module.exports = (client, config, logger) =>{
+module.exports = (config, logger, voiceHelper) =>{
     let playSoundCommand = {
         doWork: doWork,
         isCommand: isCommand
@@ -33,7 +32,7 @@ module.exports = (client, config, logger) =>{
         if(!foundFile){
             return;
         }
-        if(client.voiceConnections.has(message.guild.id)){
+        if(voiceHelper.hasConnection(message.guild.id)){
             playSound(foundFile, message.guild.id);
         }
         else{
@@ -53,9 +52,9 @@ module.exports = (client, config, logger) =>{
 
     function playSound(file, id, connection){
         setTimeout(()=>{
-            const dispatcher = (connection || client.voiceConnections.get(id)).playFile(file);
+            const dispatcher = (connection || voiceHelper.getConnection(id)).playFile(file);
             dispatcher.on('end', () => {
-                voiceHelper.disconnectVoice(client, id);
+                voiceHelper.disconnectVoice(id);
             });
             
             dispatcher.on('error', e => {

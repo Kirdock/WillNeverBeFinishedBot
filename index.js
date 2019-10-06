@@ -1,13 +1,14 @@
 'use strict'
 
 const Discord = require('discord.js');
-const logger = require( './services/logger.js')( __dirname );
-const config = require('./config.json')
+const config = require('./config.json');
+const logger = require( './services/logger.js')(config, __dirname );
 const client = new Discord.Client();
 const prefix = '-';
 const listCommand = require('./modules/list.js')(config, logger);
 const questionCommand = require('./modules/question.js')(config, logger);
-const playSoundCommand = require('./modules/playSound.js')(client, config, logger);
+const voiceHelper = require('./services/voiceHelper.js')(client, config, logger);
+const playSoundCommand = require('./modules/playSound.js')(config, logger, voiceHelper);
 
 require('./server/server.js')(client, config, logger);
 
@@ -41,10 +42,10 @@ client.on('message', message => {
             message.reply('pong');
         }
         else if(content === 'stop'){
-            disconnectVoice();
+            voiceHelper.disconnectVoice(client, message.guild.id);
         }
         else if(content === 'join'){
-            joinVoiceChannel(message);
+            voiceHelper.joinVoiceChannel(message);
         }
         else if(content === 'flip'){
             message.reply(Math.floor(Math.random()*2) == 0 ? 'Kopf' : 'Zahl');
