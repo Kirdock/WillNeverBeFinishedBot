@@ -5,7 +5,8 @@ var app = new Vue({
     el: '#fetch',
     data: {
       servers: [],
-      soundCategories: []
+      soundCategories: [],
+      selectedCategory: undefined
     },
     methods: {
       fetchServers: function () {
@@ -20,9 +21,8 @@ var app = new Vue({
         this.file = this.$refs.file.files[0];
         let formData = new FormData();
         formData.append('file', this.file);
-        formData.append('file', this.file.name);
-        console.log(this.file);
-        console.log(this.file.name);
+        formData.append('category', this.selectedCategory);
+        
         dataservice.uploadFile(formData)
         .then(response => {
 
@@ -31,6 +31,7 @@ var app = new Vue({
       fetchCategories: function(){
           dataservice.fetchCategories().then(response => {
             this.soundCategories = response.data;
+            this.selectedCategory = this.soundCategories[0];
           }).catch(error => {
 
           })

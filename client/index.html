@@ -7,14 +7,14 @@
         <div id="fetch" class="form-group">
             <label class="control-label">Choose Server</label>
             <select class="form-control col-md-2">
-                <option v-for="server in servers" value="server.id">
+                <option v-for="server in servers" v-bind:value="server.id">
                     {{server.name}}
                 </option>
             </select>
 
             <label class="control-label">Choose sound category</label>
-            <select class="form-control col-md-2">
-                <option v-for="category in soundCategories" value="category">
+            <select class="form-control col-md-2" v-model="selectedCategory">
+                <option v-for="category in soundCategories" v-bind:value="category">
                     {{category}}
                 </option>
             </select>

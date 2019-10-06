@@ -1,6 +1,7 @@
 'use strict'
 const path = require('path');
-const fileHelper = require('./../services/fileHelper.js')
+const fs = require('fs');
+const fileHelper = require('./../services/fileHelper.js')();
 const playCommand = 'play';
 
 module.exports = (config, logger, voiceHelper) =>{

@@ -42,7 +42,7 @@ client.on('message', message => {
             message.reply('pong');
         }
         else if(content === 'stop'){
-            voiceHelper.disconnectVoice(client, message.guild.id);
+            voiceHelper.disconnectVoice(message.guild.id);
         }
         else if(content === 'join'){
             voiceHelper.joinVoiceChannel(message);
