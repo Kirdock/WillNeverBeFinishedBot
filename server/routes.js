@@ -10,7 +10,7 @@ module.exports = function (router, logger, discordClient, config) {
   const playSound = require('./../modules/playSound.js')(config,logger,voiceHelper);
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, path.join(config.soundFolder,config.uploadFolder))
+      cb(null, path.join(fileHelper.soundFolder,config.uploadFolder))
     },
     filename: function (req, file, cb) {
       cb(null, file.originalname)
@@ -46,7 +46,7 @@ module.exports = function (router, logger, discordClient, config) {
 
     router.route('/soundCategories')
 		.get(function (req, res) {
-      res.status(200).json(fileHelper.getDirectoriesWithName(config.soundFolder));
+      res.status(200).json(fileHelper.getDirectoriesWithName(fileHelper.soundFolder));
     });
 
     router.route('/uploadFile')

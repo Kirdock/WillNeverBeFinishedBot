@@ -1,47 +1,45 @@
 'use strict';
 
 module.exports = ( config, root_folder ) => {
-    var winston = require('winston');
-
-    var options = {
-        level: 'warn'
-    };
-    var logger = winston.createLogger({
-        level: options.level,
+    const winston = require('winston');
+    const logger = winston.createLogger({
         transports: [
             new winston.transports.Console({
-                handleExceptions: true,
-                prettyPrint: true,
-                colorize: true
+                level: 'debug',
+                timestamp: true,
+                prettyPrint: true
             }),
             new winston.transports.File({
-                handleExceptions: true,
-                prettyPrint: true,
-                colorize: true,
-                filename: 'Logs.log'
-            })
+                filename: 'Log.log',
+                prettyPrint: true
+            }),
         ],
         exitOnError: false
     });
+    
 
     function debug(context, msg){
         if (logger){
-            logger.debug(msg, context);
+            logger.debug(msg, {context});
         }
     }
     function info(context, msg){
         if (logger){
-            logger.info(msg, context);
+            logger.info(msg, {context});
         }
     }
     function warn(context, msg){
         if (logger){
-            logger.warn(msg,context);
+            logger.warn(msg, {context});
         }
     }
     function error(context, msg){
         if (logger){
-            logger.error(msg, context);
+            let message = context;
+            if(context && context.stack){
+                message = context.stack;
+            }
+            logger.error(msg, {meta:{context: message}});
         }
     }
 

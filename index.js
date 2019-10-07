@@ -4,11 +4,12 @@ const Discord = require('discord.js');
 const config = require('./config.json');
 const logger = require( './services/logger.js')(config, __dirname );
 const client = new Discord.Client();
-const prefix = '-';
+const prefixes = ['-','!'];
 const listCommand = require('./modules/list.js')(config, logger);
 const questionCommand = require('./modules/question.js')(config, logger);
 const voiceHelper = require('./services/voiceHelper.js')(client, config, logger);
 const playSoundCommand = require('./modules/playSound.js')(config, logger, voiceHelper);
+// client.on('debug', console.log);
 
 require('./server/server.js')(client, config, logger);
 
@@ -18,11 +19,17 @@ client.on('ready', () => {
 
 client.on('message', message => {
     let content = undefined;
-    if(message.content.startsWith(prefix))
-    {
-        content = message.content.substring(prefix.length);
+    let prefixFound = false;
+    for(let i = 0; i < prefixes.length; i++){
+        if(message.content.startsWith(prefixes[i]))
+        {
+            content = message.content.substring(prefixes[i].length);
+            prefixFound = true;
+            break;
+        }
     }
-    else if(message.content.startsWith('<@'+config.botId+'>')){
+    
+    if(!prefixFound && message.content.startsWith('<@'+config.botId+'>')){
         content = message.content.substring(config.botId.length+3);
     }
     if(content){

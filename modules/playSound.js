@@ -55,7 +55,8 @@ module.exports = (config, logger, voiceHelper) =>{
     function playSound(file, id, con, volumeMultiplier = 0.5){
         let delay = config.playSoundDelay;
         const connection = (con || voiceHelper.getConnection(id));
-        let dispatcher = con.dispatcher;
+        
+        let dispatcher = connection.dispatcher;
         if(dispatcher){ //if bot is playing something at the moment, it interrupts and plays the other file
             dispatcher.end('playFile'); //Parameter = reason why dispatcher ended
             delay = 0;
@@ -68,12 +69,19 @@ module.exports = (config, logger, voiceHelper) =>{
                 if(reason === 'stream'){
                     voiceHelper.disconnectVoice(id);
                 }
+                else if(reason !== 'playFile'){
+                    logger.error(reason || 'empty', 'PlaySound');
+                }
             });
             
             dispatcher.on('error', e => {
             // Catch any errors that may arise
                 logger.error(e, 'playSound');
             });
+
+            // dispatcher.on('debug', e => {
+            // // Catch any errors that may arise
+            // });
     
             dispatcher.on('start', () => {
                 dispatcher.setVolume(volumeMultiplier);

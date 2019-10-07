@@ -23,7 +23,7 @@ module.exports = (discordClient, config, logger)=> {
     app.use(body_parser.json({limit: '20mb'}));
     app.use('/', express.static(__dirname + './../client'));
 
-    var port = process.env.PORT || 5000;
+    var port = process.env.PORT || config.port;
     var router = express.Router();
 
     require('./routes.js')(router, logger, discordClient, config);
