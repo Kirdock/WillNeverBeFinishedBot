@@ -18,7 +18,11 @@ var app = new Vue({
     methods: {
       createNewCat: function () {
         if(!this.soundCategories.includes(this.newCatInput)){
-          dataservice.createNewCat(this.newCatInput);
+          dataservice.createNewCat(this.newCatInput).then(response =>{
+            this.fetchCategories();
+          }).catch(error =>{
+
+          });
         }
       },
       fetchServers: function () {
@@ -44,8 +48,11 @@ var app = new Vue({
       },
       fetchCategories: function(){
           dataservice.fetchCategories().then(response => {
-            this.soundCategories = response.data;
-            this.selectedCategory = this.soundCategories[0];
+            this.soundCategories = [];
+            response.data.forEach(category =>{
+                this.soundCategories.push({name: category, show: false}); //vue.js does not recognize new elements. that's why I have to add "show"
+            })
+            this.selectedCategory = this.soundCategories[0].name;
           }).catch(error => {
 
           })
@@ -71,6 +78,12 @@ var app = new Vue({
           }).catch(error =>{
 
           });
+      },
+      changeCategoryVisibility: function(category){
+        category.show = !category.show;
+      },
+      setCategoriesVisibility: function(status){
+        this.soundCategories.forEach(category =>(category.show = status));
       }
     },
     created: function (){

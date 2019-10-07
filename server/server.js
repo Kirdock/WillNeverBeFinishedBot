@@ -1,8 +1,8 @@
 'use strict';
-
 const express = require('express');
 const app = express();
-var body_parser = require('body-parser');
+const body_parser = require('body-parser');
+
 
 module.exports = (discordClient, config, logger)=> {
 

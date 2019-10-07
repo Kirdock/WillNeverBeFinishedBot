@@ -25,7 +25,21 @@ module.exports = (client) =>{
     }
 
     function joinVoiceChannelById(serverId, clientId){
-        return client.guilds.get(serverId).channels.get(clientId).join();
+        const server = client.guilds.get(serverId);
+        let defer = q.defer();
+        if(server){
+            const channel = server.channels.get(clientId);
+            if(channel){
+                defer.resolve(channel.join());
+            }
+            else{
+                defer.reject(new Error("ChannelId not found"));
+            }
+        }
+        else{
+            defer.reject(new Error("ServerId not found"));
+        }
+        return defer.promise;
     }
 
     function hasConnection(id){
@@ -38,6 +52,9 @@ module.exports = (client) =>{
 
     //serverID == key for voiceConnections
     function disconnectVoice(id){
-        client.voiceConnections.get(id).disconnect();
+        let connection = client.voiceConnections.get(id);
+        if(connection){
+            connection.disconnect();
+        }
     }
 }

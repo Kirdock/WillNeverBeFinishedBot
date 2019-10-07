@@ -2,52 +2,63 @@
     <head>
         <title>WillNeverBeFinishedBot 0.1</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <link type="text/css" rel="stylesheet" src="./assets/style.css"></link>
     </head>
     <body>
-        <div class="form-horizontal">
-            <div id="fetch" class="form-group">
-                <label class="control-label">Choose Server</label>
-                <select class="form-control col-md-2" v-model="selectedServer">
-                    <option v-for="server in servers" v-bind:value="server.id">
-                        {{server.name}}
-                    </option>
-                </select>
+        <div class="container" style="margin-top:50px">
+            <div id="fetch" class="form-horizontal">
+                <h1 class="control-label">Server</h1>
+                <div class="form-group">
+                    <select class="form-control" v-model="selectedServer">
+                        <option v-for="server in servers" v-bind:value="server.id">
+                            {{server.name}}
+                        </option>
+                    </select>
+                </div>
 
-                <label class="control-label">Choose sound category</label>
-                <select class="form-control col-md-2" v-model="selectedCategory">
-                    <option v-for="category in soundCategories" v-bind:value="category">
-                        {{category}}
-                    </option>
-                </select>
+                <h1>Sound Upload</h1>
 
                 <div class="form-group">
                     <label class="control-label">Create new Category</label>
-                    <input class="form-control col-md-2" v-model="newCatInput">
-                    <input type="button" class="btn btn-primary" value="Create New Cat" id="newCat" v-on:click="createNewCat()"></button>
+                    <div class="input-group">
+                        <input class="form-control col-md-10" v-model="newCatInput">
+                        <input type="button" class="btn btn-primary col-md-2" value="Create New Cat" id="newCat" v-on:click="createNewCat()"></button>
+                    </div>
                 </div>
 
-                <label>File Upload
-                    <input type="file" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
-                </label>
-
                 <div class="form-group">
+                    <label class="control-label">Choose sound category</label>
+                    <div class="input-group">
+                        <select class="form-control" v-model="selectedCategory">
+                            <option v-for="category in soundCategories" v-bind:value="category.name">
+                                {{category.name}}
+                            </option>
+                        </select>
+                        <input type="file" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
+                    </div>
+                </div>
+                
+                <h1>Play Sounds</h1>
+                <div class="form-group ">
                     <label class="control-label">Choose Channel</label>
-                    <select class="form-control col-md-2" v-model="selectedChannel">
+                    <select class="form-control" v-model="selectedChannel">
                         <option v-for="channel in channels" v-bind:value="channel.id">
                             {{channel.name}}
                         </option>
                     </select>
                 </div>
-                
                 <div class="form-group">
                     <label class="control-label">Volume</label>
                     <input class="form-control col-md-1" type="number" v-model="volume" step="0.5">
                 </div>
 
-                <div class="form-group col-md-6">
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(true)">Expand all categories</button>
+                    <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(false)">Collapse all categories</button>
                     <div v-for="category in soundCategories">
-                        <h1 class="control-label">{{category}}</h1>
-                        <table class="table">
+                        <h2 class="control-label">{{category.name}}</h2>
+                        <button type="button" class="btn btn-primary" v-on:click="changeCategoryVisibility(category)" style="width: 40px; height: 40px">{{category.show ? '-' : '+'}}</button>
+                        <table class="table" v-show="category.show">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -55,7 +66,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="sound in sounds[category]">
+                                <tr v-for="sound in sounds[category.name]">
                                     <td>
                                         {{sound.name}}
                                     </td>
@@ -67,7 +78,6 @@
                         </table>
                     </div>
                 </div>
-                
             </div>
         </div>
 

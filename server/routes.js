@@ -33,7 +33,7 @@ module.exports = function (router, logger, discordClient, config) {
       playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
         res.status(200).json(response);
       }).catch(error =>{
-        logger.error(error);
+        logger.error(error, 'requestSound');
         res.status(404).json(error);
       })
       
@@ -54,7 +54,7 @@ module.exports = function (router, logger, discordClient, config) {
       fileHelper.moveToCategory(req.file.path, req.body.category).then(result =>{
         res.status(200).json(result);
       }).catch(error =>{
-        logger.error(error);
+        logger.error(error, 'uploadFile');
         res.status(400).json(error);
       });
     });

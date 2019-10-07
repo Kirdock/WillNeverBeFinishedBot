@@ -10,8 +10,15 @@ module.exports = ( config, root_folder ) => {
         level: options.level,
         transports: [
             new winston.transports.Console({
+                handleExceptions: true,
                 prettyPrint: true,
                 colorize: true
+            }),
+            new winston.transports.File({
+                handleExceptions: true,
+                prettyPrint: true,
+                colorize: true,
+                filename: 'Logs.log'
             })
         ],
         exitOnError: false
@@ -19,22 +26,22 @@ module.exports = ( config, root_folder ) => {
 
     function debug(context, msg){
         if (logger){
-            logger.debug(msg, { meta: { context: context } });
+            logger.debug(msg, context);
         }
     }
     function info(context, msg){
         if (logger){
-            logger.info(msg, { meta: { context: context } });
+            logger.info(msg, context);
         }
     }
     function warn(context, msg){
         if (logger){
-            logger.warn(msg, { meta: { context: context } });
+            logger.warn(msg,context);
         }
     }
     function error(context, msg){
         if (logger){
-            logger.error(msg, { meta: { context: context } });
+            logger.error(msg, context);
         }
     }
 

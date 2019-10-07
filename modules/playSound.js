@@ -35,7 +35,7 @@ module.exports = (config, logger, voiceHelper) =>{
                 if(error.message){
                     message.reply(error.message);
                 }
-                logger.error(error);
+                logger.error(error, 'JoinVoiceChannel');
             });
         }
     }
@@ -52,16 +52,27 @@ module.exports = (config, logger, voiceHelper) =>{
     }
 
 
-    function playSound(file, id, connection, volumeMultiplier = 0.5){
+    function playSound(file, id, con, volumeMultiplier = 0.5){
+        let delay = config.playSoundDelay;
+        const connection = (con || voiceHelper.getConnection(id));
+        let dispatcher = con.dispatcher;
+        if(dispatcher){ //if bot is playing something at the moment, it interrupts and plays the other file
+            dispatcher.end('playFile'); //Parameter = reason why dispatcher ended
+            delay = 0;
+        }
+
         setTimeout(()=>{
-            const dispatcher = (connection || voiceHelper.getConnection(id)).playFile(file);
-            dispatcher.on('end', () => {
-                voiceHelper.disconnectVoice(id);
+
+            dispatcher = connection.playFile(file);
+            dispatcher.on('end', (reason) => {
+                if(reason === 'stream'){
+                    voiceHelper.disconnectVoice(id);
+                }
             });
             
             dispatcher.on('error', e => {
             // Catch any errors that may arise
-                logger.error(e);
+                logger.error(e, 'playSound');
             });
     
             dispatcher.on('start', () => {
@@ -74,6 +85,6 @@ module.exports = (config, logger, voiceHelper) =>{
             //   dispatcher.resume(); // Carry on playing
             
             //   dispatcher.end(); // End the dispatcher, emits 'end' event
-        },config.playSoundDelay);
+        },delay);
     }
 }
