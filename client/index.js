@@ -1,6 +1,6 @@
 'use strict'
 import { dataservice } from './services/dataservice.js'
-console.log('test final Deluxe XD HD V2');
+console.log('test final Deluxe XD Ultra HD V2');
 var app = new Vue({
     el: '#fetch',
     data: {
