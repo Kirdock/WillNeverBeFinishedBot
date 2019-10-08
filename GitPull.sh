@@ -1,12 +1,11 @@
 #!/bin/sh
-if git merge-base --is-ancestor origin/master master;
+if [[ $(git fetch) ]];
 then
-	echo "nix neies!"
-else
 	echo "olles nei!"
-	git fetch
 	git pull
 	npm stop
 	npm install --production
 	npm start
+else
+	echo "nix neies!"
 fi
