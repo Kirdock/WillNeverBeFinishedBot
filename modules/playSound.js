@@ -7,7 +7,8 @@ module.exports = (config, logger, voiceHelper) =>{
     let playSoundCommand = {
         doWork: doWork,
         isCommand: isCommand,
-        requestSound: requestSound
+        requestSound: requestSound,
+        stopPlaying: stopPlaying
     }
     const fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
 
@@ -94,5 +95,25 @@ module.exports = (config, logger, voiceHelper) =>{
             
             //   dispatcher.end(); // End the dispatcher, emits 'end' event
         },delay);
+    }
+
+    function stopPlaying(serverId){
+        var defer = q.defer();
+        const message = 'Does not play anything on this server';
+        const connection = voiceHelper.getConnection(serverId);
+        if(connection){
+            const dispatcher = connection.dispatcher;
+            if(dispatcher){
+                dispatcher.end('stream');
+                defer.resolve('stopped');
+            }
+            else{
+                defer.reject(message);
+            }
+        }
+        else{
+            defer.reject(message);
+        }
+        return defer.promise;
     }
 }

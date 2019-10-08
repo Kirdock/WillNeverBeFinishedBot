@@ -21,10 +21,8 @@
     "bower": "^1.8.8",
     "discord.js": "^11.5.1",
     "express": "^4.17.1",
-    "ffmpeg": "0.0.4",
     "fs": "0.0.1-security",
     "multer": "^1.4.2",
-    "node-opus": "^0.3.2",
     "path": "^0.12.7",
     "pm2": "^3.5.1",
     "q": "^1.5.1",
@@ -32,17 +30,11 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "bower": "^1.8.8",
-    "discord.js": "^11.5.1",
-    "express": "^4.17.1",
     "ffmpeg-binaries": "^4.0.0",
-    "fs": "0.0.1-security",
-    "multer": "^1.4.2",
-    "opusscript": "0.0.7",
-    "path": "^0.12.7",
-    "pm2": "^3.5.1",
-    "q": "^1.5.1",
-    "shelljs": "^0.8.3",
-    "winston": "^3.2.1"
+    "opusscript": "0.0.7"
+  },
+  "optionalDependencies": {
+    "node-opus": "^0.3.2",
+    "ffmpeg": "0.0.4"
   }
 }

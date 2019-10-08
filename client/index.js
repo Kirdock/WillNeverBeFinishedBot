@@ -92,6 +92,13 @@ var app = new Vue({
         }).catch(error =>{
 
         });
+      },
+      stopPlaying: function(){
+        dataservice.stopPlaying(this.selectedServer).then(response =>{
+
+        }).catch(error =>{
+
+        })
       }
     },
     created: function (){

@@ -9,7 +9,8 @@ let dataservice = {
     playSound: playSound,
     createNewCat: createNewCat,
     fetchChannels: fetchChannels,
-    updateWebsite: updateWebsite
+    updateWebsite: updateWebsite,
+    stopPlaying: stopPlaying
 }
 
 function fetchServers(){
@@ -61,6 +62,10 @@ function fetchChannels(serverId){
 
 function updateWebsite(){
     return axios.get(config.api+'/UpdateWebsite');
+}
+
+function stopPlaying(serverId){
+    return axios.get(config.api+'/stopPlaying/'+serverId);
 }
 
 export {dataservice}

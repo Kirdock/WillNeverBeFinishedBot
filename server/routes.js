@@ -34,6 +34,16 @@ module.exports = function (router, logger, discordClient, config) {
       
     });
 
+    router.route('/stopPlaying/:serverId')
+		.get(function (req, res) {
+      playSound.stopPlaying(req.params.serverId).then(result =>{
+        res.status(200).json(result);
+      }).catch(error =>{
+        res.status(500).json(error);
+      })
+      
+    });
+
     router.route('/sounds')
 		.get(function (req, res) {
       res.status(200).json(fileHelper.getSounds());
