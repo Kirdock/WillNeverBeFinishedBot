@@ -1,6 +1,6 @@
 'use strict'
 import { dataservice } from './services/dataservice.js'
-console.log('test commit2222');
+console.log('test final V2');
 var app = new Vue({
     el: '#fetch',
     data: {
