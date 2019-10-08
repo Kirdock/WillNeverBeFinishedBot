@@ -6,7 +6,7 @@ else
 	echo "olles nei!"
 	git fetch
 	git pull
-	node stop
+	npm stop
 	npm install --production
-	node start
+	npm start
 fi
