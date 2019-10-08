@@ -19,6 +19,7 @@ var app = new Vue({
       createNewCat: function () {
         if(!this.soundCategories.includes(this.newCatInput)){
           dataservice.createNewCat(this.newCatInput).then(response =>{
+            this.newCatInput = undefined;
             this.fetchCategories();
           }).catch(error =>{
 
@@ -84,6 +85,13 @@ var app = new Vue({
       },
       setCategoriesVisibility: function(status){
         this.soundCategories.forEach(category =>(category.show = status));
+      },
+      updateWebsite: function(){
+        dataservice.updateWebsite().then(response=>{
+          console.log(response);
+        }).catch(error =>{
+
+        });
       }
     },
     created: function (){

@@ -8,6 +8,7 @@ module.exports = function (router, logger, discordClient, config) {
 
   const voiceHelper = require('./../services/voiceHelper.js')(discordClient);
   const playSound = require('./../modules/playSound.js')(config,logger,voiceHelper);
+  const updateHelper = require('./../services/updateHelper.js')(config, logger);
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, path.join(fileHelper.soundFolder,config.uploadFolder))
@@ -21,6 +22,16 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/servers')
 		.get(function (req, res) {
       res.status(200).json(discordClient.guilds.map(item =>{return {id: item.id, name: item.name}}));
+    });
+
+    router.route('/updateWebsite')
+		.get(function (req, res) {
+      updateHelper.updateWebsite().then(result =>{
+        res.status(200).json(result);
+      }).catch(error =>{
+        res.status(500).json(error);
+      })
+      
     });
 
     router.route('/sounds')
