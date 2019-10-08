@@ -14,17 +14,17 @@ module.exports = (config, logger) =>{
 
     function updateWebsite(){
         const defer = q.defer();
-        const child = shell.exec('./../GitPull.sh');
-        if(child){
+        try{
+            const child = shell.exec(__dirname+'/../GitPull.sh',{async: true});
             child.stdout.on('data', function(data) {
                 defer.resolve(data);
             });
         }
-        else{
-            defer.reject('File not found?');
+        catch (error){
+            defer.reject(error);
         }
 
-        return defer.promise();
+        return defer.promise;
     }
 
 };
