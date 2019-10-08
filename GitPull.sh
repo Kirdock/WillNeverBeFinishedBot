@@ -1,27 +1,24 @@
 #!/bin/sh
 
+git fetch
 UPSTREAM=${1:-'@{u}'}
 LOCAL=$(git rev-parse @)
 REMOTE=$(git rev-parse "$UPSTREAM")
 BASE=$(git merge-base @ "$UPSTREAM")
 
-
-if [ $LOCAL = $BASE ];
+if [ $LOCAL = $REMOTE ];
 then
-    echo "olles nei!"
+	echo "Up-to-date"
+elif [ $LOCAL = $BASE ];
+then
+    echo "need to pull"
 	git pull
 	npm stop
 	npm install --production
 	npm start
+elif [ $REMOTE = $BASE ];
+then
+    echo "Need to push"
 else
-	echo "nix neies!"
+    echo "Diverged"
 fi
-
-
-#if [ $LOCAL = $REMOTE ]; then
-#    echo "Up-to-date"
-#elif [ $REMOTE = $BASE ]; then
-#    echo "Need to push"
-#else
-#    echo "Diverged"
-#fi
