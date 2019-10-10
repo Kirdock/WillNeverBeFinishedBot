@@ -87,6 +87,9 @@ client.on('message', message => {
             message.reply('Red Deitsch mit mir! I hob kan Plan wos du von mir wüllst!');
         }
     }
+    else if(message.content === 'sieg'){
+        message.reply('Heil!');
+    }
 });
 
 client.login(config.token);

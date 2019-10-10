@@ -111,8 +111,11 @@ module.exports = function (router, logger, discordClient, config) {
 
     router.route('/playSound')
 		.post(function (req, res) {
-      userHelper.auth(req).then(result =>{
-        userHelper.isInServer(result.user, req.body.serverId).then(result =>{
+      userHelper.auth(req).then(auth =>{
+        userHelper.isInServer(auth.user, req.body.serverId).then(result =>{
+          if(!auth.user.admin && req.body.volume >= 1){
+            req.body.volume = 1;
+          }
           playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
             res.status(200).json(response);
           }).catch(error =>{
@@ -200,6 +203,6 @@ module.exports = function (router, logger, discordClient, config) {
     }
 
     function notAdmin(res){
-      res.status(403).json({message: 'Nur der Hochadel hat Zugriff auf diese Funktion'})
+      res.status(403).json({message: 'Nur der Hochadel hat Zugriff auf diese Funktion'});
     }
 }

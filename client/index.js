@@ -17,6 +17,7 @@ var app = new Vue({
       selectedCategory: undefined,
       selectedChannel: undefined,
       isAdmin: false,
+      maxVolume: 1,
       loggedIn: false
     },
     methods: {
@@ -150,6 +151,9 @@ var app = new Vue({
         const decodedToken = authorization.getDecodedToken();
         this.username = decodedToken.username;
         this.isAdmin = app.isAdmin = decodedToken.admin;
+        if(this.isAdmin){
+          app.maxVolume = 100;
+        }
         this.loggedIn = app.loggedIn = true;
       }
     },
