@@ -7,11 +7,15 @@ axios.interceptors.request.use(function (config) {
 let cachedToken;
 const storage = window.localStorage;
 const tokenName = 'OiToken';
+let isLoggedIn;
+updateIsLoggedIn();
 
 const authorization = {
     getToken: getToken,
     setToken: setToken,
-    getDecodedToken: getDecodedToken
+    getDecodedToken: getDecodedToken,
+    deleteToken: deleteToken,
+    isLoggedIn: isLoggedIn
 }
 
 
@@ -28,6 +32,13 @@ function getToken(){
 function setToken(token){
     cachedToken = token;
     storage.setItem(tokenName, token);
+    updateIsLoggedIn();
+}
+
+function deleteToken(){
+    cachedToken = undefined;
+    storage.setItem(tokenName,undefined);
+    updateIsLoggedIn();
 }
 
 
@@ -51,9 +62,13 @@ function getDecodedToken () {
                 payload += "=";
                 break;
         }
-        decoded_payload = JSON.parse(base64.decode(payload));
+        decoded_payload = JSON.parse(atob(payload));
     }
     return decoded_payload;
+}
+
+function updateIsLoggedIn(){
+    isLoggedIn = getToken() !== undefined;
 }
 
     

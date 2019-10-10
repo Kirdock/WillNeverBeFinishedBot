@@ -22,17 +22,29 @@ module.exports = function (router, logger, discordClient, config) {
 
     router.route('/login')
     .post(function (req, res) {
-      userHelper.login(req.body.code, req.body.redirectUrl).then(result =>{
-        res.status(200).json(result);
+      userHelper.login(req.body.code, req.body.redirectUrl).then(authToken =>{
+        res.status(200).json(authToken);
       }).catch(error =>{
         console.log(error);
-        res.status(400).json();
+        res.status(401).json({message: 'Authentication failed'});
       })
     });
 
     router.route('/servers')
 		.get(function (req, res) {
-      res.status(200).json(discordClient.guilds.map(item =>{return {id: item.id, name: item.name}}));
+      userHelper.auth(req).then(result =>{
+        userHelper.getServersEquivalent(result.user, discordClient.guilds.map(item =>{return {id: item.id, name: item.name}}))
+          .then(result =>{
+            res.status(200).json(result);
+          })
+          .catch(error =>{
+            console.log(error);
+            res.status(404).json();
+          })
+      }).catch(error =>{
+        console.log(error.message);
+        res.status(error.status || 401).json(error.message || 'Authentication failed');
+      })
     });
 
     router.route('/updateWebsite')

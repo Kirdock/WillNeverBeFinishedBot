@@ -18,7 +18,9 @@ module.exports = () =>{
         createCatFolder: createCatFolder,
         existsFile: existsFile,
         getDirectoriesOfSoundFolder: getDirectoriesOfSoundFolder,
-        soundFolder: soundFolder
+        soundFolder: soundFolder,
+        checkAndCreateFolder: checkAndCreateFolder,
+        checkAndCreateFile: checkAndCreateFile
     };
 
     checkAndCreateFolder();
@@ -87,8 +89,8 @@ module.exports = () =>{
         return foundFile;
     }
 
-    function checkAndCreateFolder(){
-        const folder = path.join(soundFolder,config.uploadFolder);
+    function checkAndCreateFolder(dir){
+        const folder = dir || path.join(soundFolder,config.uploadFolder);
         if(!fs.existsSync(folder)){
             fs.mkdirSync(folder);
         }
@@ -100,5 +102,11 @@ module.exports = () =>{
             result[dir.split(path.sep).pop()] = getFiles(dir).map(file => {return {path: file, name: path.basename(file, path.extname(file))}});
         });
         return result;
+    }
+
+    function checkAndCreateFile(filePath){
+        if(!fs.existsSync(filePath)){
+            fs.writeFileSync(filePath,'{}');
+        }
     }
 }

@@ -102,11 +102,6 @@ var app = new Vue({
 
         })
       }
-    },
-    created: function (){
-        this.fetchServers();
-        this.fetchCategories();
-        this.fetchSounds();
     }
   });
 
@@ -118,7 +113,7 @@ var app = new Vue({
     },
     methods: {
       loggedIn: function () {
-        return this.username !== undefined;
+        return authorization.isLoggedIn;
       },
       isAdmin: function(){
         let status = false;
@@ -131,18 +126,32 @@ var app = new Vue({
       checkCode: function(){
         const url = new URL(window.location.href);
         const code = url.searchParams.get('code');
-        if (code && !authorization.getToken()) {
+        if (code && !authorization.isLoggedIn) {
           dataservice.login(code, getLocation()).then(response=>{
             authorization.setToken(response.data);
-            this.username = response.data.username;
+            this.setUserData();
+            app.fetchServers();
+            app.fetchCategories();
+            app.fetchSounds();
           }).catch(error =>{
             
           })
         }
+        else if(authorization.isLoggedIn){
+            this.setUserData();
+            app.fetchServers();
+            app.fetchCategories();
+            app.fetchSounds();
+        }
+      },
+      setUserData: function(){
+        const decodedToken = authorization.getDecodedToken();
+        this.username = decodedToken.username;
       }
     },
     created: function(){
       this.checkCode();
+      
     }
   });
 
