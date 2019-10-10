@@ -70,7 +70,6 @@ function stopPlaying(serverId){
 }
 
 function login(code, redirectUrl){
-    console.log(redirectUrl);
     return axios.post(config.api+'/login',{
         code: code,
         redirectUrl: redirectUrl

@@ -15,7 +15,9 @@ var app = new Vue({
       newCatInput: undefined,
       selectedServer: undefined,
       selectedCategory: undefined,
-      selectedChannel: undefined
+      selectedChannel: undefined,
+      isAdmin: false,
+      loggedIn: false
     },
     methods: {
       createNewCat: function () {
@@ -109,44 +111,41 @@ var app = new Vue({
     el: '#nav',
     data: {
       username: undefined,
+      isAdmin: false,
+      loggedIn: false,
       loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+getLocationEncoded()+'&response_type=code&scope=identify%20guilds'
     },
     methods: {
-      loggedIn: function () {
-        return authorization.isLoggedIn;
-      },
-      isAdmin: function(){
-        let status = false;
-        const token = authorization.getDecodedToken();
-        if(token){
-          status = token.admin;
-        }
-        return status;
-      },
       checkCode: function(){
         const url = new URL(window.location.href);
         const code = url.searchParams.get('code');
         if (code && !authorization.isLoggedIn) {
           dataservice.login(code, getLocation()).then(response=>{
             authorization.setToken(response.data);
-            this.setUserData();
-            app.fetchServers();
-            app.fetchCategories();
-            app.fetchSounds();
+            this.fetchData();
+            removeQueryFromUrl();
           }).catch(error =>{
-            
-          })
+            removeQueryFromUrl();
+          });
         }
         else if(authorization.isLoggedIn){
-            this.setUserData();
-            app.fetchServers();
-            app.fetchCategories();
-            app.fetchSounds();
+            this.fetchData();
         }
+        else if(code){
+          removeQueryFromUrl();
+        }
+      },
+      fetchData: function(){
+        this.setUserData();
+        app.fetchServers();
+        app.fetchCategories();
+        app.fetchSounds();
       },
       setUserData: function(){
         const decodedToken = authorization.getDecodedToken();
         this.username = decodedToken.username;
+        this.isAdmin = app.isAdmin = decodedToken.admin;
+        this.loggedIn = app.loggedIn = true;
       }
     },
     created: function(){
@@ -155,6 +154,9 @@ var app = new Vue({
     }
   });
 
+  function removeQueryFromUrl() {
+    window.history.pushState({}, document.title, window.location.href.split("?")[0]);
+  }
 
   function getLocation(){
     return window.location.protocol+'//'+window.location.host+'/';

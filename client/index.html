@@ -15,25 +15,25 @@
               <li class="nav-item active">
                 <a class="nav-link" href="#">Home<span class="sr-only">(current)</span></a>
               </li>
-              <li class="nav-item" v-show="!loggedIn()">
+              <li class="nav-item" v-show="!loggedIn">
                 <a class="nav-link" :href="loginLink">Login</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#" v-if="isAdmin()">Admin</a>
+                <a class="nav-link" href="#" v-if="isAdmin">Admin</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link disabled" href="#">Disabled</a>
               </li>
             </ul>
           </div>
-          <span class="navbar-text" v-show="loggedIn()">
+          <span class="navbar-text" v-show="loggedIn">
                 Der Vollpfostn {{username}} hots auf de Seitn gschofft!
           </span>
         </nav>
         
         <div class="container" style="margin-top:50px">
-            <div id="fetch" class="form-horizontal">
-                <button type="button" class="btn btn-primary" v-on:click="updateWebsite()">Update Website</button>
+            <div id="fetch" class="form-horizontal" v-if="loggedIn">
+                <button type="button" class="btn btn-primary" v-on:click="updateWebsite()" v-if="isAdmin">Update Website</button>
                 <h1 class="control-label">Server</h1>
                 <div class="form-group">
                     <select class="form-control" v-model="selectedServer">

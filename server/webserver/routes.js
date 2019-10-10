@@ -42,19 +42,23 @@ module.exports = function (router, logger, discordClient, config) {
             res.status(404).json();
           })
       }).catch(error =>{
-        console.log(error.message);
-        res.status(error.status || 401).json(error.message || 'Authentication failed');
+        loginFailed(res, error);
       })
     });
 
     router.route('/updateWebsite')
 		.get(function (req, res) {
-      updateHelper.updateWebsite().then(result =>{
-        res.status(200).json(result);
+      userHelper.auth(req).then(result =>{
+        if(result.user.admin){
+          updateHelper.updateWebsite().then(result =>{
+            res.status(200).json(result);
+          }).catch(error =>{
+            res.status(500).json(error);
+          })
+        }
       }).catch(error =>{
-        res.status(500).json(error);
+        loginFailed(res, error);
       })
-      
     });
 
     router.route('/stopPlaying/:serverId')
@@ -112,4 +116,9 @@ module.exports = function (router, logger, discordClient, config) {
     .put(function (req, res) {
       res.status(200).json(fileHelper.createCatFolder(req.params.catname));
     });
+
+    function loginFailed(res, error){
+      console.log(error.message);
+      res.status(error.status || 401).json(error.message || 'Authentication failed');
+    }
 }

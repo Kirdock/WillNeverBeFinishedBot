@@ -22,9 +22,11 @@ module.exports = () =>{
     return databaseHelper;
 
     function addUser(user, authData){
-        let query = JSON.parse(JSON.stringify(user)); //without reference
-        query.info = authData;
-        db.get(users).push(query).write();
+        if(!getUser(user.id)){
+            let query = JSON.parse(JSON.stringify(user)); //without reference
+            query.info = authData;
+            db.get(users).push(query).write();
+        }
     }
 
     function removeUser(id){
