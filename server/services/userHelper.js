@@ -55,7 +55,7 @@ module.exports = (config) =>{
                             userData.admin = config.admins.includes(userData.id);
                             userData.application = application;
 
-                            databaseHelper.addUser(userData, res, servers);
+                            databaseHelper.addUser(userData, res, servers, new Date().getTime());
 
                             defer.resolve(jwt.sign(userData, secret));
                         }).catch(defer.reject)
@@ -68,13 +68,13 @@ module.exports = (config) =>{
         return defer.promise;
     }
 
-    function refreshToken(refresh_token, redirectUrl){
+    function refreshToken(refresh_token){
         const data = new FormData();
 
         data.append('client_id', config.clientId);
         data.append('client_secret', config.clientSecret);
         data.append('grant_type', 'refresh_token');
-        data.append('redirect_uri', redirectUrl);
+        data.append('redirect_uri', 'http://kirdock.synology.me:4599/');
         data.append('scope', config.scope);
         data.append('refresh_token', refresh_token);
 
@@ -119,15 +119,17 @@ module.exports = (config) =>{
 			}
 			else {
                 const token = req.headers.authorization.split(' ')[1]; // strip 'Bearer'
-                tryGetToken(token).then(data =>{
+                tryGetToken(token).then(data =>{ //returns all user information including auth_token
                     if (data.application !== application) {
                         result.status = 401;
                         result.message = 'Authentication failed!';
                         defer.reject(result);
                     }
                     else{
-                        result.user = data;
-                        defer.resolve(result);
+                        checkTokenExpired(data).then(newUser =>{
+                            result.user = newUser;
+                            defer.resolve(result);  
+                        }).catch(defer.reject);
                     }
                 }).catch(defer.reject);
 			}
@@ -138,6 +140,23 @@ module.exports = (config) =>{
             defer.reject(result);
 		}
 		return defer.promise;
+    }
+
+    function checkTokenExpired(user){
+        const defer = q.defer();
+        const timeBegin = user.time;
+        const expire = user.info.expires_in;
+        const timeNow = new Date().getTime();
+        if((timeNow - timeBegin) > expire){
+            refreshToken(user.info.refresh_token).then(result =>{
+                user.info = result;
+                defer.resolve(user);
+            }).catch(defer.reject);
+        }
+        else{
+            defer.resolve(user);
+        }
+        return defer.promise;
     }
 
     function getServers(user){
