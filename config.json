@@ -5,5 +5,7 @@
     "scope": "identify guilds",
     "playSoundDelay": 500,
     "uploadFolder": "uploads",
+    "owner": "131072858083426304",
+    "admins": ["131072858083426304", "174203817351446529"],
     "port": 4599
 }

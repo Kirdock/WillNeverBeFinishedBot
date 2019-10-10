@@ -15,8 +15,7 @@ var app = new Vue({
       newCatInput: undefined,
       selectedServer: undefined,
       selectedCategory: undefined,
-      selectedChannel: undefined,
-      username: undefined
+      selectedChannel: undefined
     },
     methods: {
       createNewCat: function () {
@@ -102,10 +101,32 @@ var app = new Vue({
         }).catch(error =>{
 
         })
+      }
+    },
+    created: function (){
+        this.fetchServers();
+        this.fetchCategories();
+        this.fetchSounds();
+    }
+  });
+
+  var appNav =  new Vue({
+    el: '#nav',
+    data: {
+      username: undefined,
+      loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+getLocationEncoded()+'&response_type=code&scope=identify%20guilds'
+    },
+    methods: {
+      loggedIn: function () {
+        return this.username !== undefined;
       },
-      login: function(){
-        const location = getLocationEncoded();
-        window.location.href = 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+location+'&response_type=code&scope=identify%20guilds';
+      isAdmin: function(){
+        let status = false;
+        const token = authorization.getDecodedToken();
+        if(token){
+          status = token.admin;
+        }
+        return status;
       },
       checkCode: function(){
         const url = new URL(window.location.href);
@@ -118,16 +139,10 @@ var app = new Vue({
             
           })
         }
-      },
-      loggedIn: function(){
-        return this.username === undefined;
       }
     },
-    created: function (){
-        this.checkCode();
-        this.fetchServers();
-        this.fetchCategories();
-        this.fetchSounds();
+    created: function(){
+      this.checkCode();
     }
   });
 

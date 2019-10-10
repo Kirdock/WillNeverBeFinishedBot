@@ -42,6 +42,8 @@ module.exports = (config) =>{
                 
                 fetchData(res)
                     .then(userData => {
+                        userData.owner = config.owner == userdata.id;
+                        userData.admin = config.admins.contains(userdata.id);
                         defer.resolve(jwt.sign(userData, secret));
                     })
                     .catch(defer.reject);
