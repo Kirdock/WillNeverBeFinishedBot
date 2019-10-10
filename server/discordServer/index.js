@@ -61,7 +61,8 @@ client.on('message', message => {
     if(content){
         content = content.toLocaleLowerCase().trim();
         if(listCommand.isCommand(content)){
-            listCommand.doWork(message);
+            //listCommand.doWork(message);
+            message.reply('http://kirdock.synology.me:4599/');
         }
         else if(questionCommand.isCommand(content))
         {
