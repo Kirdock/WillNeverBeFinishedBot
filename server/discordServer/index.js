@@ -36,9 +36,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
         else if(newMember.id == '300642449049780224' || newMember.id == '103645166740463616'){ //Trupp, Kapfe
             sound = 'pickn';
         }
-        else{
-            playSoundCommand.doWorkWithoutMessage(sound,newMember.guild.id,newMember.voiceChannel.id)
-        }
+        playSoundCommand.doWorkWithoutMessage(sound,newMember.guild.id,newMember.voiceChannel.id);
     } else if(newUserChannel === undefined){
 
         // User leaves a voice channel

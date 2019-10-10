@@ -13,7 +13,8 @@ module.exports = (config) =>{
         tryGetToken: tryGetToken,
         getServers: getServers,
         auth: auth,
-        getServersEquivalent: getServersEquivalent
+        getServersEquivalent: getServersEquivalent,
+        isInServer: isInServer
     }
     const secret = 'Q8{He@4et!5Prhr/Zy:s';
     const application = 'DiscordBot';
@@ -157,6 +158,31 @@ module.exports = (config) =>{
                 }
             });
             defer.resolve(sameServers);
+        }).catch(defer.reject);
+        return defer.promise;
+    }
+
+    function isInServer(info,serverId){
+        var defer = q.defer();
+        getServers(info).then(servers =>{
+            if(servers.retry_after){
+                defer.reject(servers);
+            }
+            else{
+                let status = false;
+                for(let i = 0; i < servers.length; i++){
+                    if(servers[i].id == serverId){
+                        status = true;
+                        break;
+                    }
+                }
+                if(status){
+                    defer.resolve(status);
+                }
+                else{
+                    defer.reject(status);
+                }
+            }
         }).catch(defer.reject);
         return defer.promise;
     }
