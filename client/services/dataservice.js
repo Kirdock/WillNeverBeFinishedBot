@@ -19,13 +19,14 @@ function fetchServers(){
     return axios.get(config.api+'/servers');
 }
 
-function playSound(path, serverId, channelId, volume){
+function playSound(path, serverId, channelId, volume, joinUser){
     return axios.post(config.api+'/playSound', 
     {
         path: path,
         serverId: serverId,
         channelId: channelId,
-        volume: volume
+        volume: volume,
+        joinUser: joinUser
     },
     {
         headers:{

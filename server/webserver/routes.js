@@ -116,12 +116,32 @@ module.exports = function (router, logger, discordClient, config) {
           if(!auth.user.admin && req.body.volume >= 1){
             req.body.volume = 1;
           }
-          playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
-            res.status(200).json(response);
-          }).catch(error =>{
-            logger.error(error, 'requestSound');
-            res.status(404).json(error);
-          })
+          let validJoin = true;
+          if(req.body.joinUser){
+            const guild = discordClient.guilds.get(req.body.serverId);
+            if(guild){
+              const member = guild.members.get(auth.user.id);
+              if(member.guild.id == req.body.serverId && member.voiceChannel){
+                req.body.channelId = member.voiceChannelID;
+              }
+              else{
+                validJoin = false;
+                res.status(404).json();
+              }
+            }
+            else{
+              validJoin = false;
+              res.status(404).json();
+            }
+          }
+          if(validJoin){
+            playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
+              res.status(200).json(response);
+            }).catch(error =>{
+              logger.error(error, 'requestSound');
+              res.status(404).json(error);
+            })
+          }
         }).catch(error =>{
           notInServer(res, error);
         })

@@ -18,7 +18,8 @@ var app = new Vue({
       selectedChannel: undefined,
       isAdmin: false,
       maxVolume: 1,
-      loggedIn: false
+      loggedIn: false,
+      joinUser: false
     },
     methods: {
       createNewCat: function () {
@@ -79,7 +80,7 @@ var app = new Vue({
           });
       },
       playSound: function(path){
-          dataservice.playSound(path, this.selectedServer, this.selectedChannel, this.volume).then(response =>{
+          dataservice.playSound(path, this.selectedServer, this.selectedChannel, this.volume, this.joinUser).then(response =>{
 
           }).catch(error =>{
 
