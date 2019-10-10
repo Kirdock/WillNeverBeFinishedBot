@@ -1,7 +1,7 @@
 'use strict'
 
 const fs = require('fs');
-const fileHelper = require('./../services/fileHelper.js')(); 
+const fileHelper = require('../services/fileHelper.js')(); 
 const commandAlias = ['command', 'commands', 'list', 'help', '?'];
 
 module.exports = (config, logger) =>{

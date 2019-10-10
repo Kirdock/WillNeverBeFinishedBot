@@ -1,5 +1,5 @@
 'use strict'
-const fileHelper = require('./../services/fileHelper.js')();
+const fileHelper = require('../services/fileHelper.js')();
 const playCommand = 'play';
 const q = require('q');
 

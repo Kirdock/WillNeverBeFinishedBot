@@ -4,7 +4,7 @@ const q = require('q');
 const path = require('path');
 const isDirectory = source => fs.lstatSync(source).isDirectory();
 const isFile = source => fs.lstatSync(source).isFile();
-const config = require('./../config.json');
+const config = require('../config/config.json');
 const soundFolder = path.join(__dirname+'/../assets/sounds');
 
 module.exports = () =>{

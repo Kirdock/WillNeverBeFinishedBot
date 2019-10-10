@@ -15,7 +15,7 @@ module.exports = (config, logger) =>{
     function updateWebsite(){
         const defer = q.defer();
         try{
-            const child = shell.exec(__dirname+'/../GitPull.sh',{async: true});
+            const child = shell.exec(__dirname+'/../scripts/GitPull.sh',{async: true});
             child.stdout.on('data', function(data) {
                 defer.resolve(data);
             });
