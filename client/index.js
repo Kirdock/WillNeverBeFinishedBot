@@ -106,7 +106,7 @@ var app = new Vue({
       },
       updateServerList: function(){
         dataservice.updateServerList().then(servers =>{
-          this.servers = servers;
+          this.servers = servers.data;
         });
       }
     }
