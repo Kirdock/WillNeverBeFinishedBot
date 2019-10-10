@@ -1,5 +1,5 @@
 let config = {
-    api: "./api/",
+    api: "./api/"
   };
 
 export { config }

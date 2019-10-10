@@ -1,6 +1,8 @@
 {
-    "botId": "630064403525533706",
+    "clientId": "630064403525533706",
     "token": "NjMwMDY0NDAzNTI1NTMzNzA2.XZi3jQ.KY1Bs-WCWVZgx5JjVnNeUE5JaGw",
+    "clientSecret": "GlqTWKDCseOz0jHIa1UR0uy0yWexrv7v",
+    "scope": "identify guilds",
     "playSoundDelay": 500,
     "uploadFolder": "uploads",
     "port": 4599

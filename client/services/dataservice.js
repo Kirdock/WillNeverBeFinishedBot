@@ -10,7 +10,8 @@ let dataservice = {
     createNewCat: createNewCat,
     fetchChannels: fetchChannels,
     updateWebsite: updateWebsite,
-    stopPlaying: stopPlaying
+    stopPlaying: stopPlaying,
+    login: login
 }
 
 function fetchServers(){
@@ -66,6 +67,19 @@ function updateWebsite(){
 
 function stopPlaying(serverId){
     return axios.get(config.api+'/stopPlaying/'+serverId);
+}
+
+function login(code, redirectUrl){
+    console.log(redirectUrl);
+    return axios.post(config.api+'/login',{
+        code: code,
+        redirectUrl: redirectUrl
+    },
+    {
+        headers:{
+            'Content-Type': 'application/json'
+        }
+    });
 }
 
 export {dataservice}

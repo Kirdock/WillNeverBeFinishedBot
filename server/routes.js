@@ -9,6 +9,7 @@ module.exports = function (router, logger, discordClient, config) {
   const voiceHelper = require('./../services/voiceHelper.js')(discordClient);
   const playSound = require('./../modules/playSound.js')(config,logger,voiceHelper);
   const updateHelper = require('./../services/updateHelper.js')(config, logger);
+  const userHelper = require('../services/userHelper.js')(config);
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, path.join(fileHelper.soundFolder,config.uploadFolder))
@@ -18,6 +19,16 @@ module.exports = function (router, logger, discordClient, config) {
     }
   });
   const upload = multer({storage: storage});
+
+    router.route('/login')
+    .post(function (req, res) {
+      userHelper.login(req.body.code, req.body.redirectUrl).then(result =>{
+        res.status(200).json(result);
+      }).catch(error =>{
+        console.log(error);
+        res.status(400).json();
+      })
+    });
 
     router.route('/servers')
 		.get(function (req, res) {

@@ -7,6 +7,8 @@
     <body>
         <div class="container" style="margin-top:50px">
             <div id="fetch" class="form-horizontal">
+                <button type="button" class="btn btn-primary" v-on:click="login()" v-if="!loggedIn()">Login</button>
+                <label class="control-label" v-else>Der Vollpfostn {{username}} hots auf de Seitn gschofft!</label>
                 <button type="button" class="btn btn-primary" v-on:click="updateWebsite()">Update Website</button>
                 <h1 class="control-label">Server</h1>
                 <div class="form-group">

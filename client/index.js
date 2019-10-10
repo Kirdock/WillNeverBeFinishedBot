@@ -1,6 +1,8 @@
 'use strict'
-import { dataservice } from './services/dataservice.js'
-console.log('test final Deluxe XD Ultra HD V2');
+import { dataservice } from './services/dataservice.js';
+import { authorization } from './services/autorization.js';
+
+
 var app = new Vue({
     el: '#fetch',
     data: {
@@ -13,7 +15,8 @@ var app = new Vue({
       newCatInput: undefined,
       selectedServer: undefined,
       selectedCategory: undefined,
-      selectedChannel: undefined
+      selectedChannel: undefined,
+      username: undefined
     },
     methods: {
       createNewCat: function () {
@@ -99,12 +102,40 @@ var app = new Vue({
         }).catch(error =>{
 
         })
+      },
+      login: function(){
+        const location = getLocationEncoded();
+        window.location.href = 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+location+'&response_type=code&scope=identify%20guilds';
+      },
+      checkCode: function(){
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+        if (code && !authorization.getToken()) {
+          dataservice.login(code, getLocation()).then(response=>{
+            authorization.setToken(response.data);
+            this.username = response.data.username;
+          }).catch(error =>{
+            
+          })
+        }
+      },
+      loggedIn: function(){
+        return this.username === undefined;
       }
     },
     created: function (){
+        this.checkCode();
         this.fetchServers();
         this.fetchCategories();
         this.fetchSounds();
     }
   });
 
+
+  function getLocation(){
+    return window.location.protocol+'//'+window.location.host+'/';
+  }
+
+  function getLocationEncoded(){
+    return encodeURIComponent(getLocation());
+  }

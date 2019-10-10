@@ -8,7 +8,8 @@ module.exports = (config, logger, voiceHelper) =>{
         doWork: doWork,
         isCommand: isCommand,
         requestSound: requestSound,
-        stopPlaying: stopPlaying
+        stopPlaying: stopPlaying,
+        doWorkWithoutMessage: doWorkWithoutMessage
     }
     const fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
 
@@ -23,6 +24,7 @@ module.exports = (config, logger, voiceHelper) =>{
         const foundFile = fileHelper.tryGetSoundFile(command);
         if(!foundFile){
             message.reply(fileNotFoundMessage);
+            return;
         }
         if(voiceHelper.hasConnection(message.guild.id)){
             playSound(foundFile, message.guild.id);
@@ -31,6 +33,28 @@ module.exports = (config, logger, voiceHelper) =>{
             voiceHelper.joinVoiceChannel(message)
             .then(connection =>{
                 playSound(foundFile, message.guild.id, connection);
+            })
+            .catch(error =>{
+                if(error.message){
+                    message.reply(error.message);
+                }
+                logger.error(error, 'JoinVoiceChannel');
+            });
+        }
+    }
+
+    function doWorkWithoutMessage(file, serverId, channelId){
+        const foundFile = fileHelper.tryGetSoundFile(file);
+        if(!foundFile){
+            return;
+        }
+        if(voiceHelper.hasConnection(serverId)){
+            playSound(foundFile, serverId);
+        }
+        else{
+            voiceHelper.joinVoiceChannelById(serverId,channelId)
+            .then(connection =>{
+                playSound(foundFile, serverId, connection);
             })
             .catch(error =>{
                 if(error.message){

@@ -17,6 +17,34 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
+client.on('voiceStateUpdate', (oldMember, newMember) => {
+    let newUserChannel = newMember.voiceChannel
+    let oldUserChannel = oldMember.voiceChannel
+
+    if(newMember.id == config.clientId){
+        return;
+    }
+
+    if(oldUserChannel === undefined && newUserChannel !== undefined) {
+        let sound = 'servus';
+        if(newMember.id == '174203817351446529'){ //Timmy
+            sound = 'timmy'
+        }
+        else if(newMember.id == '161084180560609280'){ //Thaler
+            sound = 'qq';
+        }
+        else if(newMember.id == '300642449049780224' || newMember.id == '103645166740463616'){ //Trupp, Kapfe
+            sound = 'pickn';
+        }
+        else{
+            playSoundCommand.doWorkWithoutMessage(sound,newMember.guild.id,newMember.voiceChannel.id)
+        }
+    } else if(newUserChannel === undefined){
+
+        // User leaves a voice channel
+    }
+  });
+
 client.on('message', message => {
     let content = undefined;
     let prefixFound = false;
@@ -29,8 +57,8 @@ client.on('message', message => {
         }
     }
     
-    if(!prefixFound && message.content.startsWith('<@'+config.botId+'>')){
-        content = message.content.substring(config.botId.length+3);
+    if(!prefixFound && message.content.startsWith('<@'+config.clientId+'>')){
+        content = message.content.substring(config.clientId.length+3);
     }
     if(content){
         content = content.toLocaleLowerCase().trim();
