@@ -11,7 +11,8 @@ let dataservice = {
     fetchChannels: fetchChannels,
     updateWebsite: updateWebsite,
     stopPlaying: stopPlaying,
-    login: login
+    login: login,
+    updateServerList: updateServerList
 }
 
 function fetchServers(){
@@ -79,6 +80,10 @@ function login(code, redirectUrl){
             'Content-Type': 'application/json'
         }
     });
+}
+
+function updateServerList(){
+    return axios.get(config.api+'/updateServer');
 }
 
 export {dataservice}

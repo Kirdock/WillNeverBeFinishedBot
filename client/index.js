@@ -103,6 +103,11 @@ var app = new Vue({
         }).catch(error =>{
 
         })
+      },
+      updateServerList: function(){
+        dataservice.updateServerList().then(servers =>{
+          this.servers = servers;
+        });
       }
     }
   });

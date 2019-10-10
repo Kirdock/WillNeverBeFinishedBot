@@ -17,14 +17,16 @@ module.exports = () =>{
     const databaseHelper = {
         addUser: addUser,
         removeUser: removeUser,
-        getUser: getUser
+        getUser: getUser,
+        setServersOfUser: setServersOfUser
     }
     return databaseHelper;
 
-    function addUser(user, authData){
+    function addUser(user, authData, servers){
         if(!getUser(user.id)){
             let query = JSON.parse(JSON.stringify(user)); //without reference
             query.info = authData;
+            query.servers = servers;
             db.get(users).push(query).write();
         }
     }
@@ -41,5 +43,9 @@ module.exports = () =>{
         let query = {};
         query[users] = [];
         db.defaults(query).write();
+    }
+
+    function setServersOfUser(id, servers){
+        db.get(users).find({id: id}).assign({ servers: servers}).write();
     }
 }

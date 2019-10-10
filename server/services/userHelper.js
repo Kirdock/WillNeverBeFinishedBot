@@ -14,7 +14,8 @@ module.exports = (config) =>{
         getServers: getServers,
         auth: auth,
         getServersEquivalent: getServersEquivalent,
-        isInServer: isInServer
+        isInServer: isInServer,
+        updateServers: updateServers
     }
     const secret = 'Q8{He@4et!5Prhr/Zy:s';
     const application = 'DiscordBot';
@@ -49,12 +50,15 @@ module.exports = (config) =>{
                     }
                     else{
                         
-                        userData.owner = config.owner == userData.id;
-                        userData.admin = config.admins.includes(userData.id);
-                        userData.application = application;
-                        
-                        databaseHelper.addUser(userData, res);
-                        defer.resolve(jwt.sign(userData, secret));
+                        getServersWithToken(res).then(servers =>{
+                            userData.owner = config.owner == userData.id;
+                            userData.admin = config.admins.includes(userData.id);
+                            userData.application = application;
+
+                            databaseHelper.addUser(userData, res, servers);
+
+                            defer.resolve(jwt.sign(userData, secret));
+                        }).catch(defer.reject)
                     }
                 })
                 .catch(defer.reject);
@@ -136,7 +140,13 @@ module.exports = (config) =>{
 		return defer.promise;
     }
 
-    function getServers(info){
+    function getServers(user){
+        const defer = q.defer();
+        defer.resolve(user.servers);
+        return defer.promise;
+    }
+
+    function getServersWithToken(info){
         return fetch('https://discordapp.com/api/users/@me/guilds', {
             method: 'GET',
             headers: {
@@ -147,7 +157,7 @@ module.exports = (config) =>{
 
     function getServersEquivalent(user, botServers){
         const defer = q.defer();
-        getServers(user.info).then(servers =>{
+        getServers(user).then(servers =>{
             let sameServers = [];
             servers.forEach(server =>{
                 for(let i = 0; i < botServers.length; i++){
@@ -162,9 +172,15 @@ module.exports = (config) =>{
         return defer.promise;
     }
 
-    function isInServer(info,serverId){
+    function updateServers(user){
+        return getServersWithToken(user.info).then(servers =>{
+            databaseHelper.setServersOfUser(user.id,servers);
+        });
+    }
+
+    function isInServer(user,serverId){
         var defer = q.defer();
-        getServers(info).then(servers =>{
+        getServers(user).then(servers =>{
             if(servers.retry_after){
                 defer.reject(servers);
             }
