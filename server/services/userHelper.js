@@ -125,7 +125,7 @@ module.exports = (config) =>{
 			else {
                 const token = req.headers.authorization.split(' ')[1]; // strip 'Bearer'
                 tryGetToken(token).then(data =>{ //returns all user information including auth_token
-                    if (data.application !== application) {
+                    if (!data || data.application !== application) {
                         result.status = 401;
                         result.message = 'Authentication failed!';
                         defer.reject(result);

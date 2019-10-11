@@ -59,7 +59,7 @@ var app = new Vue({
           dataservice.fetchCategories().then(response => {
             this.soundCategories = [];
             response.data.forEach(category =>{
-                this.soundCategories.push({name: category, show: false}); //vue.js does not recognize new elements. that's why I have to add "show"
+                this.soundCategories.push({name: category, show: true}); //vue.js does not recognize new elements. that's why I have to add "show"
             })
             this.selectedCategory = this.soundCategories[0].name;
           }).catch(error => {
