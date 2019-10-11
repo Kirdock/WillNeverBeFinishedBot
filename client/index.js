@@ -1,6 +1,7 @@
 'use strict'
 import { dataservice } from './services/dataservice.js';
 import { authorization } from './services/autorization.js';
+import { settings } from './services/settings.js';
 
 
 var app = new Vue({
@@ -33,11 +34,10 @@ var app = new Vue({
           });
         }
       },
-      fetchServers: function () {
-        dataservice.fetchServers().then(response => {
+      fetchServers: function (loadChannels) {
+        return dataservice.fetchServers().then(response => {
             this.servers = response.data;
             this.selectedServer = this.servers[0].id;
-            this.fetchChannels();
         })
         .catch(error =>{
 
@@ -66,7 +66,7 @@ var app = new Vue({
           })
       },
       fetchChannels: function(){
-          dataservice.fetchChannels(this.selectedServer).then(response =>{
+          return dataservice.fetchChannels(this.selectedServer).then(response =>{
               this.channels = response.data;
               this.selectedChannel = this.channels[0].id;
           }).catch(error => {
@@ -108,6 +108,7 @@ var app = new Vue({
 
         });
       },
+      saveSettings: saveSettings,
       stopPlaying: function(){
         dataservice.stopPlaying(this.selectedServer).then(response =>{
 
@@ -153,7 +154,9 @@ var app = new Vue({
       },
       fetchData: function(){
         this.setUserData();
-        app.fetchServers();
+        app.fetchServers().then(response =>{
+          loadSettings();
+        });
         app.fetchCategories();
         app.fetchSounds();
       },
@@ -178,7 +181,6 @@ var app = new Vue({
     },
     created: function(){
       this.checkCode();
-      
     }
   });
 
@@ -192,4 +194,53 @@ var app = new Vue({
 
   function getLocationEncoded(){
     return encodeURIComponent(getLocation());
+  }
+
+  function saveSettings(){
+    const data = {
+      selectedServer: app.selectedServer,
+      selectedChannel: app.selectedChannel,
+      joinUser: app.joinUser,
+      volume: app.volume
+    }
+    settings.save(data);
+  }
+
+  function loadSettings(){
+    const data = settings.load();
+    if(data){
+      if(containsServer(data.selectedServer)){
+        app.selectedServer = data.selectedServer;
+        app.fetchChannels().then(response =>{
+          if(containsChannel(data.selectedChannel)){
+            app.selectedChannel = data.selectedChannel;
+          }
+        })
+      }
+      
+      app.volume = data.volume;
+      app.joinUser = data.joinUser;
+    }
+    else{
+      app.fetchChannels();
+    }
+  }
+
+  function containsServer(serverId){
+    return arrayContainsId(app.servers,serverId);
+  }
+
+  function containsChannel(channelId){
+    return arrayContainsId(app.channels,channelId);
+  }
+
+  function arrayContainsId(array, id){
+    let status = false;
+    for(let i = 0; i < array.length; i++){
+      if(array[i].id == id){
+        status = true;
+        break;
+      }
+    }
+    return status;
   }
