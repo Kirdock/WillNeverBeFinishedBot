@@ -1,6 +1,4 @@
 #!/bin/sh
-cd ..
-cd ..
 git fetch
 UPSTREAM=${1:-'@{u}'}
 LOCAL=$(git rev-parse @)
