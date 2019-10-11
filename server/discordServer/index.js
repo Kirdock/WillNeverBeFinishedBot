@@ -27,7 +27,10 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 
     if(oldUserChannel === undefined && newUserChannel !== undefined) {
         let sound = 'servus';
-        if(newMember.id == '174203817351446529'){ //Timmy
+        if(newMember.id == '131072858083426304'){ //Klausi
+            sound = 'Angels of Death';
+        }
+        else if(newMember.id == '174203817351446529'){ //Timmy
             sound = 'timmy'
         }
         else if(newMember.id == '161084180560609280'){ //Thaler
