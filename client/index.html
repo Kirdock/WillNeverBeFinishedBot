@@ -107,28 +107,33 @@
                 <div class="form-group">
                     <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(true)">Expand all categories</button>
                     <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(false)">Collapse all categories</button>
-                    <div v-for="category in soundCategories">
-                        <h2 class="control-label">{{category.name}}</h2>
-                        <button type="button" class="btn btn-primary" v-on:click="changeCategoryVisibility(category)" style="width: 40px; height: 40px">{{category.show ? '-' : '+'}}</button>
-                        <table class="table" v-show="category.show">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th style="width: 100px">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="sound in sounds[category.name]">
-                                    <td>
-                                        {{sound.name}}
-                                    </td>
-                                    <td style="width: 100px">
-                                        <button type="button" class="btn btn-primary" v-on:click="playSound(sound.path)">Play</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Search</label>
+                    <input class="form-control" v-model="searchText">
+                </div>
+                
+                <div v-for="category in soundCategories">
+                    <h2 class="control-label">{{category.name}}</h2>
+                    <button type="button" class="btn btn-primary" v-on:click="changeCategoryVisibility(category)" style="width: 40px; height: 40px">{{category.show ? '-' : '+'}}</button>
+                    <table class="table" v-show="category.show">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th style="width: 100px">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="sound in filteredSounds(category.name)">
+                                <td>
+                                    {{sound.name}}
+                                </td>
+                                <td style="width: 100px">
+                                    <button type="button" class="btn btn-primary" v-on:click="playSound(sound.path)">Play</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -20,8 +20,9 @@ var app = new Vue({
       isAdmin: false,
       maxVolume: 1,
       loggedIn: false,
-      joinUser: false,
-      youtubeUrl: undefined
+      joinUser: true,
+      youtubeUrl: undefined,
+      searchText: ''
     },
     methods: {
       createNewCat: function () {
@@ -120,6 +121,15 @@ var app = new Vue({
         dataservice.updateServerList().then(servers =>{
           this.servers = servers.data;
         });
+      },
+      filteredSounds: function(categoryName){
+        if(this.searchText.length > 0){
+          const re = new RegExp(this.searchText,'i');
+          return this.sounds[categoryName].filter(server => re.test(server.name));
+        }
+        else{
+          return this.sounds[categoryName];
+        }
       }
     }
   });
