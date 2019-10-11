@@ -37,7 +37,7 @@ function setToken(token){
 
 function deleteToken(){
     cachedToken = undefined;
-    storage.setItem(tokenName,undefined);
+    storage.removeItem(tokenName);
     updateIsLoggedIn();
 }
 

@@ -9,6 +9,7 @@ const FormData = require('form-data');
 module.exports = (config) =>{
     const userHelper = {
         login: login,
+        logout: logout,
         refreshToken: refreshToken,
         tryGetToken: tryGetToken,
         getServers: getServers,
@@ -55,7 +56,7 @@ module.exports = (config) =>{
                             userData.admin = config.admins.includes(userData.id);
                             userData.application = application;
 
-                            databaseHelper.addUser(userData, res, servers, new Date().getTime());
+                            databaseHelper.addUser(userData, res, servers.map(server => {return {id: server.id, name: server.name}}), new Date().getTime());
 
                             defer.resolve(jwt.sign(userData, secret));
                         }).catch(defer.reject)
@@ -82,6 +83,10 @@ module.exports = (config) =>{
             method: 'POST',
             body: data
         }).then(r=>r.json());
+    }
+
+    function logout(user){
+        databaseHelper.removeUser(user.id);
     }
 
     function fetchData(info){
