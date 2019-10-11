@@ -2,6 +2,7 @@
 const fileHelper = require('../services/fileHelper.js')();
 const playCommand = 'play';
 const q = require('q');
+const ytdl = require('ytdl-core');
 
 module.exports = (config, logger, voiceHelper) =>{
     let playSoundCommand = {
@@ -9,7 +10,8 @@ module.exports = (config, logger, voiceHelper) =>{
         isCommand: isCommand,
         requestSound: requestSound,
         stopPlaying: stopPlaying,
-        doWorkWithoutMessage: doWorkWithoutMessage
+        doWorkWithoutMessage: doWorkWithoutMessage,
+        requestYoutube: requestYoutube
     }
     const fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
 
@@ -76,8 +78,13 @@ module.exports = (config, logger, voiceHelper) =>{
         }
     }
 
+    function requestYoutube(url, serverId, channelId, volumeMultiplier){
+        return voiceHelper.joinVoiceChannelById(serverId,channelId).then(connection =>{
+            playSound(undefined, serverId, connection, volumeMultiplier, url);
+        })
+    }
 
-    function playSound(file, id, con, volumeMultiplier = 0.5){
+    function playSound(file, id, con, volumeMultiplier = 0.5, url){
         let delay = config.playSoundDelay;
         const connection = (con || voiceHelper.getConnection(id));
         
@@ -88,8 +95,14 @@ module.exports = (config, logger, voiceHelper) =>{
         }
 
         setTimeout(()=>{
-
-            dispatcher = connection.playFile(file);
+            if(!file){
+                const streamOptions = { seek: 0, volume: volumeMultiplier };
+                const stream = ytdl(url, { filter : 'audioonly' });
+                dispatcher = connection.playStream(stream, streamOptions);
+            }
+            else{
+                dispatcher = connection.playFile(file);
+            }
             dispatcher.on('end', (reason) => {
                 if(reason === 'stream'){
                     voiceHelper.disconnectVoice(id);

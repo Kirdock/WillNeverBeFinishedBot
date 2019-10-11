@@ -145,12 +145,22 @@ module.exports = function (router, logger, discordClient, config) {
             }
           }
           if(validJoin){
-            playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
-              res.status(200).json(response);
-            }).catch(error =>{
-              logger.error(error, 'requestSound');
-              res.status(404).json(error);
-            })
+            if(req.body.path){
+              playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
+                res.status(200).json(response);
+              }).catch(error =>{
+                logger.error(error, 'requestSound');
+                res.status(404).json(error);
+              })
+            }
+            else{
+              playSound.requestYoutube(req.body.url, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
+                res.status(200).json(response);
+              }).catch(error =>{
+                logger.error(error, 'requestSound');
+                res.status(404).json(error);
+              })
+            }
           }
         }).catch(error =>{
           notInServer(res, error);

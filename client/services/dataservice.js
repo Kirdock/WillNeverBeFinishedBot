@@ -20,15 +20,8 @@ function fetchServers(){
     return axios.get(config.api+'/servers');
 }
 
-function playSound(path, serverId, channelId, volume, joinUser){
-    return axios.post(config.api+'/playSound', 
-    {
-        path: path,
-        serverId: serverId,
-        channelId: channelId,
-        volume: volume,
-        joinUser: joinUser
-    },
+function playSound(data){
+    return axios.post(config.api+'/playSound', data,
     {
         headers:{
             'Content-Type': 'application/json'

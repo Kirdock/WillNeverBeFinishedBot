@@ -19,7 +19,8 @@ var app = new Vue({
       isAdmin: false,
       maxVolume: 1,
       loggedIn: false,
-      joinUser: false
+      joinUser: false,
+      youtubeUrl: undefined
     },
     methods: {
       createNewCat: function () {
@@ -80,11 +81,19 @@ var app = new Vue({
           });
       },
       playSound: function(path){
-          dataservice.playSound(path, this.selectedServer, this.selectedChannel, this.volume, this.joinUser).then(response =>{
+        const data = {
+          path: path,
+          serverId: this.selectedServer,
+          channelId: this.selectedChannel,
+          volume: this.volume,
+          joinUser: this.joinUser,
+          url: this.youtubeUrl
+        }
+        dataservice.playSound(data).then(response =>{
 
-          }).catch(error =>{
+        }).catch(error =>{
 
-          });
+        });
       },
       changeCategoryVisibility: function(category){
         category.show = !category.show;
