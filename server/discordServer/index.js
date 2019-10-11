@@ -34,6 +34,9 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
         if(newMember.id == '174203817351446529'){ //Timmy
             sound = 'timmy'
         }
+        else if(newMember.id == '174202864443326464'){ //Hössl
+            sound = 'behindert';
+        }
         else if(newMember.id == '161084180560609280'){ //Thaler
             sound = 'qq';
         }
