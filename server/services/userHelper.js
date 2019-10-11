@@ -56,7 +56,7 @@ module.exports = (config) =>{
                             userData.admin = config.admins.includes(userData.id);
                             userData.application = application;
 
-                            databaseHelper.addUser(userData, res, servers.map(server => {return {id: server.id, name: server.name}}), new Date().getTime());
+                            databaseHelper.addUser(userData, res, servers.map(server => {return {id: server.id, name: server.name, icon: server.icon, permission: server.permission}}), new Date().getTime());
 
                             defer.resolve(jwt.sign(userData, secret));
                         }).catch(defer.reject)
@@ -152,10 +152,17 @@ module.exports = (config) =>{
         const timeBegin = user.time;
         const expire = user.info.expires_in;
         const timeNow = new Date().getTime();
-        if((timeNow - timeBegin) > expire){
+        if((timeNow - timeBegin)/1000 > expire){
+            console.log(timeNow, timeBegin, expire, user.username);
             refreshToken(user.info.refresh_token).then(result =>{
-                user.info = result;
-                defer.resolve(user);
+                if(result.error){
+                    console.log(result);
+                    defer.reject(result);
+                }
+                else{
+                    user.info = result;
+                    defer.resolve(user);
+                }
             }).catch(defer.reject);
         }
         else{
