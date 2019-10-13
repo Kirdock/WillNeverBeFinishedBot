@@ -116,7 +116,7 @@
                 <div v-for="category in soundCategories">
                     <h2 class="control-label">{{category.name}}</h2>
                     <button type="button" class="btn btn-primary" v-on:click="changeCategoryVisibility(category)" style="width: 40px; height: 40px">{{category.show ? '-' : '+'}}</button>
-                    <table class="table" v-show="category.show">
+                    <table class="table text-break" v-show="category.show">
                         <thead>
                             <tr>
                                 <th>Name</th>
