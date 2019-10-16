@@ -135,6 +135,31 @@
                         </tbody>
                     </table>
                 </div>
+                <div v-show="isAdmin">
+                    <h1>Logs</h1>
+                    <table class="table text-break">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Username</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="log in logs">
+                                <td>
+                                    {{formatTime(log.timestamp)}}
+                                </td>
+                                <td>
+                                    {{log.username}}
+                                </td>
+                                <td>
+                                    {{log.message}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

@@ -13,11 +13,16 @@ let dataservice = {
     stopPlaying: stopPlaying,
     login: login,
     logout: logout,
-    updateServerList: updateServerList
+    updateServerList: updateServerList,
+    fetchLogs: fetchLogs
 }
 
 function fetchServers(){
     return axios.get(config.api+'/servers');
+}
+
+function fetchLogs(){
+    return axios.get(config.api+'/log');
 }
 
 function playSound(data){

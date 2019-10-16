@@ -10,6 +10,7 @@ module.exports = function (router, logger, discordClient, config) {
   const playSound = require('../modules/playSound.js')(config,logger,voiceHelper);
   const updateHelper = require('../services/updateHelper.js')(config, logger);
   const userHelper = require('../services/userHelper.js')(config);
+  const databaseHelper = require('../services/databaseHelper.js')();
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, path.join(fileHelper.soundFolder,config.uploadFolder))
@@ -27,6 +28,20 @@ module.exports = function (router, logger, discordClient, config) {
       }).catch(error =>{
         console.log(error);
         res.status(401).json({message: 'Authentication failed'});
+      })
+    });
+
+    router.route('/log')
+    .get(function (req, res){
+      userHelper.auth(req).then(result =>{
+        if(result.user.admin){
+          res.status(200).json(databaseHelper.getLog());
+        }
+        else{
+          notAdmin(res);
+        }
+      }).catch(error =>{
+        loginFailed(res, error);
       })
     });
 
@@ -122,7 +137,7 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/playSound')
 		.post(function (req, res) {
       userHelper.auth(req).then(auth =>{
-        console.log(auth.user.username);
+        databaseHelper.log(auth.user, 'Play Sound');
         userHelper.isInServer(auth.user, req.body.serverId).then(result =>{
           if(!auth.user.admin && req.body.volume >= 1){
             req.body.volume = 1;

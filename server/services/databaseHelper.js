@@ -18,7 +18,9 @@ module.exports = () =>{
         addUser: addUser,
         removeUser: removeUser,
         getUser: getUser,
-        setServersOfUser: setServersOfUser
+        setServersOfUser: setServersOfUser,
+        log: log,
+        getLog: getLog
     }
     return databaseHelper;
 
@@ -33,7 +35,7 @@ module.exports = () =>{
     }
 
     function removeUser(id){
-        db.get('users').remove({id: id}).write();
+        db.get(users).remove({id: id}).write();
     }
 
     function getUser(id){
@@ -43,10 +45,23 @@ module.exports = () =>{
     function setDefault(){
         let query = {};
         query[users] = [];
+        query['log'] = [];
         db.defaults(query).write();
     }
 
     function setServersOfUser(id, servers){
         db.get(users).find({id: id}).assign({ servers: servers}).write();
+    }
+
+    function log(user, message){
+        let query = {};
+        query.username = user.username;
+        query.message = message;
+        query.timestamp = Date.now();
+        db.get('log').push(query).write();
+    }
+
+    function getLog(){
+        return db.get('log').value();
     }
 }

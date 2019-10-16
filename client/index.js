@@ -11,6 +11,7 @@ var app = new Vue({
       sounds: [],
       channels: [],
       soundCategories: [],
+      logs: [],
       volume: 0.5,
       selectedCategory: undefined,
       newCatInput: undefined,
@@ -130,6 +131,17 @@ var app = new Vue({
         else{
           return this.sounds[categoryName];
         }
+      },
+      fetchLogs: function(){
+        dataservice.fetchLogs().then(response =>{
+          this.logs = response.data;
+        }).catch(error =>{
+
+        })
+      },
+      formatTime: function(time){
+        const date = new Date(time);
+        return date.toLocaleDateString() + '  ' + date.toLocaleTimeString();
       }
     }
   });
@@ -169,6 +181,9 @@ var app = new Vue({
         });
         app.fetchCategories();
         app.fetchSounds();
+        if(authorization.getDecodedToken().admin){
+          app.fetchLogs();
+        }
       },
       setUserData: function(){
         const decodedToken = authorization.getDecodedToken();
