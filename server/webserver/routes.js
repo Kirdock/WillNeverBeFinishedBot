@@ -122,6 +122,7 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/playSound')
 		.post(function (req, res) {
       userHelper.auth(req).then(auth =>{
+        console.log(auth.user.username);
         userHelper.isInServer(auth.user, req.body.serverId).then(result =>{
           if(!auth.user.admin && req.body.volume >= 1){
             req.body.volume = 1;

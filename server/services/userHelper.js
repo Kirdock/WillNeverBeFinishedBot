@@ -133,7 +133,12 @@ module.exports = (config) =>{
                     else{
                         checkTokenExpired(data).then(newUser =>{
                             result.user = newUser;
-                            defer.resolve(result);  
+                            // if(result.user.permission == '188015113888989184'){
+                                defer.resolve(result);
+                            // }
+                            // else{
+                            //     defer.reject(new Error('User does not have enough permission ' + result.user.username));
+                            // }
                         }).catch(defer.reject);
                     }
                 }).catch(defer.reject);
