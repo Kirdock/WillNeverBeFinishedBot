@@ -69,13 +69,13 @@ module.exports = (config) =>{
         return defer.promise;
     }
 
-    function refreshToken(refresh_token){
+    function refreshToken(refresh_token, request_url){
         const data = new FormData();
 
         data.append('client_id', config.clientId);
         data.append('client_secret', config.clientSecret);
         data.append('grant_type', 'refresh_token');
-        data.append('redirect_uri', 'http://kirdock.synology.me:4599/');
+        data.append('redirect_uri', request_url);
         data.append('scope', config.scope);
         data.append('refresh_token', refresh_token);
 
@@ -131,7 +131,7 @@ module.exports = (config) =>{
                         defer.reject(result);
                     }
                     else{
-                        checkTokenExpired(data).then(newUser =>{
+                        checkTokenExpired(data, req.headers.referer).then(newUser =>{
                             result.user = newUser;
                             // if(result.user.permission == '188015113888989184'){
                                 defer.resolve(result);
@@ -152,14 +152,14 @@ module.exports = (config) =>{
 		return defer.promise;
     }
 
-    function checkTokenExpired(user){
+    function checkTokenExpired(user, request_url){
         const defer = q.defer();
         const timeBegin = user.time;
         const expire = user.info.expires_in;
         const timeNow = new Date().getTime();
         if((timeNow - timeBegin)/1000 > expire){
-            console.log(timeNow, timeBegin, expire, user.username);
-            refreshToken(user.info.refresh_token).then(result =>{
+            console.log('refresh Token',timeNow, timeBegin, expire, user.username, request_url);
+            refreshToken(user.info.refresh_token, request_url).then(result =>{
                 if(result.error){
                     result.refresh_token_error = true;
                     result.user = user;
