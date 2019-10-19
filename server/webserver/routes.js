@@ -23,7 +23,7 @@ module.exports = function (router, logger, discordClient, config) {
 
     router.route('/login')
     .post(function (req, res) {
-      userHelper.login(req.body.code, req.body.redirectUrl).then(authToken =>{
+      userHelper.login(req.body.code, req.body.redirectUrl, discordClient.guilds.map(item =>{return {id: item.id, name: item.name}})).then(authToken =>{
         res.status(200).json(authToken);
       }).catch(error =>{
         console.log(error);
@@ -51,7 +51,13 @@ module.exports = function (router, logger, discordClient, config) {
         userHelper.logout(result.user);
         res.status(200).json();
       }).catch(error =>{
-        loginFailed(res, error);
+        if(error.refresh_token_error){
+          userHelper.logout(error.user);
+          res.status(200).json();
+        }
+        else{
+          loginFailed(res, error);
+        }
       })
     });
 
@@ -247,7 +253,7 @@ module.exports = function (router, logger, discordClient, config) {
     });
 
     function loginFailed(res, error){
-      console.log(error);
+      console.log('Login failed',error.error || error);
       res.status(error.status || 401).json(error.message || 'Authentication failed');
     }
 

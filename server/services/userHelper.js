@@ -24,7 +24,7 @@ module.exports = (config) =>{
     return userHelper;
 
     //returns JSON WebToken with user data (auth_token not included)
-    function login(code, redirectUrl){
+    function login(code, redirectUrl, botServers){
         var defer = q.defer();
         const data = new FormData();
 
@@ -56,7 +56,7 @@ module.exports = (config) =>{
                             userData.admin = config.admins.includes(userData.id);
                             userData.application = application;
 
-                            databaseHelper.addUser(userData, res, servers.map(server => {return {id: server.id, name: server.name, icon: server.icon, permission: server.permission}}), new Date().getTime());
+                            databaseHelper.addUser(userData, res, getServersEquivalentWithServers(servers, botServers), new Date().getTime());
 
                             defer.resolve(jwt.sign(userData, secret));
                         }).catch(defer.reject)
@@ -161,11 +161,13 @@ module.exports = (config) =>{
             console.log(timeNow, timeBegin, expire, user.username);
             refreshToken(user.info.refresh_token).then(result =>{
                 if(result.error){
-                    console.log(result);
+                    result.refresh_token_error = true;
+                    result.user = user;
                     defer.reject(result);
                 }
                 else{
                     user.info = result;
+                    databaseHelper.updateUserToken(user.id, user.info);
                     defer.resolve(user);
                 }
             }).catch(defer.reject);
@@ -191,19 +193,27 @@ module.exports = (config) =>{
         }).then(res => res.json());
     }
 
+    function getServersEquivalentWithServers(userServers, botServers){
+        return getSameServers(userServers, botServers).map(server => {return {id: server.id, name: server.name, icon: server.icon, permission: server.permission}})
+    }
+
+    function getSameServers(userServers, botServers){
+        let sameServers = [];
+        userServers.forEach(server =>{
+            for(let i = 0; i < botServers.length; i++){
+                if(botServers[i].id == server.id){
+                    sameServers.push(server);
+                    break;
+                }
+            }
+        });
+        return sameServers;
+    }
+
     function getServersEquivalent(user, botServers){
         const defer = q.defer();
         getServers(user).then(servers =>{
-            let sameServers = [];
-            servers.forEach(server =>{
-                for(let i = 0; i < botServers.length; i++){
-                    if(botServers[i].id == server.id){
-                        sameServers.push(botServers[i]);
-                        break;
-                    }
-                }
-            });
-            defer.resolve(sameServers);
+            defer.resolve(getSameServers(servers,botServers));
         }).catch(defer.reject);
         return defer.promise;
     }

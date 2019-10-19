@@ -20,7 +20,8 @@ module.exports = () =>{
         getUser: getUser,
         setServersOfUser: setServersOfUser,
         log: log,
-        getLog: getLog
+        getLog: getLog,
+        updateUserToken: updateUserToken
     }
     return databaseHelper;
 
@@ -32,6 +33,13 @@ module.exports = () =>{
             query.time = time;
             db.get(users).push(query).write();
         }
+        else{
+            updateUserToken(user.id, authData);
+        }
+    }
+
+    function updateUserToken(id, info){
+        db.get(users).find({id: id}).assign({info: info}).write();
     }
 
     function removeUser(id){
