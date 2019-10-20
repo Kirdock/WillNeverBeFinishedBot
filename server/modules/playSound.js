@@ -110,6 +110,7 @@ module.exports = (config, logger, voiceHelper) =>{
                 else if(reason !== 'playFile'){
                     logger.error(reason || 'empty', 'PlaySound');
                 }
+                dispatcher.destroy();
             });
             
             dispatcher.on('error', e => {
