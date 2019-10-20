@@ -115,6 +115,7 @@ module.exports = (config, logger, voiceHelper) =>{
             dispatcher.on('error', e => {
             // Catch any errors that may arise
                 logger.error(e, 'playSound');
+                dispatcher.destroy();
             });
 
             // dispatcher.on('debug', e => {
