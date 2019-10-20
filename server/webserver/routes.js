@@ -45,22 +45,6 @@ module.exports = function (router, logger, discordClient, config) {
       })
     });
 
-    router.route('/logout')
-    .get(function (req, res){
-      userHelper.auth(req).then(result =>{
-        userHelper.logout(result.user);
-        res.status(200).json();
-      }).catch(error =>{
-        if(error.refresh_token_error){
-          userHelper.logout(error.user);
-          res.status(200).json();
-        }
-        else{
-          loginFailed(res, error);
-        }
-      })
-    });
-
     router.route('/servers')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{

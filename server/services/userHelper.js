@@ -9,7 +9,6 @@ const FormData = require('form-data');
 module.exports = (config) =>{
     const userHelper = {
         login: login,
-        logout: logout,
         refreshToken: refreshToken,
         tryGetToken: tryGetToken,
         getServers: getServers,
@@ -83,10 +82,6 @@ module.exports = (config) =>{
             method: 'POST',
             body: data
         }).then(r=>r.json());
-    }
-
-    function logout(user){
-        databaseHelper.removeUser(user.id);
     }
 
     function fetchData(info){

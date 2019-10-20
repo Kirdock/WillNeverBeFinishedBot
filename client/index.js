@@ -200,13 +200,8 @@ var app = new Vue({
         this.loggedIn = app.loggedIn = true;
       },
       logout: function(){
-        dataservice.logout().then(result =>{
-          authorization.deleteToken();
-          this.isAdmin = app.isAdmin = false;
-          this.loggedIn = app.loggedIn = false;
-        }).catch(error =>{
-
-        });
+        authorization.deleteToken();
+        this.isAdmin = app.isAdmin = this.loggedIn = app.loggedIn = false;
       }
     },
     created: function(){

@@ -12,7 +12,6 @@ let dataservice = {
     updateWebsite: updateWebsite,
     stopPlaying: stopPlaying,
     login: login,
-    logout: logout,
     updateServerList: updateServerList,
     fetchLogs: fetchLogs
 }
@@ -80,10 +79,6 @@ function login(code, redirectUrl){
             'Content-Type': 'application/json'
         }
     });
-}
-
-function logout(){
-    return axios.get(config.api+'/logout');
 }
 
 function updateServerList(){
