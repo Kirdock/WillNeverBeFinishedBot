@@ -143,14 +143,15 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/playSound')
 		.post(function (req, res) {
       userHelper.auth(req).then(auth =>{
-        databaseHelper.log(auth.user, 'Play Sound');
+        
         userHelper.isInServer(auth.user, req.body.serverId).then(result =>{
           if(!auth.user.admin && req.body.volume >= 1){
             req.body.volume = 1;
           }
           let validJoin = true;
+          const guild = discordClient.guilds.get(req.body.serverId);
+          databaseHelper.log(auth.user, guild.name, 'Play Sound');
           if(req.body.joinUser){
-            const guild = discordClient.guilds.get(req.body.serverId);
             if(guild){
               const member = guild.members.get(auth.user.id);
               if(member.guild.id == req.body.serverId && member.voiceChannel){

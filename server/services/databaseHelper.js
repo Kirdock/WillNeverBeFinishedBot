@@ -7,6 +7,9 @@ fileHelper.checkAndCreateFile(database);
 const adapter = new FileSync(database);
 const db = low(adapter);
 const users = 'users';
+const maxLogs = 20;
+const maxLogsStored = 100;
+const maxLogsDeleted = 50;
 setDefault();
 
 function setDefault(){
@@ -58,15 +61,25 @@ module.exports = () =>{
         db.get(users).find({id: id}).assign({ servers: servers}).write();
     }
 
-    function log(user, message){
+    function log(user, serverName, message){
         let query = {};
         query.username = user.username;
         query.message = message;
         query.timestamp = Date.now();
-        db.get('log').push(query).write();
+        query.serverName = serverName;
+        let logs = getLog();
+        if(logs.length > maxLogsStored){
+            logs = logs.slice(logs.length-(maxLogsDeleted+1));
+            logs.push(query);
+            db.assign({log: logs}).write();
+        }
+        else{
+            db.get('log').push(query).write();
+        }
     }
 
     function getLog(){
-        return db.get('log').value();
+        let logs = db.get('log').value();
+        return logs.slice(logs.length - (maxLogs+1)).sort((a,b) => (b.timestamp - a.timestamp));
     }
 }
