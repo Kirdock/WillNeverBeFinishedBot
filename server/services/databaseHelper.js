@@ -1,19 +1,23 @@
 'use strict'
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
+const fileHelper = require('./fileHelper.js')();
+const database = __dirname+'/../config/database.json';
+fileHelper.checkAndCreateFile(database);
+const adapter = new FileSync(database);
+const db = low(adapter);
+const users = 'users';
+setDefault();
 
-
+function setDefault(){
+    let query = {};
+    query[users] = [];
+    query['log'] = [];
+    db.defaults(query).write();
+}
 
 module.exports = () =>{
-    const fileHelper = require('./fileHelper.js')();
-    const database = __dirname+'/../config/database.json';
-    fileHelper.checkAndCreateFile(database);
-    const adapter = new FileSync(database);
-    const db = low(adapter);
-    const users = 'users';
-
-    setDefault();
-
+    
     const databaseHelper = {
         addUser: addUser,
         removeUser: removeUser,
@@ -48,13 +52,6 @@ module.exports = () =>{
 
     function getUser(id){
         return db.get(users).find({id: id}).value();
-    }
-
-    function setDefault(){
-        let query = {};
-        query[users] = [];
-        query['log'] = [];
-        db.defaults(query).write();
     }
 
     function setServersOfUser(id, servers){

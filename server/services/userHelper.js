@@ -104,7 +104,13 @@ module.exports = (config) =>{
                 defer.reject(err);
             }
             else{
-                defer.resolve(databaseHelper.getUser(decoded.id));
+                let user = databaseHelper.getUser(decoded.id);
+                if(user){
+                    defer.resolve(user);
+                }
+                else{
+                    defer.reject({notFound: true});
+                }
             }
         });
         return defer.promise;
@@ -127,7 +133,7 @@ module.exports = (config) =>{
                 tryGetToken(token).then(data =>{ //returns all user information including auth_token
                     if (!data || data.application !== application) {
                         result.status = 401;
-                        result.message = 'Authentication failed!';
+                        result.message = 'Authentication failed! Invalid Token';
                         defer.reject(result);
                     }
                     else{
@@ -145,7 +151,8 @@ module.exports = (config) =>{
 			}
 		}
 		catch (e) {
-			result.status = 401;
+            result.status = 401;
+            result.error = e;
             result.message = 'Authentication failed!';
             defer.reject(result);
 		}

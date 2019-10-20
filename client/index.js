@@ -178,6 +178,10 @@ var app = new Vue({
         this.setUserData();
         app.fetchServers().then(response =>{
           loadSettings();
+        }).catch(error =>{
+          // if(error.response.data.notFound){
+          //   authorization.deleteToken();
+          // }
         });
         app.fetchCategories();
         app.fetchSounds();
