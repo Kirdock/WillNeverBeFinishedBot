@@ -179,9 +179,10 @@ var app = new Vue({
         app.fetchServers().then(response =>{
           loadSettings();
         }).catch(error =>{
-          // if(error.response.data.notFound){
-          //   authorization.deleteToken();
-          // }
+          if(error.response.data.notFound){
+            authorization.deleteToken();
+            this.loggedIn = this.isAdmin = appNav.loggedIn = appNav.isAdmin = false;
+          }
         });
         app.fetchCategories();
         app.fetchSounds();
