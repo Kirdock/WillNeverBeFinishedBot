@@ -5,7 +5,7 @@ const path = require('path');
 const isDirectory = source => fs.lstatSync(source).isDirectory();
 const isFile = source => fs.lstatSync(source).isFile();
 const config = require('../config/config.json');
-const soundFolder = path.join(__dirname+'/../assets/sounds');
+const soundFolder = path.join(__dirname+'/assets/sounds');
 
 module.exports = () =>{
 
@@ -22,7 +22,7 @@ module.exports = () =>{
         checkAndCreateFolder: checkAndCreateFolder,
         checkAndCreateFile: checkAndCreateFile
     };
-
+    checkAndCreateFolderSystem();
     checkAndCreateFolder();
 
     return fileHelper;
@@ -94,6 +94,13 @@ module.exports = () =>{
         if(!fs.existsSync(folder)){
             fs.mkdirSync(folder);
         }
+    }
+
+    function checkAndCreateFolderSystem(){
+        const files = ['assets', 'config', 'assets/sounds'];
+        files.forEach(folder =>{
+            checkAndCreateFolder(path.join(__dirname,folder));
+        })
     }
 
     function getSounds(){

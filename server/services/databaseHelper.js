@@ -6,7 +6,7 @@ const FileSync = require('lowdb/adapters/FileSync');
 
 module.exports = () =>{
     const fileHelper = require('./fileHelper.js')();
-    const database = __dirname+'/../config/database.json';
+    const database = __dirname+'/config/database.json';
     fileHelper.checkAndCreateFile(database);
     const adapter = new FileSync(database);
     const db = low(adapter);
