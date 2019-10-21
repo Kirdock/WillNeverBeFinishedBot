@@ -1,9 +1,9 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import auth from './../services/autorization.js';
-import Admin from './../views/account/Admin.vue';
-import Home from './../views/Home.vue';
-import Login from './../views/Login.vue';
+import auth from '../services/autorization.js';
+import Admin from '../views/account/Admin.vue';
+import Home from '../views/Home.vue';
+import Login from '../views/Login.vue';
 
 Vue.use(VueRouter);
 
