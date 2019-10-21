@@ -21,7 +21,7 @@ module.exports = (discordClient, config, logger)=> {
     };
     app.use(cors);
     app.use(body_parser.json({limit: '20mb'}));
-    app.use('/', express.static(__dirname));
+    app.use('/', express.static(__dirname+'/../../client/dist'));
 
     var port = process.env.PORT || config.port;
     var router = express.Router();

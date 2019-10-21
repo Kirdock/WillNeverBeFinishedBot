@@ -1,8 +1,7 @@
 'use strict'
 
 const Discord = require('discord.js');
-import config from '../config/config.json';
-import '../config/database.json';
+const config =  require('../config/config.json');
 const logger = require( '../services/logger.js')(config, __dirname );
 const client = new Discord.Client();
 const prefixes = ['-','!'];

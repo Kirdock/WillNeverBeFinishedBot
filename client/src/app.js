@@ -1,29 +1,16 @@
 'use strict'
-import './services/injector';
 import authorization from './services/autorization.js';
 import dataservice from './services/dataservice.js';
-import Vue from 'vue';
-import VueRouter from 'vue-router';
-import router from './services/routing.js';
-import 'bootstrap';
-import './assets/style.css';
-import './assets/bootstrap.min.css';
 
-
-Vue.use(VueRouter);
-
-// new Vue({
-//   router
-// }).$mount('#app')
-
-  export default new Vue({
-    router: router,
-    el: '#app',
-    data: {
-      username: undefined,
-      isAdmin: false,
-      loggedIn: false,
-      loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+getLocationEncoded()+'&response_type=code&scope=identify%20guilds'
+  export default {
+    name: 'App',
+    data() {
+        return{
+            username: undefined,
+            isAdmin: false,
+            loggedIn: false,
+            loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+getLocationEncoded()+'&response_type=code&scope=identify%20guilds'
+        }
     },
     methods: {
       checkCode: function(){
@@ -67,7 +54,7 @@ Vue.use(VueRouter);
     created: function(){
       this.checkCode();
     }
-  });
+  };
 
   function removeQueryFromUrl() {
     window.history.pushState({}, document.title, window.location.href.split("?")[0]);
