@@ -126,4 +126,4 @@
     </div>
 
 </template>
-<script src="./home.js" type="module"></script>
+<script src="./home.js"></script>

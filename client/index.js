@@ -11,9 +11,10 @@ import './assets/bootstrap.min.css';
 
 
 Vue.use(VueRouter);
+
 // new Vue({
 //   router
-// }).$mount('#app');
+// }).$mount('#app')
 
   export default new Vue({
     router: router,
@@ -23,11 +24,6 @@ Vue.use(VueRouter);
       isAdmin: false,
       loggedIn: false,
       loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+getLocationEncoded()+'&response_type=code&scope=identify%20guilds'
-    },
-    computed: {
-      ViewComponent () {
-        return routes[this.currentRoute] || NotFound
-      }
     },
     methods: {
       checkCode: function(){

@@ -4,27 +4,28 @@ import authorization from './services/autorization.js';
 import { settings } from './services/settings.js';
 import Vue from 'vue';
 
-const app = new Vue({
-    el: '#fetch',
-    data: {
-      servers: [],
-      sounds: [],
-      channels: [],
-      soundCategories: [],
-      logs: [],
-      volume: 0.5,
-      selectedCategory: undefined,
-      newCatInput: undefined,
-      selectedServer: undefined,
-      selectedCategory: undefined,
-      selectedChannel: undefined,
-      isAdmin: false,
-      maxVolume: 1,
-      joinUser: true,
-      youtubeUrl: undefined,
-      searchText: ''
+export default {
+    data() {
+      return{
+        servers: [],
+        sounds: [],
+        channels: [],
+        soundCategories: [],
+        logs: [],
+        volume: 0.5,
+        selectedCategory: undefined,
+        newCatInput: undefined,
+        selectedServer: undefined,
+        selectedCategory: undefined,
+        selectedChannel: undefined,
+        isAdmin: false,
+        maxVolume: 1,
+        joinUser: true,
+        youtubeUrl: undefined,
+        searchText: ''
+      }
     },
-    created: function(){
+    created(){
         this.fetchServers().then(response =>{
             loadSettings();
             const decodedToken = authorization.getDecodedToken();
@@ -43,7 +44,7 @@ const app = new Vue({
         }
     },
     methods: {
-      createNewCat: function () {
+      createNewCat() {
         if(!this.soundCategories.includes(this.newCatInput)){
           dataservice.createNewCat(this.newCatInput).then(response =>{
             this.newCatInput = undefined;
@@ -53,7 +54,7 @@ const app = new Vue({
           });
         }
       },
-      fetchServers: function (loadChannels) {
+      fetchServers(loadChannels) {
         return dataservice.fetchServers().then(response => {
             this.servers = response.data;
             this.selectedServer = this.servers[0].id;
@@ -62,7 +63,7 @@ const app = new Vue({
 
         });
       },
-      submitFile: function(){
+      submitFile(){
         this.file = this.$refs.file.files[0];
         let formData = new FormData();
         formData.append('file', this.file);
@@ -73,7 +74,7 @@ const app = new Vue({
 
         });
       },
-      fetchCategories: function(){
+      fetchCategories(){
           dataservice.fetchCategories().then(response => {
             this.soundCategories = [];
             response.data.forEach(category =>{
@@ -84,7 +85,7 @@ const app = new Vue({
 
           })
       },
-      fetchChannels: function(){
+      fetchChannels(){
           return dataservice.fetchChannels(this.selectedServer).then(response =>{
               this.channels = response.data;
               this.selectedChannel = this.channels[0].id;
@@ -92,14 +93,14 @@ const app = new Vue({
 
           });
       },
-      fetchSounds: function(){
+      fetchSounds(){
           dataservice.fetchSounds().then(response =>{
               this.sounds = response.data;
           }).catch(error =>{
 
           });
       },
-      playSound: function(path){
+      playSound(path){
         const data = {
           path: path,
           serverId: this.selectedServer,
@@ -114,13 +115,13 @@ const app = new Vue({
 
         });
       },
-      changeCategoryVisibility: function(category){
+      changeCategoryVisibility(category){
         category.show = !category.show;
       },
-      setCategoriesVisibility: function(status){
+      setCategoriesVisibility(status){
         this.soundCategories.forEach(category =>(category.show = status));
       },
-      updateWebsite: function(){
+      updateWebsite(){
         dataservice.updateWebsite().then(response=>{
           console.log(response);
         }).catch(error =>{
@@ -128,19 +129,19 @@ const app = new Vue({
         });
       },
       saveSettings: saveSettings,
-      stopPlaying: function(){
+      stopPlaying(){
         dataservice.stopPlaying(this.selectedServer).then(response =>{
 
         }).catch(error =>{
 
         })
       },
-      updateServerList: function(){
+      updateServerList(){
         dataservice.updateServerList().then(servers =>{
           this.servers = servers.data;
         });
       },
-      filteredSounds: function(categoryName){
+      filteredSounds(categoryName){
         if(this.searchText.length > 0){
           const re = new RegExp(this.searchText,'i');
           return this.sounds[categoryName].filter(server => re.test(server.name));
@@ -161,7 +162,7 @@ const app = new Vue({
         return date.toLocaleDateString() + '  ' + date.toLocaleTimeString();
       }
     }
-  });
+  };
 
 
   function saveSettings(){
@@ -212,5 +213,3 @@ const app = new Vue({
     }
     return status;
   }
-
-  export default app;
