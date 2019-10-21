@@ -1,10 +1,10 @@
 'use strict'
-import { dataservice } from './services/dataservice.js';
-import { authorization } from './services/autorization.js';
+import dataservice from './services/dataservice.js';
+import authorization from './services/autorization.js';
 import { settings } from './services/settings.js';
+import Vue from 'vue';
 
-
-var app = new Vue({
+const app = new Vue({
     el: '#fetch',
     data: {
       servers: [],
@@ -28,10 +28,12 @@ var app = new Vue({
         this.fetchServers().then(response =>{
             loadSettings();
             const decodedToken = authorization.getDecodedToken();
-            this.username = decodedToken.username;
-            this.isAdmin = decodedToken.admin;
-            if(this.isAdmin){
-                this.maxVolume = 100;
+            if(decodedToken){
+              this.username = decodedToken.username;
+              this.isAdmin = decodedToken.admin;
+              if(this.isAdmin){
+                  this.maxVolume = 100;
+              }
             }
         });
         this.fetchCategories();
@@ -210,3 +212,5 @@ var app = new Vue({
     }
     return status;
   }
+
+  export default app;

@@ -2,10 +2,10 @@ import auth from './autorization.js';
 import admin from './../account/admin.vue';
 import home from './../home.vue';
 import login from './../login.vue';
+import VueRouter from 'vue-router';
 
-// let router = new Router({
-let router = new Router({
-    // mode: 'history',    
+let router = new VueRouter({
+    mode: 'history',    
     routes: [    
         {
           path: '/Admin',
@@ -17,7 +17,7 @@ let router = new Router({
           }
         },
         {
-          path: '/Home',
+          path: '/',
           name: 'Home',
           component: home,
           meta: {
@@ -31,11 +31,11 @@ let router = new Router({
           meta:{}
         }
     ]
-  })
+  });
   
   router.beforeEach((to, from, next) => {    
     if (to.meta.authentication && !auth.isLoggedIn) {
-      next('/Login')
+      next('/Login');
     }    
     else if(to.meta.admin && !auth.isAdmin) {
       next('/Home');
@@ -43,10 +43,6 @@ let router = new Router({
     else{
         next();
     }
-  })
+  });
 
-//   const app = new Vue({
-//     router
-//   }).$mount('#app')
-
-Vue.use(router);
+export default router;

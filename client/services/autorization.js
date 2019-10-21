@@ -1,8 +1,4 @@
 'use strict'
-axios.interceptors.request.use(function (config) {
-    config.headers.Authorization = 'Bearer ' + getToken();
-    return config;
-});
 
 let cachedToken;
 const storage = window.localStorage;
@@ -72,7 +68,7 @@ function getDecodedToken () {
 function updateIsLoggedIn(){
     const payload = getDecodedToken();
     isLoggedIn = payload !== undefined;
-    isAdmin = payload.admin;
+    isAdmin = payload && payload.admin;
 }
 
     
