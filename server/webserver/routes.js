@@ -147,8 +147,8 @@ module.exports = function (router, logger, discordClient, config) {
             const guild = discordClient.guilds.get(req.body.serverId);
             if(guild){
               const member = guild.members.get(auth.user.id);
-              if(member.guild.id == req.body.serverId && member.voiceChannel){
-                req.body.channelId = member.voiceChannelID;
+              if(member.guild.id == req.body.serverId && member.voice && member.voice.channel){
+                req.body.channelId = member.voice.channelID;
               }
               else{
                 validJoin = false;

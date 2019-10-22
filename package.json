@@ -20,10 +20,15 @@
   },
   "homepage": "https://github.com/Kirdock/WillNeverBeFinishedBot#readme",
   "dependencies": {
-    "discord.js": "^11.5.1",
+    "axios": "^0.19.0",
+    "bootstrap": "^4.3.1",
+    "core-js": "^3.1.2",
+    "discord.js": "github:discordjs/discord.js",
     "express": "^4.17.1",
+    "ffmpeg": "0.0.4",
     "form-data": "^2.5.1",
     "fs": "0.0.1-security",
+    "jquery": "^3.4.1",
     "jsonwebtoken": "^8.5.1",
     "lowdb": "^1.0.0",
     "multer": "^1.4.2",
@@ -33,17 +38,12 @@
     "popper.js": "^1.16.0",
     "q": "^1.5.1",
     "shelljs": "^0.8.3",
-    "winston": "^3.2.1",
-    "ytdl-core": "^1.0.0",
-    "axios": "^0.19.0",
-    "bootstrap": "^4.3.1",
-    "core-js": "^3.1.2",
-    "jquery": "^3.4.1",
     "vue": "^2.6.10",
-    "vue-router": "^3.1.3"
+    "vue-router": "^3.1.3",
+    "winston": "^3.2.1",
+    "ytdl-core": "^1.0.0"
   },
   "devDependencies": {
-    "ffmpeg-binaries": "^4.0.0",
     "opusscript": "0.0.7",
     "@vue/cli-plugin-babel": "^4.0.0",
     "@vue/cli-plugin-router": "^4.0.0",
@@ -51,8 +51,7 @@
     "vue-template-compiler": "^2.6.10"
   },
   "optionalDependencies": {
-    "node-opus": "^0.3.2",
-    "ffmpeg": "0.0.4"
+    "node-opus": "^0.3.2"
   },
   "postcss": {
     "plugins": {

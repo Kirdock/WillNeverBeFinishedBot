@@ -15,8 +15,8 @@ module.exports = (client) =>{
 
 
     function joinVoiceChannel(message){
-        if (message.member.voiceChannel) {
-            return message.member.voiceChannel.join();
+        if (message.member.voice.channel) {
+            return message.member.voice.channel.join();
         }
         else
         {
@@ -43,16 +43,16 @@ module.exports = (client) =>{
     }
 
     function hasConnection(id){
-        return client.voiceConnections.has(id);
+        return client.voice.connections.has(id);
     }
 
     function getConnection(id){
-        return client.voiceConnections.get(id);
+        return client.voice.connections.get(id);
     }
 
     //serverID == key for voiceConnections
     function disconnectVoice(id){
-        let connection = client.voiceConnections.get(id);
+        let connection = client.voice.connections.get(id);
         if(connection){
             connection.disconnect();
         }
