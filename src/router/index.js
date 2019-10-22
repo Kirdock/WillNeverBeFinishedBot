@@ -26,7 +26,7 @@ const routes = [
     }
   },
   {
-    path: '/login',
+    path: '/Login',
     name: 'Login',
     component: Login,
     meta:{}
@@ -47,12 +47,15 @@ const router = new VueRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {    
+router.beforeEach((to, from, next) => {
+  if(to.name == 'Login' && auth.isLoggedIn){
+    next('/');
+  }
   if (to.meta.authentication && !auth.isLoggedIn) {
     next('/Login');
   }    
   else if(to.meta.admin && !auth.isAdmin) {
-    next('/Home');
+    next('/');
   }
   else{
       next();

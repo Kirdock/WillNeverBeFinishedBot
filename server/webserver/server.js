@@ -2,6 +2,7 @@
 const express = require('express');
 const app = express();
 const body_parser = require('body-parser');
+const history = require('connect-history-api-fallback');
 
 
 module.exports = (discordClient, config, logger)=> {
@@ -21,7 +22,11 @@ module.exports = (discordClient, config, logger)=> {
     };
     app.use(cors);
     app.use(body_parser.json({limit: '20mb'}));
-    app.use('/', express.static(__dirname+'/../../dist'));
+    const staticFileMiddleware = express.static(__dirname+'/../../dist');
+    app.use(staticFileMiddleware);
+    app.use(history());
+    app.use(staticFileMiddleware);
+
 
     var port = process.env.PORT || config.port;
     var router = express.Router();

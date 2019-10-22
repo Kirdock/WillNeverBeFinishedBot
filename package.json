@@ -23,6 +23,7 @@
     "axios": "^0.19.0",
     "bootstrap": "^4.3.1",
     "bootstrap-vue": "^2.0.4",
+    "connect-history-api-fallback": "^1.6.0",
     "core-js": "^3.1.2",
     "discord.js": "github:discordjs/discord.js",
     "express": "^4.17.1",
