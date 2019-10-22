@@ -191,7 +191,7 @@ module.exports = function (router, logger, discordClient, config) {
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
         userHelper.isInServer(result.user, req.params.id).then(result =>{
-          res.status(200).json(discordClient.guilds.get(req.params.id).channels.filter(channel => channel.type === 'voice').sort((channel1, channel2) => channel1.position > channel2.position).map(item =>{return {id: item.id, name: item.name}}));
+          res.status(200).json(discordClient.guilds.get(req.params.id).channels.filter(channel => channel.type === 'voice').map(item =>{return {id: item.id, name: item.name, rawPosition: item.rawPosition}}).sort((channel1, channel2) => channel1.rawPosition  - channel2.rawPosition ));
         }).catch(error =>{
           notInServer(res, error);
         });
