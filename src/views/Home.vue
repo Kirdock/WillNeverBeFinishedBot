@@ -2,6 +2,7 @@
     <div class="container" style="margin-top:50px">
         <div id="fetch" class="form-horizontal" >
             <button type="button" class="btn btn-primary" v-on:click="updateWebsite()" v-if="isAdmin">Update Website</button>
+            <button type="button" class="btn btn-primary" @click="testToast()" >TestToast</button>
             <h1 class="control-label">Server</h1>
             <div class="input-group">
                 <select class="form-control" v-model="selectedServer" @change="fetchChannels(); saveSettings()">

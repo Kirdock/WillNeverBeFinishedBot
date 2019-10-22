@@ -200,6 +200,13 @@ export default {
         }
       }
       return status;
+    },
+    testToast(){
+      this.$bvToast.toast(`This is toast number`, {
+        title: 'BootstrapVue Toast',
+        autoHideDelay: 5000,
+        appendToast: true
+      })
     }
   }
 };
