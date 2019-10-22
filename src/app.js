@@ -13,7 +13,7 @@ import dataservice from './services/dataservice.js';
         }
     },
     methods: {
-      checkCode: function(){
+      checkCode(){
         const url = new URL(window.location.href);
         const code = url.searchParams.get('code');
         if (code && !authorization.isLoggedIn) {
@@ -32,16 +32,16 @@ import dataservice from './services/dataservice.js';
           removeQueryFromUrl();
         }
       },
-      fetchData: function(){
+      fetchData(){
         this.setUserData();
       },
-      setUserData: function(){
+      setUserData(){
         const decodedToken = authorization.getDecodedToken();
         this.username = decodedToken.username;
         this.isAdmin = decodedToken.admin;
         this.loggedIn = true;
       },
-      logout: function(){
+      logout(){
         dataservice.logout().then(result =>{
           authorization.deleteToken();
           this.isAdmin = false;
@@ -51,7 +51,7 @@ import dataservice from './services/dataservice.js';
         });
       }
     },
-    created: function(){
+    created(){
       this.checkCode();
     }
   };

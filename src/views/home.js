@@ -36,9 +36,6 @@ export default {
       });
       this.fetchCategories();
       this.fetchSounds();
-      if(authorization.isAdmin){
-          this.fetchLogs();
-      }
   },
   methods: {
     createNewCat() {
@@ -145,17 +142,6 @@ export default {
       else{
         return this.sounds[categoryName];
       }
-    },
-    fetchLogs: function(){
-      dataservice.fetchLogs().then(response =>{
-        this.logs = response.data;
-      }).catch(error =>{
-
-      })
-    },
-    formatTime(time){
-      const date = new Date(time);
-      return date.toLocaleDateString() + '  ' + date.toLocaleTimeString();
     },
     containsServer(serverId){
       return this.arrayContainsId(this.servers,serverId);
