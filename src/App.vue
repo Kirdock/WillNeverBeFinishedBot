@@ -44,19 +44,8 @@ export default {
       }
     },
     logout(){
-      dataservice.logout().then(result =>{
         this.$auth.deleteToken();
         this.$router.push('/Login');
-      }).catch(error =>{
-        this.$bvToast.toast(`Ein Fehler ist aufgetreten`, {
-            title: 'Fehler',
-            autoHideDelay: this.$config.toastDelay,
-            appendToast: true
-        });
-        if(this.$auth.isAdmin()){
-          console.log(error);
-        }
-      });
     }
   },
   created(){
