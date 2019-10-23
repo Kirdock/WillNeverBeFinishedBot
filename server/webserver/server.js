@@ -37,16 +37,6 @@ module.exports = (discordClient, config, logger)=> {
         app.listen(port);
     }
     else{
-        app.use(function(req, res, next) {
-            const host = req.get('Host');
-            if((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
-                res.redirect(`https://${host}${req.url}`);
-            }
-            else{
-                next();
-            }
-        });
-
         https.createServer({
             key: fs.readFileSync(__dirname+'/cert/privkey.pem'),
             cert: fs.readFileSync(__dirname+'/cert/cert.pem')
