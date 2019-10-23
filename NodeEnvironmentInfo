@@ -1,0 +1,2 @@
+Windows powershell:
+$env:myEnvironmentVariable="myValue"
