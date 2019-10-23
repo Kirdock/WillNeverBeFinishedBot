@@ -9,7 +9,8 @@ const fs = require('fs');
 
 
 module.exports = (discordClient, config, logger)=> {
-
+    const portHttp = process.env.PORT || config.port;
+    const portHttps = portHttp+1;
     const cors = function (req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
@@ -26,7 +27,7 @@ module.exports = (discordClient, config, logger)=> {
     app.use(cors);
     app.use(function(req, res, next) {
         if((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https') && req.get('Host').indexOf('localhost') < 0 && req.get('Host').indexOf('192.168.178.31') < 0) {
-            res.redirect('https://' + req.get('Host') + req.url);
+            res.redirect(`https://${req.hostname}:${portHttps}${req.url}`);
         }
         else{
             next();
@@ -42,13 +43,12 @@ module.exports = (discordClient, config, logger)=> {
 
     require('./routes.js')(router, logger, discordClient, config);
     app.use('/api',router);
-    const port = process.env.PORT || config.port;
     
-    http.createServer(app).listen(port);
+    http.createServer(app).listen(portHttp);
     https.createServer({
         key: fs.readFileSync(__dirname+'/cert/privkey.pem'),
         cert: fs.readFileSync(__dirname+'/cert/cert.pem')
     }, app)
-    .listen(port+1);
+    .listen(portHttps);
     
 };
