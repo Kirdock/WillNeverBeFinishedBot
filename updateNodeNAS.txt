@@ -1,6 +1,27 @@
 sudo npm cache clean -f
-sudo npm install -g n // sudo and -g should not be used. package.json will be locked to root
+npm install -g n // sudo and -g should not be used. package.json will be locked to root
 sudo n stable
 
-how to adjust path:
-export PATH="$PATH:/my/path"
+//ipkg
+sudo nano /etc/profile
+append :your/path
+
+LD_LIBRARY_PATH=/lib:/opt/lib
+export LD_LIBRARY_PATH
+
+
+global node modules:
+
+sudo chown root:users /volume1/@appstore/Node.js_v8/usr/local/lib/node_modules -R
+sudo chmod 775 /volume1/@appstore/Node.js_v8/usr/local/lib/node_modules
+sudo chmod 775 /volume1/@appstore/Node.js_v8/usr/local/bin
+sudo chown root:users  /volume1/@appstore/Node.js_v8/usr/local/bin
+
+
+workaround to make it run:
+(re-) install node.js (8.9.4) from store
+run npm i //npm-gyp does not throw any errors
+update node.js with n (sudo n stable)
+npm i works now (because important (buggy) modules are already compiled)
+
+I have to use a later node.js version because discord.js needs it. else error on start (unexpected something...)
