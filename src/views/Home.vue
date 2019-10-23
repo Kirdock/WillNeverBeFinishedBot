@@ -17,22 +17,22 @@
             <div class="form-group">
                 <label class="control-label">Create new Category</label>
                 <div class="input-group">
-                    <input class="form-control col-md-10" v-model="newCatInput">
-                    <button type="button" class="btn btn-primary col-md-2" id="newCat" v-on:click="createNewCat()">Create New Cat</button>
+                  <input class="form-control col-md-10" v-model="newCatInput">
+                  <button type="button" class="btn btn-primary col-md-2" id="newCat" v-on:click="createNewCat()">Create New Cat</button>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="control-label">Choose sound category</label>
                 <div class="input-group">
-                    <select class="form-control" v-model="selectedCategory">
-                        <option v-for="category in soundCategories" :value="category.name" :key="category">
-                            {{category.name}}
-                        </option>
-                    </select>
                     <label class="btn btn-primary col-md-2 finger">
-                        Browse.. <input type="file" style="display:none" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
+                        Auswohl der Datei(n) <input type="file" style="display:none" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
                     </label>
+                    <select class="form-control" v-model="selectedCategory">
+                      <option v-for="category in soundCategories" :value="category.name" :key="category">
+                          {{category.name}}
+                      </option>
+                    </select>
                 </div>
             </div>
                 
@@ -145,8 +145,27 @@ export default {
         dataservice.createNewCat(this.newCatInput).then(response =>{
           this.newCatInput = undefined;
           this.fetchCategories();
+          this.$bvToast.toast(`Hob de Kategorie onglegt`, {
+            title: 'Erfolg',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'success',
+            appendToast: true
+          });
         }).catch(error =>{
-
+          this.$bvToast.toast(`Wos host du ongstöllt, dass do a Fehla kimmt?`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
+        });
+      }
+      else{
+        this.$bvToast.toast(`Bist du blind? De Kategorie gibts schon!`, {
+          title: 'Warnung',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'warning',
+          appendToast: true
         });
       }
     },
@@ -156,7 +175,12 @@ export default {
           this.selectedServer = this.servers[0].id;
       })
       .catch(error =>{
-          
+          this.$bvToast.toast(`Konn de Channels nit lodn. Ka wos do los is`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
       });
     },
     submitFile(){
@@ -167,7 +191,19 @@ export default {
       
       dataservice.uploadFile(formData)
       .then(response => {
-
+        this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
+            title: 'Erfolg',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'success',
+            appendToast: true
+          });
+      }).catch(error =>{
+        this.$bvToast.toast(`Konn de Datei nit aufelodn ¯\\_(ツ)_/¯`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
       });
     },
     fetchCategories(){
@@ -178,7 +214,12 @@ export default {
           })
           this.selectedCategory = this.soundCategories[0].name;
         }).catch(error => {
-
+          this.$bvToast.toast(`Konn de Kategorien nit holn`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
         })
     },
     fetchChannels(){
@@ -186,14 +227,24 @@ export default {
             this.channels = response.data;
             this.selectedChannel = this.channels[0].id;
         }).catch(error => {
-          
+          this.$bvToast.toast(`Hob de Channels nit lodn. Meh... Probiers amfoch noch amol`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
         });
     },
     fetchSounds(){
         dataservice.fetchSounds().then(response =>{
             this.sounds = response.data;
         }).catch(error =>{
-
+          this.$bvToast.toast(`Konn de Sounds nit lodn. Frog Mr. Admin wos do vakehrt laft`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
         });
     },
     playSound(path){
@@ -206,9 +257,14 @@ export default {
         url: this.youtubeUrl
       }
       dataservice.playSound(data).then(response =>{
-
+        
       }).catch(error =>{
-
+        this.$bvToast.toast(`Der Sound konn nit obgspült werdn. Very strange`, {
+          title: 'Fehler',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'danger',
+          appendToast: true
+        });
       });
     },
     changeCategoryVisibility(category){
@@ -219,21 +275,54 @@ export default {
     },
     updateWebsite(){
       dataservice.updateWebsite().then(response=>{
-        console.log(response);
+        this.$bvToast.toast(`Also Fehla gibts onscheinend kan. Des wär der Response\n ${response.data}`, {
+          title: 'Information',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'info',
+          appendToast: true
+        });
       }).catch(error =>{
-
+        this.$bvToast.toast(`Warum is do schon wieda a Fehla?`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
       });
     },
     stopPlaying(){
       dataservice.stopPlaying(this.selectedServer).then(response =>{
-
+        this.$bvToast.toast(`Da Bot holtat jetz de Goschn`, {
+          title: 'Erfolg',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'success',
+          appendToast: true
+        });
       }).catch(error =>{
-
+        this.$bvToast.toast(`Der Bot wüll nit aufhean oda hot schon aufgheat?`, {
+          title: 'Fehler',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'danger',
+          appendToast: true
+        });
       })
     },
     updateServerList(){
       dataservice.updateServerList().then(servers =>{
         this.servers = servers.data;
+        this.$bvToast.toast(`Listn is aktualisiert`, {
+          title: 'Erfolg',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'success',
+          appendToast: true
+        });
+      }).catch(error =>{
+        this.$bvToast.toast(`Die Server protestiern grod in Hong Kong und hobm ka Zeit`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
       });
     },
     filteredSounds(categoryName){

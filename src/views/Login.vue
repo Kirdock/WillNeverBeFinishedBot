@@ -26,7 +26,6 @@ export default {
                     autoHideDelay: this.$config.toastDelay,
                     appendToast: true
                 });
-                // this.$router.push(this.$route.path);
               });
             }
         },

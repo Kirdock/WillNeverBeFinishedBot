@@ -47,7 +47,12 @@ export default {
             dataservice.fetchLogs().then(response =>{
                 this.logs = response.data;
             }).catch(error =>{
-    
+                this.$bvToast.toast(`Logs kennan nit glodn werdn`, {
+                    title: 'Fehler',
+                    autoHideDelay: this.$config.toastDelay,
+                    variant: 'danger',
+                    appendToast: true
+                });
             });
         },
         formatTime(time){
