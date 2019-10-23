@@ -16,10 +16,9 @@ elif [ $LOCAL = $BASE ];
 then
     echo "need to pull"
 	git pull
-	npm stop
 	npm install --production
 	npm run build
-	npm start
+	npm restart
 elif [ $REMOTE = $BASE ];
 then
     echo "Need to push"
