@@ -125,24 +125,29 @@ module.exports = (config) =>{
 			}
 			else {
                 const token = req.headers.authorization.split(' ')[1]; // strip 'Bearer'
-                tryGetToken(token).then(data =>{ //returns all user information including auth_token
-                    if (!data || data.application !== application) {
-                        result.status = 401;
-                        result.message = 'Authentication failed! Invalid Token';
-                        defer.reject(result);
-                    }
-                    else{
-                        checkTokenExpired(data, req.headers.referer).then(newUser =>{
-                            result.user = newUser;
-                            // if(result.user.permission == '188015113888989184'){
-                                defer.resolve(result);
-                            // }
-                            // else{
-                            //     defer.reject(new Error('User does not have enough permission ' + result.user.username));
-                            // }
-                        }).catch(defer.reject);
-                    }
-                }).catch(defer.reject);
+                if(token && token.length > 0){
+                    tryGetToken(token).then(data =>{ //returns all user information including auth_token
+                        if (!data || data.application !== application) {
+                            result.status = 401;
+                            result.message = 'Authentication failed!';
+                            defer.reject(result);
+                        }
+                        else{
+                            checkTokenExpired(data).then(newUser =>{
+                                result.user = newUser;
+                                // if(result.user.permission == '188015113888989184'){
+                                    defer.resolve(result);
+                                // }
+                                // else{
+                                //     defer.reject(new Error('User does not have enough permission ' + result.user.username));
+                                // }
+                            }).catch(defer.reject);
+                        }
+                    }).catch(defer.reject);
+                }
+                else{
+                    defer.reject(new Error('invalid token'));
+                }
 			}
 		}
 		catch (e) {

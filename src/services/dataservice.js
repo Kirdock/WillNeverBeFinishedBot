@@ -1,4 +1,5 @@
-import { config } from './config.js';
+import config from './config.js';
+import axios from 'axios';
 
 let dataservice = {
     fetchServers: fetchServers,
@@ -85,4 +86,4 @@ function updateServerList(){
     return axios.get(config.api+'/updateServer');
 }
 
-export {dataservice}
+export default dataservice;

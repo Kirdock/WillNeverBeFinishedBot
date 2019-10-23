@@ -64,7 +64,7 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/updateServer')
     .get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        userHelper.updateServers(result.user).then(response =>{
+        userHelper.updateServers(result.user).then(() =>{
           userHelper.getServersEquivalent(result.user, discordClient.guilds.map(item =>{return {id: item.id, name: item.name}}))
             .then(servers =>{
               res.status(200).json(servers);
@@ -100,7 +100,7 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/stopPlaying/:serverId')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        userHelper.isInServer(result.user, req.params.serverId).then(result =>{
+        userHelper.isInServer(result.user, req.params.serverId).then(() =>{
           playSound.stopPlaying(req.params.serverId).then(result =>{
             res.status(200).json(result);
           }).catch(error =>{
@@ -117,7 +117,7 @@ module.exports = function (router, logger, discordClient, config) {
 
     router.route('/sounds')
 		.get(function (req, res) {
-      userHelper.auth(req).then(result =>{
+      userHelper.auth(req).then(() =>{
         res.status(200).json(fileHelper.getSounds());
       }).catch(error =>{
         loginFailed(res, error);
@@ -138,8 +138,8 @@ module.exports = function (router, logger, discordClient, config) {
           if(req.body.joinUser){
             if(guild){
               const member = guild.members.get(auth.user.id);
-              if(member.guild.id == req.body.serverId && member.voiceChannel){
-                req.body.channelId = member.voiceChannelID;
+              if(member.guild.id == req.body.serverId && member.voice && member.voice.channel){
+                req.body.channelId = member.voice.channelID;
               }
               else{
                 validJoin = false;
@@ -181,8 +181,8 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/channels/:id')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        userHelper.isInServer(result.user, req.params.id).then(result =>{
-          res.status(200).json(discordClient.guilds.get(req.params.id).channels.filter(channel => channel.type === 'voice').sort((channel1, channel2) => channel1.position > channel2.position).map(item =>{return {id: item.id, name: item.name}}));
+        userHelper.isInServer(result.user, req.params.id).then(() =>{
+          res.status(200).json(discordClient.guilds.get(req.params.id).channels.filter(channel => channel.type === 'voice').sort((channel1, channel2) => channel1.rawPosition  - channel2.rawPosition ).map(item =>{return {id: item.id, name: item.name}}));
         }).catch(error =>{
           notInServer(res, error);
         });

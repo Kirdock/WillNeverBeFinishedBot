@@ -14,6 +14,7 @@ then
 	git pull
 	npm stop
 	npm install --production
+	npm run build
 	npm start
 elif [ $REMOTE = $BASE ];
 then

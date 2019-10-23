@@ -87,10 +87,9 @@ module.exports = (config, logger, voiceHelper) =>{
     function playSound(file, id, con, volumeMultiplier = 0.5, url){
         let delay = config.playSoundDelay;
         const connection = (con || voiceHelper.getConnection(id));
-        
         let dispatcher = connection.dispatcher;
         if(dispatcher){ //if bot is playing something at the moment, it interrupts and plays the other file
-            dispatcher.end('playFile'); //Parameter = reason why dispatcher ended
+            dispatcher.destroy('playFile'); //Parameter = reason why dispatcher ended
             delay = 0;
         }
 
@@ -98,25 +97,22 @@ module.exports = (config, logger, voiceHelper) =>{
             if(!file){
                 const streamOptions = { seek: 0, volume: volumeMultiplier };
                 const stream = ytdl(url, { filter : 'audioonly' });
-                dispatcher = connection.playStream(stream, streamOptions);
+                dispatcher = connection.play(stream, streamOptions);
             }
             else{
-                dispatcher = connection.playFile(file);
+                dispatcher = connection.play(file);
             }
-            dispatcher.on('end', (reason) => {
-                if(reason === 'stream'){
+
+            dispatcher.on('finish', (reason) => {
+                if(reason === 'stream' || !reason){ //atm reason is empty when file is finished
                     voiceHelper.disconnectVoice(id);
                 }
-                else if(reason !== 'playFile'){
-                    logger.error(reason || 'empty', 'PlaySound');
-                }
-                dispatcher.destroy();
             });
             
             dispatcher.on('error', e => {
-            // Catch any errors that may arise
-                logger.error(e, 'playSound');
-                dispatcher.destroy();
+                if(e !== 'playFile'){
+                    logger.error(e || 'empty', 'PlaySound');
+                }
             });
 
             // dispatcher.on('debug', e => {

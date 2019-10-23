@@ -1,7 +1,7 @@
 'use strict'
 
 const Discord = require('discord.js');
-const config = require('../config/config.json');
+const config =  require('../config/config.json');
 const logger = require( '../services/logger.js')(config, __dirname );
 const client = new Discord.Client();
 const prefixes = ['-','!'];
@@ -17,32 +17,33 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on('voiceStateUpdate', (oldMember, newMember) => {
-    let newUserChannel = newMember.voiceChannel
-    let oldUserChannel = oldMember.voiceChannel
+client.on('voiceStateUpdate', (oldState, newState) => {
+    let newUserChannel = newState.channelID;
+    let oldUserChannel = oldState.channelID;
 
-    if(newMember.id == config.clientId){
+    if(newState && newState.id == config.clientId){
         return;
     }
-
-    if(oldUserChannel === undefined && newUserChannel !== undefined && newUserChannel.members.size > 1) {
+    
+    if(!oldUserChannel && newUserChannel && newState.guild.channels.get(newUserChannel).members.size > 1) {
         let sound = 'servus';
-        if(newMember.id == '131072858083426304'){ //Klausi
-            sound = 'Klaus';
-        }
-        else if(newMember.id == '174203817351446529'){ //Timmy
-            sound = 'timmy'
-        }
-        else if(newMember.id == '174202864443326464'){ //Hössl
-            sound = 'behindert';
-        }
-        else if(newMember.id == '161084180560609280'){ //Thaler
-            sound = 'qq';
-        }
-        else if(newMember.id == '300642449049780224' || newMember.id == '103645166740463616'){ //Trupp, Kapfe
+        if(newState.id == '131072858083426304'){ //Klausi
             sound = 'pickn';
         }
-        playSoundCommand.doWorkWithoutMessage(sound,newMember.guild.id,newMember.voiceChannel.id);
+        else if(newState.id == '174203817351446529'){ //Timmy
+            sound = 'timmy'
+        }
+        else if(newState.id == '174202864443326464'){ //Hössl
+            sound = 'behindert';
+        }
+        else if(newState.id == '161084180560609280'){ //Thaler
+            sound = 'qq';
+        }
+        else if(newState.id == '300642449049780224' || newState.id == '103645166740463616'){ //Trupp, Kapfe
+            sound = 'pickn';
+        }
+
+        playSoundCommand.doWorkWithoutMessage(sound,newState.guild.id,newState.channelID);
     } else if(newUserChannel === undefined){
 
         // User leaves a voice channel

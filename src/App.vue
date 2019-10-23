@@ -1,0 +1,66 @@
+<template>
+  <div>
+    <nav id="nav" class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <a class="navbar-brand" href="#">WillNeverBeFinishedBot</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+              <li class="nav-item active">
+                  <router-link class="nav-link" to="/">Home</router-link>
+              </li>
+              <li class="nav-item" v-if="$auth.isLoggedIn()">
+                <a class="nav-link" href="#" @click="logout">Logout</a>
+              </li>
+              <li class="nav-item">
+                  <router-link class="nav-link" v-if="$auth.isAdmin()" to="/Admin">Account</router-link>
+                  <router-link class="nav-link" v-else to="/Account">Account</router-link>
+              </li>
+            </ul>
+          </div>
+          <span class="navbar-text" v-if="$auth.isLoggedIn()">
+                Der Vollpfostn {{username}} hots auf de Seitn gschofft!
+          </span>
+        </nav>
+        <router-view/>
+  </div>
+</template>
+<script>
+import dataservice from './services/dataservice';
+
+export default {
+  name: 'App',
+  data() {
+      return{
+          username: undefined,
+      }
+  },
+  methods: {
+    setUserData(){
+      const decodedToken = this.$auth.getDecodedToken();
+      if(decodedToken){
+        this.username = decodedToken.username;
+      }
+    },
+    logout(){
+      dataservice.logout().then(result =>{
+        this.$auth.deleteToken();
+        this.$router.push('/Login');
+      }).catch(error =>{
+        this.$bvToast.toast(`Ein Fehler ist aufgetreten`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            appendToast: true
+        });
+        if(this.$auth.isAdmin()){
+          console.log(error);
+        }
+      });
+    }
+  },
+  created(){
+    this.setUserData();
+  }
+};
+</script>

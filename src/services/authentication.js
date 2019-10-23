@@ -1,21 +1,16 @@
 'use strict'
-axios.interceptors.request.use(function (config) {
-    config.headers.Authorization = 'Bearer ' + getToken();
-    return config;
-});
 
 let cachedToken;
 const storage = window.localStorage;
 const tokenName = 'OiToken';
-let isLoggedIn;
-updateIsLoggedIn();
 
 const authorization = {
     getToken: getToken,
     setToken: setToken,
     getDecodedToken: getDecodedToken,
     deleteToken: deleteToken,
-    isLoggedIn: isLoggedIn
+    isLoggedIn: isLoggedIn,
+    isAdmin: isAdmin
 }
 
 
@@ -32,13 +27,11 @@ function getToken(){
 function setToken(token){
     cachedToken = token;
     storage.setItem(tokenName, token);
-    updateIsLoggedIn();
 }
 
 function deleteToken(){
     cachedToken = undefined;
     storage.removeItem(tokenName);
-    updateIsLoggedIn();
 }
 
 
@@ -67,9 +60,14 @@ function getDecodedToken () {
     return decoded_payload;
 }
 
-function updateIsLoggedIn(){
-    isLoggedIn = getToken() !== undefined;
+function isLoggedIn(){
+    return !!getToken();
+}
+
+function isAdmin(){
+    const payload = getDecodedToken();
+    return payload && payload.admin;
 }
 
     
-export {authorization}
+export default authorization;

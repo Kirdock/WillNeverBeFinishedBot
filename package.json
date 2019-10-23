@@ -2,10 +2,12 @@
   "name": "willneverbefinishedbot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "pm2 start pm2.config.js",
-    "stop": "pm2 delete BotForever"
+    "stop": "pm2 delete BotForever",
+    "build": "vue-cli-service build",
+    "serve": "vue-cli-service serve"
   },
   "repository": {
     "type": "git",
@@ -18,28 +20,49 @@
   },
   "homepage": "https://github.com/Kirdock/WillNeverBeFinishedBot#readme",
   "dependencies": {
-    "bower": "^1.8.8",
-    "discord.js": "^11.5.1",
+    "axios": "^0.19.0",
+    "bootstrap": "^4.3.1",
+    "bootstrap-vue": "^2.0.4",
+    "connect-history-api-fallback": "^1.6.0",
+    "core-js": "^3.1.2",
+    "discord.js": "github:discordjs/discord.js",
     "express": "^4.17.1",
+    "ffmpeg": "0.0.4",
     "form-data": "^2.5.1",
     "fs": "0.0.1-security",
+    "jquery": "^3.4.1",
     "jsonwebtoken": "^8.5.1",
     "lowdb": "^1.0.0",
     "multer": "^1.4.2",
     "node-fetch": "^2.6.0",
     "path": "^0.12.7",
     "pm2": "^3.5.1",
+    "popper.js": "^1.16.0",
+    "portal-vue": "^2.1.6",
     "q": "^1.5.1",
     "shelljs": "^0.8.3",
+    "vue": "^2.6.10",
+    "vue-router": "^3.1.3",
     "winston": "^3.2.1",
     "ytdl-core": "^1.0.0"
   },
   "devDependencies": {
-    "ffmpeg-binaries": "^4.0.0",
-    "opusscript": "0.0.7"
+    "opusscript": "0.0.7",
+    "@vue/cli-plugin-babel": "^4.0.0",
+    "@vue/cli-plugin-router": "^4.0.0",
+    "@vue/cli-service": "^4.0.0",
+    "vue-template-compiler": "^2.6.10"
   },
   "optionalDependencies": {
-    "node-opus": "^0.3.2",
-    "ffmpeg": "0.0.4"
-  }
+    "node-opus": "^0.3.2"
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions"
+  ]
 }
