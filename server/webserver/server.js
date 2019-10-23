@@ -26,7 +26,10 @@ module.exports = (discordClient, config, logger)=> {
     };
     app.use(cors);
     app.use(function(req, res, next) {
-        if((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https') && req.get('Host').indexOf('localhost') < 0 && req.get('Host').indexOf('192.168.178.31') < 0) {
+        const host = req.get('Host');
+        const port = host.split(':')[1];
+        
+        if((port == portHttp) && host.indexOf('localhost') < 0 && host.indexOf('192.168.178.31') < 0) {
             res.redirect(`https://${req.hostname}:${portHttps}${req.url}`);
         }
         else{
