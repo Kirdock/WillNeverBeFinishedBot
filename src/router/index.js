@@ -1,9 +1,9 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import auth from '../services/autorization.js';
 import Admin from '../views/account/Admin.vue';
 import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
+import UserAccount from '../views/account/User.vue';
 
 Vue.use(VueRouter);
 
@@ -13,8 +13,8 @@ const routes = [
     name: 'Admin',
     component: Admin,
     meta: {
-        authentication: true,
-        admin: true
+      authentication: true,
+      admin: true
     }
   },
   {
@@ -22,13 +22,26 @@ const routes = [
     name: 'Home',
     component: Home,
     meta: {
-        authentication: true
+      authentication: true
     }
   },
   {
     path: '/Login',
     name: 'Login',
     component: Login,
+    meta:{}
+  },
+  {
+    path: '/Account',
+    name: 'Account',
+    component: UserAccount,
+    meta:{
+      authentication: true
+    }
+  },
+  {
+    path: '*',
+    name: 'NotFound',
     meta:{}
   },
   {
@@ -48,14 +61,17 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  if(to.name == 'Login' && auth.isLoggedIn){
+  if(to.name === 'Login' && router.app.$auth.isLoggedIn()){
     next('/');
   }
-  if (to.meta.authentication && !auth.isLoggedIn) {
+  else if (to.meta.authentication && !router.app.$auth.isLoggedIn()) {
     next('/Login');
   }    
-  else if(to.meta.admin && !auth.isAdmin) {
+  else if(to.meta.admin && !router.app.$auth.isAdmin()) {
     next('/');
+  }
+  else if(to.name === 'NotFound'){
+    next(router.app.$auth.isLoggedIn() ? '/' : '/Login');
   }
   else{
       next();

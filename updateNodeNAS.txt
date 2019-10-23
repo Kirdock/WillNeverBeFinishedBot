@@ -1,3 +1,6 @@
 sudo npm cache clean -f
-sudo npm install -g n // -g should not be used. package.json will be locked to root
+sudo npm install -g n // sudo and -g should not be used. package.json will be locked to root
 sudo n stable
+
+how to adjust path:
+export PATH="$PATH:/my/path"

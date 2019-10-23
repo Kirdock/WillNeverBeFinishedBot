@@ -3,9 +3,6 @@
 let cachedToken;
 const storage = window.localStorage;
 const tokenName = 'OiToken';
-let isLoggedIn;
-let isAdmin;
-updateIsLoggedIn();
 
 const authorization = {
     getToken: getToken,
@@ -30,13 +27,11 @@ function getToken(){
 function setToken(token){
     cachedToken = token;
     storage.setItem(tokenName, token);
-    updateIsLoggedIn();
 }
 
 function deleteToken(){
     cachedToken = undefined;
     storage.removeItem(tokenName);
-    updateIsLoggedIn();
 }
 
 
@@ -65,10 +60,13 @@ function getDecodedToken () {
     return decoded_payload;
 }
 
-function updateIsLoggedIn(){
+function isLoggedIn(){
+    return !!getToken();
+}
+
+function isAdmin(){
     const payload = getDecodedToken();
-    isLoggedIn = payload !== undefined;
-    isAdmin = payload && payload.admin;
+    return payload && payload.admin;
 }
 
     

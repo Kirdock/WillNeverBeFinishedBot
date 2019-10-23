@@ -17,4 +17,4 @@ function load(){
 
 
 
-export {settings}
+export default settings;

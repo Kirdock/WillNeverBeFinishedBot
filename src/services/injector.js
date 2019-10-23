@@ -1,6 +1,4 @@
-'use strict'
-
-import auth from './autorization';
+import auth from './authentication';
 import axios from 'axios';
 
 axios.interceptors.request.use(function (config) {

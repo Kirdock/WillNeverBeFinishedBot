@@ -10,25 +10,57 @@
               <li class="nav-item active">
                   <router-link class="nav-link" to="/">Home</router-link>
               </li>
-              <li class="nav-item" v-show="!loggedIn">
-                <a class="nav-link" :href="loginLink">Login</a>
-              </li>
-              <li class="nav-item" v-show="loggedIn">
-                <a class="nav-link" href="#" v-on:click="logout">Logout</a>
+              <li class="nav-item" v-if="$auth.isLoggedIn()">
+                <a class="nav-link" href="#" @click="logout">Logout</a>
               </li>
               <li class="nav-item">
-                    <router-link class="nav-link" v-if="isAdmin" to="/Admin">Admin</router-link>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link disabled" href="#">Disabled</a>
+                  <router-link class="nav-link" v-if="$auth.isAdmin()" to="/Admin">Account</router-link>
+                  <router-link class="nav-link" v-else to="/Account">Account</router-link>
               </li>
             </ul>
           </div>
-          <span class="navbar-text" v-show="loggedIn">
+          <span class="navbar-text" v-if="$auth.isLoggedIn()">
                 Der Vollpfostn {{username}} hots auf de Seitn gschofft!
           </span>
         </nav>
         <router-view/>
   </div>
 </template>
-<script src="./app.js">
+<script>
+import dataservice from './services/dataservice';
+
+export default {
+  name: 'App',
+  data() {
+      return{
+          username: undefined,
+      }
+  },
+  methods: {
+    setUserData(){
+      const decodedToken = this.$auth.getDecodedToken();
+      if(decodedToken){
+        this.username = decodedToken.username;
+      }
+    },
+    logout(){
+      dataservice.logout().then(result =>{
+        this.$auth.deleteToken();
+        this.$router.push('/Login');
+      }).catch(error =>{
+        this.$bvToast.toast(`Ein Fehler ist aufgetreten`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            appendToast: true
+        });
+        if(this.$auth.isAdmin()){
+          console.log(error);
+        }
+      });
+    }
+  },
+  created(){
+    this.setUserData();
+  }
+};
+</script>

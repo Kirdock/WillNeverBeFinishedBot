@@ -3,12 +3,15 @@ import App from './App.vue';
 import router from './router';
 import './services/injector';
 import 'bootstrap';
-import './assets/style.css';
 import './assets/bootstrap.min.css';
 import 'bootstrap-vue';
 import { ToastPlugin } from 'bootstrap-vue';
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css';
+import config from './services/config';
+import auth from './services/authentication'
 
+Vue.prototype.$config = config;
+Vue.prototype.$auth = auth;
 Vue.config.productionTip = false;
 Vue.use(ToastPlugin);
 
