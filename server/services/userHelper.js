@@ -92,25 +92,6 @@ module.exports = (config) =>{
         }).then(res => res.json());
     }
 
-    function tryGetToken(authToken){
-        const defer = q.defer();
-        jwt.verify(authToken, secret, function(err, decoded) {
-            if(err){
-                defer.reject(err);
-            }
-            else{
-                let user = databaseHelper.getUser(decoded.id);
-                if(user){
-                    defer.resolve(user);
-                }
-                else{
-                    defer.reject({notFound: true});
-                }
-            }
-        });
-        return defer.promise;
-    }
-
     function auth(req){
         const defer = q.defer();
         let result = {
@@ -133,7 +114,7 @@ module.exports = (config) =>{
                             defer.reject(result);
                         }
                         else{
-                            checkTokenExpired(data).then(newUser =>{
+                            checkTokenExpired(data, req.headers.referer+'Login').then(newUser =>{
                                 result.user = newUser;
                                 // if(result.user.permission == '188015113888989184'){
                                     defer.resolve(result);
@@ -146,7 +127,7 @@ module.exports = (config) =>{
                     }).catch(defer.reject);
                 }
                 else{
-                    defer.reject(new Error('invalid token'));
+                    defer.reject({status: 401});
                 }
 			}
 		}
@@ -159,6 +140,25 @@ module.exports = (config) =>{
 		return defer.promise;
     }
 
+    function tryGetToken(authToken){
+        const defer = q.defer();
+        jwt.verify(authToken, secret, function(err, decoded) {
+            if(err){
+                defer.reject(err);
+            }
+            else{
+                let user = databaseHelper.getUser(decoded.id);
+                if(user){
+                    defer.resolve(user);
+                }
+                else{
+                    defer.reject({status: 401});
+                }
+            }
+        });
+        return defer.promise;
+    }
+
     function checkTokenExpired(user, request_url){
         const defer = q.defer();
         const timeBegin = user.time;
@@ -168,7 +168,7 @@ module.exports = (config) =>{
             console.log('refresh Token',timeNow, timeBegin, expire, user.username, request_url);
             refreshToken(user.info.refresh_token, request_url).then(result =>{
                 if(result.error){
-                    result.refresh_token_error = true;
+                    result.status = 401;
                     result.user = user;
                     defer.reject(result);
                 }

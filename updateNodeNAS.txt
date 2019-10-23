@@ -1,6 +1,12 @@
 sudo npm cache clean -f
-npm install -g n // sudo and -g should not be used. package.json will be locked to root
+npm install -g n // sudo and -g should not be used. package.json files will be locked to root
 sudo n stable
+
+//look for instances of node/pm2
+ps aux | grep pm2
+ps aux | grep node
+kill "index"
+killall node
 
 //ipkg
 sudo nano /etc/profile

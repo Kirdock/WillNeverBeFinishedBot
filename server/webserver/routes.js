@@ -239,7 +239,7 @@ module.exports = function (router, logger, discordClient, config) {
 
     function loginFailed(res, error){
       console.log('Login failed',error.error || error);
-      res.status(error.status || 401).json(error.notFound ? {notFound: true} : error.message || 'Authentication failed');
+      res.status(error.status || 401).json(error.message || 'Authentication failed');
     }
 
     function notInServer(res, error){

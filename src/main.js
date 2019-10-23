@@ -1,7 +1,7 @@
 import Vue from 'vue';
+import axios from 'axios';
 import App from './App.vue';
 import router from './router';
-import './services/injector';
 import 'bootstrap';
 import './assets/bootstrap.min.css';
 import 'bootstrap-vue';
@@ -12,10 +12,30 @@ import auth from './services/authentication'
 
 Vue.prototype.$config = config;
 Vue.prototype.$auth = auth;
+
 Vue.config.productionTip = false;
 Vue.use(ToastPlugin);
+
+axios.interceptors.request.use(function (config) {
+  const token = auth.getToken();
+  if(token){
+      config.headers.Authorization = 'Bearer ' + token;
+  }
+  return config;
+});
+
+axios.interceptors.response.use(function (response) {
+  return response;
+}, function (error) {
+  if(error.response.status === 401){
+    auth.deleteToken();
+    router.go('/Login');
+  }
+  return Promise.reject(error);
+});
 
 new Vue({
   router,
   render: h => h(App),
 }).$mount('#app');
+

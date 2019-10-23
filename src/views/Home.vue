@@ -130,7 +130,6 @@ export default {
           this.loadSettings();
           const decodedToken = this.$auth.getDecodedToken();
           if(decodedToken){
-            this.username = decodedToken.username;
             this.isAdmin = decodedToken.admin;
             if(this.isAdmin){
                 this.maxVolume = 100;
@@ -157,10 +156,7 @@ export default {
           this.selectedServer = this.servers[0].id;
       })
       .catch(error =>{
-          if(error.response.data.notFound){
-            this.$auth.deleteToken();
-            this.$router.push('/Login');
-          }
+          
       });
     },
     submitFile(){
@@ -190,7 +186,7 @@ export default {
             this.channels = response.data;
             this.selectedChannel = this.channels[0].id;
         }).catch(error => {
-
+          
         });
     },
     fetchSounds(){
