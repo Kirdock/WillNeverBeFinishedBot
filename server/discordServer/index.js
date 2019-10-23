@@ -28,7 +28,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     if(!oldUserChannel && newUserChannel && newState.guild.channels.get(newUserChannel).members.size > 1) {
         let sound = 'servus';
         if(newState.id == '131072858083426304'){ //Klausi
-            sound = 'pickn';
+            sound = 'Klaus';
         }
         else if(newState.id == '174203817351446529'){ //Timmy
             sound = 'timmy'
@@ -68,7 +68,7 @@ client.on('message', message => {
     if(content){
         content = content.toLocaleLowerCase().trim();
         if(listCommand.isCommand(content)){
-            message.reply('http://kirdock.synology.me:4599/');
+            message.reply('https://kirdock.synology.me:4599/');
         }
         else if(questionCommand.isCommand(content))
         {
