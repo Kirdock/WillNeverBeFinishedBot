@@ -7,6 +7,7 @@ const tokenName = 'OiToken';
 const authorization = {
     getToken: getToken,
     setToken: setToken,
+    hasToken: hasToken,
     getDecodedToken: getDecodedToken,
     deleteToken: deleteToken,
     isLoggedIn: isLoggedIn,
@@ -27,6 +28,10 @@ function getToken(){
 function setToken(token){
     cachedToken = token;
     storage.setItem(tokenName, token);
+}
+
+function hasToken(){
+    return !!getToken();
 }
 
 function deleteToken(){

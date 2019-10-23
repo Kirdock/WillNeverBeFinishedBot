@@ -1,6 +1,6 @@
 let config = {
     api: './api/',
-    toastDelay: 5000
+    toastDelay: 8000
   };
 
 export default config

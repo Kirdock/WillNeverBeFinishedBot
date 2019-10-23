@@ -15,6 +15,7 @@ Vue.prototype.$auth = auth;
 
 Vue.config.productionTip = false;
 Vue.use(ToastPlugin);
+let instances = {};
 
 axios.interceptors.request.use(function (config) {
   const token = auth.getToken();
@@ -29,13 +30,28 @@ axios.interceptors.response.use(function (response) {
 }, function (error) {
   if(error.response.status === 401){
     auth.deleteToken();
-    router.go('/Login');
+    if(router.currentRoute.name !== 'Login'){
+      if(instances.vue){
+        instances.vue.authFail();
+      }
+      router.push({path:'/Login',params:{auth: true}});
+    }
   }
   return Promise.reject(error);
 });
 
-new Vue({
+instances.vue = new Vue({
   router,
   render: h => h(App),
+  methods:{
+    authFail(){
+      this.$bvToast.toast(`Auth funktioniert net. I logg di mol aus`, {
+        title: 'Fehler',
+        autoHideDelay: this.$config.toastDelay,
+        variant: 'danger',
+        appendToast: true
+      });
+    }
+  }
 }).$mount('#app');
 
