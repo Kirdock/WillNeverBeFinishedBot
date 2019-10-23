@@ -157,7 +157,10 @@ export default {
           this.selectedServer = this.servers[0].id;
       })
       .catch(error =>{
-
+          if(error.response.data.notFound){
+            this.$auth.deleteToken();
+            this.$router.push('/Login');
+          }
       });
     },
     submitFile(){

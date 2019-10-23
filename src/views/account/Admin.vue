@@ -6,6 +6,7 @@
             <thead>
                 <tr>
                     <th>Timestamp</th>
+                    <th>Server</th>
                     <th>Username</th>
                     <th>Action</th>
                 </tr>
@@ -14,6 +15,9 @@
                 <tr v-for="log in logs" :key="log">
                     <td>
                         {{formatTime(log.timestamp)}}
+                    </td>
+                    <td>
+                        {{log.serverName}}
                     </td>
                     <td>
                         {{log.username}}
