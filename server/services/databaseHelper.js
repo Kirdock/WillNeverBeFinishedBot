@@ -32,21 +32,21 @@ module.exports = () =>{
     }
     return databaseHelper;
 
-    function addUser(user, authData, servers, time){
+    function addUser(user, authData, servers){
         if(!getUser(user.id)){
             let query = JSON.parse(JSON.stringify(user)); //without reference
             query.info = authData;
             query.servers = servers;
-            query.time = time;
+            query.time = new Date().getTime();
             db.get(users).push(query).write();
         }
         else{
-            updateUserToken(user.id, authData, time);
+            updateUserToken(user.id, authData);
         }
     }
 
-    function updateUserToken(id, info, time){
-        db.get(users).find({id: id}).assign({info: info, time: time}).write();
+    function updateUserToken(id, info){
+        db.get(users).find({id: id}).assign({info: info, time: new Date().getTime()}).write();
     }
 
     function removeUser(id){

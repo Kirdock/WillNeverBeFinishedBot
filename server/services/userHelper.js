@@ -55,7 +55,7 @@ module.exports = (config) =>{
                             userData.admin = config.admins.includes(userData.id);
                             userData.application = application;
 
-                            databaseHelper.addUser(userData, res, getServersEquivalentWithServers(servers, botServers), new Date().getTime());
+                            databaseHelper.addUser(userData, res, getServersEquivalentWithServers(servers, botServers));
 
                             defer.resolve(jwt.sign(userData, secret));
                         }).catch(defer.reject)
