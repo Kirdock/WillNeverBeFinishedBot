@@ -34,6 +34,7 @@ module.exports = (discordClient, config, logger)=> {
     app.use('/api',router);
 
     if(isLocal){
+        console.log('start local')
         app.listen(port);
     }
     else{

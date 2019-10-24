@@ -50,12 +50,12 @@ module.exports = (config) =>{
                     }
                     else{
                         
-                        getServersWithToken(res).then(servers =>{
+                        fetchServers(res).then(servers =>{
                             userData.owner = config.owner == userData.id;
                             userData.admin = config.admins.includes(userData.id);
                             userData.application = application;
 
-                            databaseHelper.addUser(userData, res, getServersEquivalentWithServers(servers, botServers));
+                            databaseHelper.addUser(userData, res, getSameServers(servers, botServers));
 
                             defer.resolve(jwt.sign(userData, secret));
                         }).catch(defer.reject)
@@ -191,30 +191,13 @@ module.exports = (config) =>{
         return defer.promise;
     }
 
-    function getServersWithToken(info){
+    function fetchServers(info){
         return fetch('https://discordapp.com/api/users/@me/guilds', {
             method: 'GET',
             headers: {
                 authorization: `${info.token_type} ${info.access_token}`,
             },
         }).then(res => res.json());
-    }
-
-    function getServersEquivalentWithServers(userServers, botServers){
-        return getSameServers(userServers, botServers).map(server => {return {id: server.id, name: server.name, icon: server.icon, permission: server.permission}})
-    }
-
-    function getSameServers(userServers, botServers){
-        let sameServers = [];
-        userServers.forEach(server =>{
-            for(let i = 0; i < botServers.length; i++){
-                if(botServers[i].id == server.id){
-                    sameServers.push(server);
-                    break;
-                }
-            }
-        });
-        return sameServers;
     }
 
     function getServersEquivalent(user, botServers){
@@ -225,9 +208,29 @@ module.exports = (config) =>{
         return defer.promise;
     }
 
-    function updateServers(user){
-        return getServersWithToken(user.info).then(servers =>{
-            databaseHelper.setServersOfUser(user.id,servers);
+    function getSameServers(userServers, botServers){
+        let sameServers = [];
+        if(userServers && botServers){
+            userServers.forEach(server =>{
+                for(let i = 0; i < botServers.length; i++){
+                    if(botServers[i].id == server.id){
+                        sameServers.push(server);
+                        break;
+                    }
+                }
+            });
+        }
+        return sameServers;
+    }
+
+    function updateServers(user, botServers){
+        return fetchServers(user.info).then(servers =>{
+            if(servers.error){
+                return q.reject(servers.error);
+            }
+            else{
+                databaseHelper.setServersOfUser(user.id,getSameServers(servers,botServers));
+            }
         });
     }
 

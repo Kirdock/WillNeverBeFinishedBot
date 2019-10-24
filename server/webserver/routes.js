@@ -23,7 +23,7 @@ module.exports = function (router, logger, discordClient, config) {
 
     router.route('/login')
     .post(function (req, res) {
-      userHelper.login(req.body.code, req.body.redirectUrl, discordClient.guilds.map(item =>{return {id: item.id, name: item.name}})).then(authToken =>{
+      userHelper.login(req.body.code, req.body.redirectUrl, getBotServers()).then(authToken =>{
         res.status(200).json(authToken);
       }).catch(error =>{
         console.log(error);
@@ -48,7 +48,7 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/servers')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        userHelper.getServersEquivalent(result.user, discordClient.guilds.map(item =>{return {id: item.id, name: item.name}}))
+        userHelper.getServersEquivalent(result.user, getBotServers())
           .then(result =>{
             res.status(200).json(result);
           })
@@ -64,8 +64,8 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/updateServer')
     .get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        userHelper.updateServers(result.user).then(() =>{
-          userHelper.getServersEquivalent(result.user, discordClient.guilds.map(item =>{return {id: item.id, name: item.name}}))
+        userHelper.updateServers(result.user, getBotServers()).then(() =>{
+          userHelper.getServersEquivalent(result.user, getBotServers())
             .then(servers =>{
               res.status(200).json(servers);
             })
@@ -143,12 +143,12 @@ module.exports = function (router, logger, discordClient, config) {
               }
               else{
                 validJoin = false;
-                res.status(404).json();
+                res.status(400).json();
               }
             }
             else{
               validJoin = false;
-              res.status(404).json();
+              res.status(400).json();
             }
           }
           if(validJoin){
@@ -251,5 +251,9 @@ module.exports = function (router, logger, discordClient, config) {
 
     function notAdmin(res){
       res.status(403).json({message: 'Nur der Hochadel hat Zugriff auf diese Funktion'});
+    }
+
+    function getBotServers(){
+      return discordClient.guilds.map(item =>{return {id: item.id, name: item.name}});
     }
 }

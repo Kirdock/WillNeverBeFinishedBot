@@ -227,7 +227,7 @@ export default {
             this.channels = response.data;
             this.selectedChannel = this.channels[0].id;
         }).catch(error => {
-          this.$bvToast.toast(`Hob de Channels nit lodn. Meh... Probiers amfoch noch amol`, {
+          this.$bvToast.toast(`Hob de Channels nit glodn. Meh... Probiers amfoch noch amol`, {
             title: 'Fehler',
             autoHideDelay: this.$config.toastDelay,
             variant: 'danger',
@@ -259,7 +259,11 @@ export default {
       dataservice.playSound(data).then(response =>{
         
       }).catch(error =>{
-        this.$bvToast.toast(`Der Sound konn nit obgspült werdn. Very strange`, {
+        let message = error.response.status === 400 ? 
+        'Dir is schon klor, dass des "Join to User" nit funktioniert, wenn du in kan Channel bist oda?' :
+        `Der Sound konn nit obgspült werdn. Very strange`
+        
+        this.$bvToast.toast(message, {
           title: 'Fehler',
           autoHideDelay: this.$config.toastDelay,
           variant: 'danger',
