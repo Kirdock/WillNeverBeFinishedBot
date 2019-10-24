@@ -26,7 +26,7 @@
                 <label class="control-label">Choose sound category</label>
                 <div class="input-group">
                     <label class="btn btn-primary col-md-2 finger">
-                        Auswohl der Datei(n) <input type="file" style="display:none" id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
+                        Auswohl der Datei(n) <input type="file" style="display:none" multiple id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
                     </label>
                     <select class="form-control" v-model="selectedCategory">
                       <option v-for="category in soundCategories" :value="category.name" :key="category">
@@ -184,10 +184,11 @@ export default {
       });
     },
     submitFile(){
-      this.file = this.$refs.file.files[0];
       let formData = new FormData();
-      formData.append('file', this.file);
       formData.append('category', this.selectedCategory);
+      for(let i = 0; i < this.$refs.file.files.length; i++){
+        formData.append(`files`,this.$refs.file.files[i]);
+      }
       
       dataservice.uploadFile(formData)
       .then(response => {

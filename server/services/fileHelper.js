@@ -20,7 +20,10 @@ module.exports = () =>{
         getDirectoriesOfSoundFolder: getDirectoriesOfSoundFolder,
         soundFolder: soundFolder,
         checkAndCreateFolder: checkAndCreateFolder,
-        checkAndCreateFile: checkAndCreateFile
+        checkAndCreateFile: checkAndCreateFile,
+        deleteFiles: deleteFiles,
+        moveFilesToCategory: moveFilesToCategory,
+        deleteFiles: deleteFiles
     };
     checkAndCreateFolderSystem();
     checkAndCreateFolder();
@@ -73,6 +76,37 @@ module.exports = () =>{
             }
         });
         return defer.promise;
+    }
+
+    function moveFilesToCategory(files, category){
+        let actions = [];
+        actions = files.map(file=>{
+            return moveToCategory(file.path, category);
+        })
+        return q.all(actions);
+    }
+
+    function deleteFile(path){
+        const defer = q.defer();
+
+        fs.unlink(path,function (error){
+            if(error){
+                defer.reject(error);
+            }
+            else{
+                defer.resolve({success: true});
+            }
+        })
+
+        return defer.promise;
+    }
+
+    function deleteFiles(files){
+        let actions = [];
+        files.map(file =>{
+            return deleteFile(file.path);
+        });
+        return q.all(actions);
     }
 
     function tryGetSoundFile(name){

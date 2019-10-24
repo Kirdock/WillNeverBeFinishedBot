@@ -201,17 +201,22 @@ module.exports = function (router, logger, discordClient, config) {
     });
 
     router.route('/uploadFile')
-    .put(upload.single('file'),function (req, res){
+    .put(upload.array('files'),function (req, res){
       userHelper.auth(req).then(result =>{
-        fileHelper.moveToCategory(req.file.path, req.body.category).then(result =>{
+        fileHelper.moveFilesToCategory(req.files, req.body.category).then(result =>{
           res.status(200).json(result);
         }).catch(error =>{
           logger.error(error, 'uploadFile');
           res.status(400).json(error);
         });
       }).catch(error =>{
-        loginFailed(res, error);
-      })
+        fileHelper.deleteFiles(req.files).then(()=>{
+          loginFailed(res, error);
+        }).catch(error =>{
+          logger.log(error,'DeleteFiles');
+          loginFailed(res, error);
+        })
+      });
     });
     
     router.route('/users')
