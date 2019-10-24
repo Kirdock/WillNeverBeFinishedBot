@@ -41,12 +41,12 @@ module.exports = () =>{
             db.get(users).push(query).write();
         }
         else{
-            updateUserToken(user.id, authData);
+            updateUserToken(user.id, authData, time);
         }
     }
 
-    function updateUserToken(id, info){
-        db.get(users).find({id: id}).assign({info: info}).write();
+    function updateUserToken(id, info, time){
+        db.get(users).find({id: id}).assign({info: info, time: time}).write();
     }
 
     function removeUser(id){
