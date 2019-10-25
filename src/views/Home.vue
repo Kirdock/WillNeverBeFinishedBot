@@ -145,38 +145,38 @@ export default {
       });
     },
     submitFile(){
-      // if(this.selectedCategory){
-      //   let formData = new FormData();
-      //   formData.append('category', this.selectedCategory);
-      //   for(let i = 0; i < this.$refs.file.files.length; i++){
-      //     formData.append(`files`,this.$refs.file.files[i]);
-      //   }
+      if(this.selectedCategory){
+        let formData = new FormData();
+        formData.append('category', this.selectedCategory);
+        for(let i = 0; i < this.$refs.file.files.length; i++){
+          formData.append(`files`,this.$refs.file.files[i]);
+        }
         
-      //   dataservice.uploadFile(formData)
-      //   .then(response => {
-      //     this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
-      //         title: 'Erfolg',
-      //         autoHideDelay: this.$config.toastDelay,
-      //         variant: 'success',
-      //         appendToast: true
-      //       });
-      //   }).catch(error =>{
-      //     this.$bvToast.toast(`Konn de Datei nit aufelodn ¯\\_(ツ)_/¯`, {
-      //         title: 'Fehler',
-      //         autoHideDelay: this.$config.toastDelay,
-      //         variant: 'danger',
-      //         appendToast: true
-      //     });
-      //   });
-      // }
-      // else{
-      //   this.$bvToast.toast(`Gib bitte a Kategorie beim Upload on du Pliatz`, {
-      //       title: 'Warnung',
-      //       autoHideDelay: this.$config.toastDelay,
-      //       variant: 'warning',
-      //       appendToast: true
-      //   });
-      // }
+        dataservice.uploadFile(formData)
+        .then(response => {
+          this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
+              title: 'Erfolg',
+              autoHideDelay: this.$config.toastDelay,
+              variant: 'success',
+              appendToast: true
+            });
+        }).catch(error =>{
+          this.$bvToast.toast(`Konn de Datei nit aufelodn ¯\\_(ツ)_/¯`, {
+              title: 'Fehler',
+              autoHideDelay: this.$config.toastDelay,
+              variant: 'danger',
+              appendToast: true
+          });
+        });
+      }
+      else{
+        this.$bvToast.toast(`Gib bitte a Kategorie beim Upload on du Pliatz`, {
+            title: 'Warnung',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'warning',
+            appendToast: true
+        });
+      }
     },
     fetchChannels(){
         return dataservice.fetchChannels(this.selectedServer).then(response =>{

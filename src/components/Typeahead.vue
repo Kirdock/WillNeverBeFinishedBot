@@ -1,5 +1,5 @@
 <template>
-<div class="dropdown">
+<div class="dropdown" style="padding-right: 0px">
     <input class="form-control" type="text" v-model="selection"
         @keydown.enter="enter"
         @keydown.down="down"
@@ -7,7 +7,7 @@
         @input="change"
         @focus="show"
     />
-    <div class="dropdown-menu" v-show="matches.length > 0" :class="focus ? 'show' : ''">
+    <div class="dropdown-menu" v-show="matches.length > 0" :class="open ? 'show' : ''">
         <a v-for="(suggestion,$index) in matches"
             :class="{'active': isActive($index)}"
             @mouseover="current = $index"
@@ -27,7 +27,7 @@ export default {
     data() {
         return {
             current: 0,
-            focus: false
+            open: false
         }
     },
     props: {
@@ -40,13 +40,19 @@ export default {
             required: true
         },
         item_key: {
-            type: String,
-            required: true
+            type: String
+        }
+    },
+    watch:{
+        selection: function(newVal, oldVal){
+            this.$emit('update:selection', newVal);
         }
     },
     computed: {
         matches() {
-            return this.suggestions.map(suggestion => suggestion[this.item_key]).filter((str) => {
+            return this.suggestions.map(suggestion => {
+                return this.item_key ? suggestion[this.item_key] : suggestion;
+            }).filter((str) => {
                 return str.toLowerCase().indexOf((this.selection ? this.selection.toLowerCase() : '')) > -1;
             });
         }
@@ -54,7 +60,6 @@ export default {
     methods: {
         enter() {
             this.selection = this.matches[this.current];
-            this.updateValue();
         },
         up() {
             if(this.current > 0)
@@ -69,28 +74,22 @@ export default {
         },
         change() {
             this.current = 0;
-            this.updateValue();
         },
         show(){
             this.current = 0;
-            this.focus = true;
+            this.open = true;
             window.addEventListener('click', this.close);
             if(!this.selection){
                 this.selection = '';
-                this.updateValue();
             }
         },
         selectItem(index) {
             this.selection = this.matches[index];
-            this.focus = false;
-            this.updateValue();
-        },
-        updateValue(){
-            this.$emit('update:selection', this.selection);
+            this.open = false;
         },
         close(e){
-            if (!this.focus || !this.$el.contains(e.target)) {
-                this.focus = false;
+            if (!this.open || !this.$el.contains(e.target)) {
+                this.open = false;
                 window.removeEventListener('click', this.close);
             }
         }
