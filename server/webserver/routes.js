@@ -3,6 +3,7 @@
 const multer  = require('multer')
 const path = require('path');
 const fileHelper = require('../services/fileHelper.js')();
+const nanoid = require('nanoid');
 
 module.exports = function (router, logger, discordClient, config) {
 
@@ -13,10 +14,10 @@ module.exports = function (router, logger, discordClient, config) {
   const databaseHelper = require('../services/databaseHelper.js')();
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, path.join(fileHelper.soundFolder))
+      cb(null, fileHelper.soundFolder)
     },
     filename: function (req, file, cb) {
-      cb(null, file.originalname)
+      cb(null, nanoid()+path.extname(file.originalname))
     }
   });
   const upload = multer({storage: storage});
@@ -202,8 +203,6 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/uploadFile')
     .put(upload.array('files'),function (req, res){
       userHelper.auth(req).then(result =>{
-        //maybe temp folder for uploaded files?
-        //override when there is a name conflict...
         databaseHelper.addSoundsMeta(req.files,result.user,req.body.category);
         res.status(200).json();
       }).catch(error =>{

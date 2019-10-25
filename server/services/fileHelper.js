@@ -11,7 +11,6 @@ module.exports = () =>{
 
     const fileHelper = {
         getDirectories: getDirectories,
-        getDirectoriesWithName: getDirectoriesWithName,
         tryGetSoundFile: tryGetSoundFile,
         createCatFolder: createCatFolder,
         existsFile: existsFile,
@@ -24,7 +23,6 @@ module.exports = () =>{
         getFileName: getFileName
     };
     checkAndCreateFolderSystem();
-    checkAndCreateFolder();
 
     return fileHelper;
 
@@ -50,15 +48,6 @@ module.exports = () =>{
 
     function existsFile(folder){
         return fs.existsSync(folder);
-    }
-
-    function getDirectoriesWithName(source){
-        return fs.readdirSync(source).map(name => {
-            return {
-                    path: path.join(source, name),
-                    name: name
-                }
-        }).filter(file => isDirectory(file.path) && file.name !== config.uploadFolder).map(file => file.name);
     }
 
     function deleteFile(path){
@@ -99,7 +88,7 @@ module.exports = () =>{
     }
 
     function checkAndCreateFolder(dir){
-        const folder = dir || path.join(soundFolder,config.uploadFolder);
+        const folder = dir;
         if(!fs.existsSync(folder)){
             fs.mkdirSync(folder);
         }

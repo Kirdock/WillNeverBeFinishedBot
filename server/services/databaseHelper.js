@@ -4,7 +4,6 @@ const FileSync = require('lowdb/adapters/FileSync');
 const fileHelper = require('./fileHelper.js')();
 const database = __dirname+'/../config/database.json';
 fileHelper.checkAndCreateFile(database);
-const nanoid = require('nanoid');
 const adapter = new FileSync(database);
 const db = low(adapter);
 const users = 'users';
@@ -56,12 +55,12 @@ module.exports = () =>{
 
     function addSoundsMeta(files,user, category){
         files.forEach(file =>{
-            addSoundMeta(file.path, user, category);
+            addSoundMeta(fileHelper.getFileName(file.filename), file.path, fileHelper.getFileName(file.originalname), user, category);
         });
     }
 
-    function addSoundMeta(path, user, category){
-        db.get(sounds).push({id: nanoid(), path: path, fileName: fileHelper.getFileName(path), category: category, user: {id: user.id, name: user.username}, time: new Date().getTime()}).write();
+    function addSoundMeta(id, path, fileName, user, category){
+        db.get(sounds).push({id: id, path: path, fileName: fileName, category: category, user: {id: user.id, name: user.username}, time: new Date().getTime()}).write();
     }
 
     function getSoundsMeta(){
