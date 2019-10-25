@@ -1,16 +1,16 @@
 <template>
-<div class="dropdown" >
-    <input class="form-control" type="text" v-model="selection" id="dropdownMenuLink" aria-haspopup="true" data-toggle="dropdown" aria-expanded="false"
+<div class="dropdown">
+    <input class="form-control" type="text" v-model="selection"
         @keydown.enter="enter"
         @keydown.down="down"
         @keydown.up="up"
         @input="change"
         @focus="show"
-        @blur="hide"
     />
-    <div class="dropdown-menu"  aria-labelledby="dropdownMenuLink" v-show="matches.length > 0">
+    <div class="dropdown-menu" v-show="matches.length > 0" :class="focus ? 'show' : ''">
         <a v-for="(suggestion,$index) in matches"
             :class="{'active': isActive($index)}"
+            @mouseover="current = $index"
             @click.prevent="selectItem($index)"
             class="dropdown-item"
             :key="suggestion"
@@ -74,20 +74,25 @@ export default {
         show(){
             this.current = 0;
             this.focus = true;
+            window.addEventListener('click', this.close);
             if(!this.selection){
                 this.selection = '';
                 this.updateValue();
             }
         },
-        hide(){
-            this.focus = false;
-        },
         selectItem(index) {
             this.selection = this.matches[index];
+            this.focus = false;
             this.updateValue();
         },
         updateValue(){
             this.$emit('update:selection', this.selection);
+        },
+        close(e){
+            if (!this.focus || !this.$el.contains(e.target)) {
+                this.focus = false;
+                window.removeEventListener('click', this.close);
+            }
         }
     }
 }
