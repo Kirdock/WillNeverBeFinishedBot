@@ -166,6 +166,9 @@ module.exports = (config) =>{
         const timeNow = new Date().getTime();
         if((timeNow - timeBegin)/1000 > expire){
             console.log('refresh Token',timeNow, timeBegin, expire, user.username, request_url);
+            databaseHelper.updateUserToken(user.id, user.info);
+            //reset time just in case there are several requests by the user
+            //else there will be several refresh request if the first one has not received a response
             refreshToken(user.info.refresh_token, request_url).then(result =>{
                 if(result.error){
                     result.status = 401;

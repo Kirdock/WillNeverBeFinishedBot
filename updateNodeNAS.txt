@@ -9,12 +9,19 @@ kill "index"
 killall node
 
 //ipkg
+append  ":/opt/bin"
+
 sudo nano /etc/profile
+append :your/path
+
+// FOR BASH FILES!!!
+sudo nano /etc.default/profile
 append :your/path
 
 LD_LIBRARY_PATH=/lib:/opt/lib
 export LD_LIBRARY_PATH
 
+/volume1/@appstore/Node.js_v8/usr/local/bin
 
 global node modules:
 
