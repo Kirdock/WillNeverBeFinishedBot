@@ -82,7 +82,7 @@
                                 {{sound.user.name}}
                             </td>
                             <td style="width: 100px">
-                                <button type="button" class="btn btn-primary" v-on:click="playSound(sound.path)">Play</button>
+                                <button type="button" class="btn btn-primary" v-on:click="playSound(sound.id)">Play</button>
                             </td>
                         </tr>
                     </tbody>
@@ -218,9 +218,9 @@ export default {
       });
       // this.selectedCategory = this.soundCategories[0].name;
     },
-    playSound(path){
+    playSound(soundId){
       const data = {
-        path: path,
+        soundId: soundId,
         serverId: this.selectedServer,
         channelId: this.selectedChannel,
         volume: this.volume,

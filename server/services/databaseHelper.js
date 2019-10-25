@@ -65,10 +65,7 @@ module.exports = () =>{
     }
 
     function getSoundsMeta(){
-        return db.get(sounds).value().map(meta =>{
-            delete meta.path;
-            return meta;
-        }).sort((a,b) => a.fileName.localeCompare(b.fileName));
+        return db.get(sounds).value().map(({ path, ...item }) => item).sort((a,b) => a.fileName.localeCompare(b.fileName));
     }
 
     function getSoundMeta(id){

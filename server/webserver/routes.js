@@ -151,8 +151,8 @@ module.exports = function (router, logger, discordClient, config) {
             }
           }
           if(validJoin){
-            if(req.body.id){
-              playSound.requestSound(databaseHelper.getSoundMeta(req.body.id).path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
+            if(req.body.soundId){
+              playSound.requestSound(databaseHelper.getSoundMeta(req.body.soundId).path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
                 res.status(200).json(response);
               }).catch(error =>{
                 logger.error(error, 'requestSound');
