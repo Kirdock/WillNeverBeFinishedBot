@@ -69,7 +69,7 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Benutzer</th>
+                            <th>Uploader</th>
                             <th style="width: 100px">Action</th>
                         </tr>
                     </thead>
@@ -82,7 +82,12 @@
                                 {{sound.user.name}}
                             </td>
                             <td style="width: 100px">
-                                <button type="button" class="btn btn-primary" v-on:click="playSound(sound.id)">Play</button>
+                                <a href="#" @click.prevent="playSound(sound.id)" title="Sound abspielen">
+                                  <i class="far fa-play-circle"></i>
+                                </a>
+                                <a href="#" @click.prevent="deleteSound(sound.id)" title="Sound löschen">
+                                  <i class="fas fa-trash-alt"></i>
+                                </a>
                             </td>
                         </tr>
                     </tbody>
@@ -242,6 +247,23 @@ export default {
         });
       });
     },
+    deleteSound(id){
+      dataservice.deleteSound(id).then(()=>{
+        this.$bvToast.toast('Die Datei wurde gelöscht My Lord', {
+          title: 'Erfolg',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'success',
+          appendToast: true
+        });
+      }).catch(()=>{
+        this.$bvToast.toast('I konn de Datei nit löschen ( ._.)', {
+          title: 'Fehler',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'danger',
+          appendToast: true
+        });
+      })
+    },
     changeCategoryVisibility(category){
       category.show = !category.show;
     },
@@ -360,5 +382,10 @@ export default {
 <style scoped>
 .finger {
     cursor: pointer;
+}
+
+/*Action icons*/
+table a i {
+  font-size: 40px !important;
 }
 </style>

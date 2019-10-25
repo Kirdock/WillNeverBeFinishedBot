@@ -19,7 +19,7 @@ module.exports = () =>{
         checkAndCreateFolder: checkAndCreateFolder,
         checkAndCreateFile: checkAndCreateFile,
         deleteFiles: deleteFiles,
-        deleteFiles: deleteFiles,
+        deleteFile: deleteFile,
         getFileName: getFileName
     };
     checkAndCreateFolderSystem();

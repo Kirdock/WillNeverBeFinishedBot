@@ -26,6 +26,7 @@ module.exports = () =>{
     const databaseHelper = {
         addUser: addUser,
         addSoundsMeta: addSoundsMeta,
+        addSoundMeta: addSoundMeta,
         removeSoundMeta: removeSoundMeta,
         updateSoundMeta: updateSoundMeta,
         getSoundsMeta: getSoundsMeta,
@@ -75,13 +76,8 @@ module.exports = () =>{
         return Array.from(new Set(db.get(sounds).value().map(meta => meta.category))).sort((a,b) => a.localeCompare(b));
     }
 
-    function removeSoundMeta(id, user){
-        let meta = getSoundMeta(id);
-        let remove = meta && (meta.user.id === user.id || user.admin);
-        if(remove){
-            db.get(sounds).remove({id: id}).write();
-        }
-        return remove;
+    function removeSoundMeta(id){
+        db.get(sounds).remove({id: id}).write();
     }
 
     function updateSoundMeta(id, user, fileName, category){

@@ -178,6 +178,32 @@ module.exports = function (router, logger, discordClient, config) {
       
     });
 
+    router.route('/deleteSound/:id')
+    .delete(function (req, res){
+      userHelper.auth(req).then((result) =>{
+        const meta = databaseHelper.getSoundMeta(req.params.id);
+        if(meta && (meta.user.id === result.user.id || result.user.admin)){
+          const filePath = meta.path;
+          databaseHelper.removeSoundMeta(req.params.id);
+          fileHelper.deleteFile(filePath).then(()=>{
+            res.status(200).json();
+          }).catch(error =>{
+            logger.error(error,'DeleteFile');
+            databaseHelper.addSoundMeta(meta.id, meta.path, meta.filename, meta.user, meta.category);
+            res.status(500).json();
+          }).catch(error =>{
+            logger.error(error,'AddSoundMeta');
+            res.status(500).json();
+          })
+        }
+        else{
+          res.status(403).json();
+        }
+      }).catch(error =>{
+        loginFailed(res, error);
+      })
+    });
+
     router.route('/channels/:id')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{

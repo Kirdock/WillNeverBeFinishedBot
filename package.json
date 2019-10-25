@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/Kirdock/WillNeverBeFinishedBot#readme",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.11.2",
     "@vue/cli-plugin-babel": "^4.0.0",
     "@vue/cli-plugin-router": "^4.0.0",
     "@vue/cli-service": "^4.0.0",

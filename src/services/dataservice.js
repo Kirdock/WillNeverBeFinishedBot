@@ -8,6 +8,7 @@ let dataservice = {
     fetchChannels: fetchChannels,
     fetchSounds: fetchSounds,
     playSound: playSound,
+    deleteSound: deleteSound,
     fetchChannels: fetchChannels,
     updateWebsite: updateWebsite,
     stopPlaying: stopPlaying,
@@ -32,6 +33,10 @@ function playSound(data){
         }
     }
     );
+}
+
+function deleteSound(id){
+    return axios.delete(config.api+'/deleteSound/'+id);
 }
 
 function fetchCategories(){

@@ -53,20 +53,21 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 client.on('message', message => {
     let content = undefined;
     let prefixFound = false;
+    const messageContent = message.content.toLocaleLowerCase().trim();
     for(let i = 0; i < prefixes.length; i++){
-        if(message.content.startsWith(prefixes[i]))
+        if(messageContent.startsWith(prefixes[i]))
         {
-            content = message.content.substring(prefixes[i].length);
+            content = messageContent.substring(prefixes[i].length);
             prefixFound = true;
             break;
         }
     }
     
-    if(!prefixFound && message.content.startsWith('<@'+config.clientId+'>')){
-        content = message.content.substring(config.clientId.length+3);
+    if(!prefixFound && messageContent.startsWith('<@'+config.clientId+'>')){
+        content = messageContent.substring(config.clientId.length+3);
     }
     if(content){
-        content = content.toLocaleLowerCase().trim();
+        content = content.trim();
         if(listCommand.isCommand(content)){
             message.reply('https://kirdock.synology.me:4599/');
         }
@@ -94,8 +95,11 @@ client.on('message', message => {
             message.reply('Red Deitsch mit mir! I hob kan Plan wos du von mir wüllst!');
         }
     }
-    else if(message.content === 'sieg'){
+    else if(messageContent === 'sieg'){
         message.reply('Heil!');
+    }
+    else if(messageContent === 'heil'){
+        message.reply('Hitler!');
     }
 });
 
