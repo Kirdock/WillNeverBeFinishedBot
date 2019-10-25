@@ -13,7 +13,7 @@ module.exports = function (router, logger, discordClient, config) {
   const databaseHelper = require('../services/databaseHelper.js')();
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, path.join(fileHelper.soundFolder,config.uploadFolder))
+      cb(null, path.join(fileHelper.soundFolder))
     },
     filename: function (req, file, cb) {
       cb(null, file.originalname)
@@ -118,7 +118,7 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/sounds')
 		.get(function (req, res) {
       userHelper.auth(req).then(() =>{
-        res.status(200).json(fileHelper.getSounds());
+        res.status(200).json(databaseHelper.getSoundsMeta());
       }).catch(error =>{
         loginFailed(res, error);
       })
@@ -127,7 +127,6 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/playSound')
 		.post(function (req, res) {
       userHelper.auth(req).then(auth =>{
-        
         userHelper.isInServer(auth.user, req.body.serverId).then(result =>{
           if(!auth.user.admin && req.body.volume >= 1){
             req.body.volume = 1;
@@ -152,8 +151,8 @@ module.exports = function (router, logger, discordClient, config) {
             }
           }
           if(validJoin){
-            if(req.body.path){
-              playSound.requestSound(req.body.path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
+            if(req.body.id){
+              playSound.requestSound(databaseHelper.getSoundMeta(req.body.id).path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
                 res.status(200).json(response);
               }).catch(error =>{
                 logger.error(error, 'requestSound');
@@ -194,7 +193,7 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/soundCategories')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        res.status(200).json(fileHelper.getDirectoriesWithName(fileHelper.soundFolder));
+        res.status(200).json(databaseHelper.getSoundCategories());
       }).catch(error =>{
         loginFailed(res, error);
       })
@@ -203,12 +202,10 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/uploadFile')
     .put(upload.array('files'),function (req, res){
       userHelper.auth(req).then(result =>{
-        fileHelper.moveFilesToCategory(req.files, req.body.category).then(result =>{
-          res.status(200).json(result);
-        }).catch(error =>{
-          logger.error(error, 'uploadFile');
-          res.status(400).json(error);
-        });
+        //maybe temp folder for uploaded files?
+        //override when there is a name conflict...
+        databaseHelper.addSoundsMeta(req.files,result.user,req.body.category);
+        res.status(200).json();
       }).catch(error =>{
         fileHelper.deleteFiles(req.files).then(()=>{
           loginFailed(res, error);

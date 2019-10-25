@@ -13,26 +13,13 @@
             </div>
 
             <h1>Sound Upload</h1>
-
-            <div class="form-group">
-                <label class="control-label">Create new Category</label>
-                <div class="input-group">
-                  <input class="form-control col-md-10" v-model="newCatInput">
-                  <button type="button" class="btn btn-primary col-md-2" id="newCat" v-on:click="createNewCat()">Create New Cat</button>
-                </div>
-            </div>
-
             <div class="form-group">
                 <label class="control-label">Choose sound category</label>
                 <div class="input-group">
                     <label class="btn btn-primary col-md-2 finger">
                         Auswohl der Datei(n) <input type="file" style="display:none" multiple id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
                     </label>
-                    <select class="form-control" v-model="selectedCategory">
-                      <option v-for="category in soundCategories" :value="category.name" :key="category">
-                          {{category.name}}
-                      </option>
-                    </select>
+                    <typeahead class="col-md-10" :suggestions="soundCategories" item_key="name" :selection.sync="selectedCategory" />
                 </div>
             </div>
                 
@@ -82,13 +69,17 @@
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Benutzer</th>
                             <th style="width: 100px">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="sound in filteredSounds(category.name)" :key="sound">
+                        <tr v-for="sound in sounds[category.name]" :key="sound">
                             <td>
-                                {{sound.name}}
+                                {{sound.fileName}}
+                            </td>
+                            <td>
+                                {{sound.user.name}}
                             </td>
                             <td style="width: 100px">
                                 <button type="button" class="btn btn-primary" v-on:click="playSound(sound.path)">Play</button>
@@ -136,39 +127,9 @@ export default {
             }
           }
       });
-      this.fetchCategories();
       this.fetchSounds();
   },
   methods: {
-    createNewCat() {
-      if(!this.soundCategories.includes(this.newCatInput)){
-        dataservice.createNewCat(this.newCatInput).then(response =>{
-          this.newCatInput = undefined;
-          this.fetchCategories();
-          this.$bvToast.toast(`Hob de Kategorie onglegt`, {
-            title: 'Erfolg',
-            autoHideDelay: this.$config.toastDelay,
-            variant: 'success',
-            appendToast: true
-          });
-        }).catch(error =>{
-          this.$bvToast.toast(`Wos host du ongstöllt, dass do a Fehla kimmt?`, {
-            title: 'Fehler',
-            autoHideDelay: this.$config.toastDelay,
-            variant: 'danger',
-            appendToast: true
-          });
-        });
-      }
-      else{
-        this.$bvToast.toast(`Bist du blind? De Kategorie gibts schon!`, {
-          title: 'Warnung',
-          autoHideDelay: this.$config.toastDelay,
-          variant: 'warning',
-          appendToast: true
-        });
-      }
-    },
     fetchServers(loadChannels) {
       return dataservice.fetchServers().then(response => {
           this.servers = response.data;
@@ -184,44 +145,38 @@ export default {
       });
     },
     submitFile(){
-      let formData = new FormData();
-      formData.append('category', this.selectedCategory);
-      for(let i = 0; i < this.$refs.file.files.length; i++){
-        formData.append(`files`,this.$refs.file.files[i]);
-      }
-      
-      dataservice.uploadFile(formData)
-      .then(response => {
-        this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
-            title: 'Erfolg',
-            autoHideDelay: this.$config.toastDelay,
-            variant: 'success',
-            appendToast: true
-          });
-      }).catch(error =>{
-        this.$bvToast.toast(`Konn de Datei nit aufelodn ¯\\_(ツ)_/¯`, {
-            title: 'Fehler',
-            autoHideDelay: this.$config.toastDelay,
-            variant: 'danger',
-            appendToast: true
-          });
-      });
-    },
-    fetchCategories(){
-        dataservice.fetchCategories().then(response => {
-          this.soundCategories = [];
-          response.data.forEach(category =>{
-              this.soundCategories.push({name: category, show: true}); //vue.js does not recognize new elements. that's why I have to add "show"
-          })
-          this.selectedCategory = this.soundCategories[0].name;
-        }).catch(error => {
-          this.$bvToast.toast(`Konn de Kategorien nit holn`, {
-            title: 'Fehler',
-            autoHideDelay: this.$config.toastDelay,
-            variant: 'danger',
-            appendToast: true
-          });
-        })
+      // if(this.selectedCategory){
+      //   let formData = new FormData();
+      //   formData.append('category', this.selectedCategory);
+      //   for(let i = 0; i < this.$refs.file.files.length; i++){
+      //     formData.append(`files`,this.$refs.file.files[i]);
+      //   }
+        
+      //   dataservice.uploadFile(formData)
+      //   .then(response => {
+      //     this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
+      //         title: 'Erfolg',
+      //         autoHideDelay: this.$config.toastDelay,
+      //         variant: 'success',
+      //         appendToast: true
+      //       });
+      //   }).catch(error =>{
+      //     this.$bvToast.toast(`Konn de Datei nit aufelodn ¯\\_(ツ)_/¯`, {
+      //         title: 'Fehler',
+      //         autoHideDelay: this.$config.toastDelay,
+      //         variant: 'danger',
+      //         appendToast: true
+      //     });
+      //   });
+      // }
+      // else{
+      //   this.$bvToast.toast(`Gib bitte a Kategorie beim Upload on du Pliatz`, {
+      //       title: 'Warnung',
+      //       autoHideDelay: this.$config.toastDelay,
+      //       variant: 'warning',
+      //       appendToast: true
+      //   });
+      // }
     },
     fetchChannels(){
         return dataservice.fetchChannels(this.selectedServer).then(response =>{
@@ -238,8 +193,16 @@ export default {
     },
     fetchSounds(){
         dataservice.fetchSounds().then(response =>{
-            this.sounds = response.data;
+          this.sounds = {};
+          response.data.forEach(sound =>{
+            if(!this.sounds[sound.category]){
+              this.sounds[sound.category] = []
+            }
+            this.sounds[sound.category].push(sound);
+          });
+          this.setSoundCategories();
         }).catch(error =>{
+          console.log(error);
           this.$bvToast.toast(`Konn de Sounds nit lodn. Frog Mr. Admin wos do vakehrt laft`, {
             title: 'Fehler',
             autoHideDelay: this.$config.toastDelay,
@@ -247,6 +210,13 @@ export default {
             appendToast: true
           });
         });
+    },
+    setSoundCategories(){
+      this.soundCategories = [];
+      Object.keys(this.sounds).sort((a,b) => a.localeCompare(b)).forEach(category =>{
+        this.soundCategories.push({name: category, show: true}); //vue.js does not recognize new elements. that's why I have to add "show"
+      });
+      // this.selectedCategory = this.soundCategories[0].name;
     },
     playSound(path){
       const data = {

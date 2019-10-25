@@ -12,9 +12,7 @@ module.exports = () =>{
     const fileHelper = {
         getDirectories: getDirectories,
         getDirectoriesWithName: getDirectoriesWithName,
-        moveToCategory: moveToCategory,
         tryGetSoundFile: tryGetSoundFile,
-        getSounds: getSounds,
         createCatFolder: createCatFolder,
         existsFile: existsFile,
         getDirectoriesOfSoundFolder: getDirectoriesOfSoundFolder,
@@ -22,8 +20,8 @@ module.exports = () =>{
         checkAndCreateFolder: checkAndCreateFolder,
         checkAndCreateFile: checkAndCreateFile,
         deleteFiles: deleteFiles,
-        moveFilesToCategory: moveFilesToCategory,
-        deleteFiles: deleteFiles
+        deleteFiles: deleteFiles,
+        getFileName: getFileName
     };
     checkAndCreateFolderSystem();
     checkAndCreateFolder();
@@ -61,29 +59,6 @@ module.exports = () =>{
                     name: name
                 }
         }).filter(file => isDirectory(file.path) && file.name !== config.uploadFolder).map(file => file.name);
-    }
-
-    function moveToCategory(oldfile, category){
-        const defer = q.defer();
-        const newFile = path.join(soundFolder,category,path.basename(oldfile));
-        
-        fs.rename(oldfile, newFile, (err) => {
-            if (err){
-                defer.reject(err);
-            }
-            else{
-                defer.resolve({success: true});
-            }
-        });
-        return defer.promise;
-    }
-
-    function moveFilesToCategory(files, category){
-        let actions = [];
-        actions = files.map(file=>{
-            return moveToCategory(file.path, category);
-        })
-        return q.all(actions);
     }
 
     function deleteFile(path){
@@ -137,12 +112,8 @@ module.exports = () =>{
         })
     }
 
-    function getSounds(){
-        let result = {};
-        getDirectories(soundFolder).forEach( dir => {
-            result[dir.split(path.sep).pop()] = getFiles(dir).map(file => {return {path: file, name: path.basename(file, path.extname(file))}});
-        });
-        return result;
+    function getFileName(filePath){
+        return path.basename(filePath, path.extname(filePath));
     }
 
     function checkAndCreateFile(filePath){

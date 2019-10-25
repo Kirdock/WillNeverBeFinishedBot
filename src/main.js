@@ -8,13 +8,15 @@ import 'bootstrap-vue';
 import { ToastPlugin } from 'bootstrap-vue';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import config from './services/config';
-import auth from './services/authentication'
-
+import auth from './services/authentication';
+import Typeahead from './components/Typeahead.vue';
+Vue.component('typeahead', Typeahead);
 Vue.prototype.$config = config;
 Vue.prototype.$auth = auth;
 
 Vue.config.productionTip = false;
 Vue.use(ToastPlugin);
+
 let instances = {};
 
 axios.interceptors.request.use(function (config) {
@@ -52,6 +54,9 @@ instances.vue = new Vue({
         appendToast: true
       });
     }
+  },
+  components:{
+    Typeahead
   }
 }).$mount('#app');
 
