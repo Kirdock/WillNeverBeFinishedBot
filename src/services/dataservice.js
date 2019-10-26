@@ -22,15 +22,20 @@ let dataservice = {
     updateServerList: updateServerList,
     fetchLogs: fetchLogs,
     setIntro: setIntro,
-    fetchUserData: fetchUserData
+    fetchUserData: fetchUserData,
+    fetchUsersData: fetchUsersData
 }
 
 function setIntro(soundId, userId){
     return axios.post(config.api+'/setIntro', {soundId, userId}, options);
 }
 
-function fetchUserData(){
+function fetchUsersData(){
     return axios.get(config.api+'/users');
+}
+
+function fetchUserData(){
+    return axios.get(config.api+'/user');
 }
 
 function fetchServers(){

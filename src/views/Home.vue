@@ -1,7 +1,7 @@
 <template>
     <div class="container" style="margin-top:50px">
         <div id="fetch" class="form-horizontal" >
-            <button type="button" class="btn btn-primary" v-on:click="updateWebsite()" v-if="isAdmin">Update Website</button>
+            <button type="button" class="btn btn-primary" v-on:click="updateWebsite()" v-if="isAdmin">Server aktualisieren</button>
             <h1 class="control-label">Server</h1>
             <div class="input-group">
                 <select class="form-control" v-model="selectedServer" @change="fetchChannels(); saveSettings()">
@@ -9,23 +9,23 @@
                         {{server.name}}
                     </option>
                 </select>
-                <button type="button" class="btn btn-primary col-md-2" v-on:click="updateServerList()">Update Serverlist</button>
+                <button type="button" class="btn btn-primary col-md-2" v-on:click="updateServerList()">Serverliste aktualisieren</button>
             </div>
 
-            <h1>Sound Upload</h1>
+            <h1>Sounds Hochladen</h1>
             <div class="form-group">
-                <label class="control-label">Choose sound category</label>
+                <label class="control-label">Wähle eine Kategorie aus</label>
                 <div class="input-group">
                     <label class="btn btn-primary col-md-2 finger">
-                        Auswohl der Datei(n) <input type="file" style="display:none" multiple id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
+                        Auswahl der Datei(en) <input type="file" style="display:none" multiple id="file" ref="file" accept="audio/*" v-on:change="submitFile()"/>
                     </label>
                     <typeahead class="col-md-10" :suggestions="soundCategories" item_key="name" :selection.sync="selectedCategory" />
                 </div>
             </div>
                 
-            <h1>Play Sounds</h1>
+            <h1>Sounds abspielen</h1>
             <div class="form-group ">
-                <label class="control-label">Choose Channel</label>
+                <label class="control-label">Channel auswählen</label>
                 <select class="form-control" v-model="selectedChannel"  @change="saveSettings()">
                     <option v-for="channel in channels" :value="channel.id" :key="channel">
                         {{channel.name}}
@@ -34,12 +34,12 @@
                 <div class="form-check">
                     <input type="checkbox" class="form-check-input" id="joinUser" v-model="joinUser" @change="saveSettings()" >
                     <label class="form-check-label" for="joinUser">
-                        Join to User
+                        Beim Benutzer joinen
                     </label>
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label">Volume</label>
+                <label class="control-label">Laustärke (von 0,0-1)</label>
                 <input class="form-control col-md-1" type="number" v-model="volume" step="0.5" :max="maxVolume"  @change="saveSettings()">
             </div>
             
@@ -47,19 +47,19 @@
                 <label class="control-label">Youtube URL</label>
                 <div class="input-group">
                     <input class="form-control col-md-10" v-model="youtubeUrl">
-                    <button type="button" class="btn btn-primary col-md-2" v-on:click="playSound()">Play</button>
+                    <button type="button" class="btn btn-primary col-md-2" v-on:click="playSound()">Abspielen</button>
                 </div>
             </div>
             <div class="form-group">
-                <button type="button" class="btn btn-primary" v-on:click="stopPlaying()">Stop Playing</button>
+                <button type="button" class="btn btn-primary" v-on:click="stopPlaying()">Abspielen stoppen</button>
             </div>
             <div class="form-group">
-                <label class="control-label">Search</label>
+                <label class="control-label">Suche</label>
                 <input class="form-control" v-model="searchText">
             </div>
             <div class="form-group">
-                <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(true)">Expand all categories</button>
-                <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(false)">Collapse all categories</button>
+                <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(true)">Alle Kategorien erweitern</button>
+                <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(false)">Alle Kategorien schließen</button>
             </div>
             
             <div v-for="category in soundCategories" :key="category.name">
@@ -69,8 +69,8 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Uploader</th>
-                            <th style="width: 180px">Action</th>
+                            <th>Benutzer</th>
+                            <th style="width: 180px">Aktion</th>
                         </tr>
                     </thead>
                     <tbody>

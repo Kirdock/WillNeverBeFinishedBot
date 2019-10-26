@@ -133,7 +133,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           }
           let validJoin = true;
           const guild = discordClient.guilds.get(req.body.serverId);
-          databaseHelper.log(auth.user, guild.name, 'Play Sound');
+          databaseHelper.logPlaySound(auth.user, guild.name, 'Play Sound');
           if(req.body.joinUser){
             if(guild){
               const member = guild.members.get(auth.user.id);
@@ -250,6 +250,15 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
         loginFailed(res, error);
       });
     });
+
+    router.route('/user')
+		.get(function (req, res) {
+      userHelper.auth(req).then(result =>{
+        res.status(200).json(databaseHelper.getUserInfo(getUser(result.user.id)));
+      }).catch(error =>{
+        loginFailed(res, error);
+      });
+    });
     
     router.route('/users')
 		.get(function (req, res) {
@@ -307,5 +316,14 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           status: user.presence.status
         }
       }).sort((a,b) => a.name.localeCompare(b.name));
+    }
+
+    function getUser(userId){
+      const user = discordClient.users.get(userId);
+      return user ? {
+        id: user.id,
+        name: user.username,
+        status: user.presence.status
+      } : undefined;
     }
 }

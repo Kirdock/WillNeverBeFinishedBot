@@ -1,7 +1,7 @@
 <template>
     <div>
         <h1>Admin Panel</h1>
-        <h2>User Intros</h2>
+        <h2>Benutzer Intros</h2>
         <div class="form-group col-md-5">
             <label class="control-label">Suche Benutzer</label>
             <input class="form-control" v-model="searchText">
@@ -12,7 +12,6 @@
                     <th>Benutzer ID</th>
                     <th>Benutzername</th>
                     <th>Intro</th>
-                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,8 +36,6 @@
                             </a>
                         </div>
                     </td>
-                    <td>
-                    </td>
                 </tr>
             </tbody>
         </table>
@@ -46,10 +43,11 @@
         <table class="table text-break">
             <thead>
                 <tr>
-                    <th>Timestamp</th>
+                    <th>Datum & Zeit</th>
                     <th>Server</th>
-                    <th>Username</th>
-                    <th>Action</th>
+                    <th>Dateiname</th>
+                    <th>Benutzername</th>
+                    <th>Aktion</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,6 +57,9 @@
                     </td>
                     <td>
                         {{log.serverName}}
+                    </td>
+                    <td>
+                        {{log.fileName}}
                     </td>
                     <td>
                         {{log.username}}
@@ -140,7 +141,7 @@ export default {
                     }
                     this.sounds[sound.category].push(sound);
                 });
-                this.soundCategories = Object.keys(this.sounds);
+                this.soundCategories = Object.keys(this.sounds).sort((a,b) => a.localeCompare(b));
             }).catch(()=>{
                 this.$bvToast.toast(`Sounds kennan nit glodn werdn`, {
                     title: 'Fehler',
@@ -151,7 +152,7 @@ export default {
             });
         },
         fetchUserData(){
-            dataservice.fetchUserData().then(response =>{
+            dataservice.fetchUsersData().then(response =>{
                 this.users = response.data;
             }).catch(()=>{
                 this.$bvToast.toast(`Benutzer kennan nit glodn werdn`, {
@@ -172,7 +173,7 @@ export default {
 <style scoped>
 /*Action icons*/
 table a i {
-  font-size: 25px !important;
+  font-size: 35px !important;
   padding-right: 10px;
 }
 </style>

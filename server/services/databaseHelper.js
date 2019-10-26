@@ -8,6 +8,7 @@ const adapter = new FileSync(database);
 const db = low(adapter);
 const users = 'users';
 const sounds = 'sounds';
+const logs = 'log';
 const maxLogsReturned = 20;
 const maxLogsStored = 100;
 const maxLogsDeleted = 50;
@@ -17,7 +18,7 @@ function setDefault(){
     let query = {};
     query[users] = [];
     query[sounds] = [];
-    query['log'] = [];
+    query[logs] = [];
     db.defaults(query).write();
 }
 
@@ -34,12 +35,13 @@ module.exports = () =>{
         removeUser: removeUser,
         getUser: getUser,
         setServersOfUser: setServersOfUser,
-        log: log,
+        logPlaySound: logPlaySound,
         getLog: getLog,
         updateUserToken: updateUserToken,
         getSoundCategories: getSoundCategories,
         setIntro: setIntro,
         getIntro: getIntro,
+        getUserInfo: getUserInfo,
         getUsersInfo: getUsersInfo,
         addUserWithoutToken: addUserWithoutToken
     }
@@ -85,6 +87,7 @@ module.exports = () =>{
     function addSoundMeta(id, filePath, fileName, user, category){
         const query = {id: id, path: filePath, fileName: fileName, category: category, user: {id: user.id, name: user.username}, time: new Date().getTime()};
         db.get(sounds).push(query).write();
+        logSoundUpload(query);
         let {path, ...result} = query;
         return result;
     }
@@ -102,6 +105,7 @@ module.exports = () =>{
     }
 
     function removeSoundMeta(id){
+        logSoundDelete(getSoundMeta(id));
         db.get(sounds).remove({id: id}).write();
     }
 
@@ -135,48 +139,67 @@ module.exports = () =>{
 
     function getUsersInfo(users){
         return users.map(user =>{
-            const userInfo = getUser(user.id);
-            let intro = {};
-            if(userInfo){
-                if(userInfo.intro){
-                    intro = {
-                        id: userInfo.intro,
-                        fileName: getSoundMeta(userInfo.intro).fileName
-                    };
-                }
-                else{
-                    user.servers = userInfo.servers;
-                }
-            }
-            user.intro = intro;
-            
-            return user;
+            return getUserInfo(user);
         });
+    }
+
+    function getUserInfo(user){
+        const userInfo = getUser(user.id);
+        let intro = {};
+        if(userInfo){
+            if(userInfo.intro){
+                intro = {
+                    id: userInfo.intro,
+                    fileName: getSoundMeta(userInfo.intro).fileName
+                };
+            }
+            else{
+                user.servers = userInfo.servers;
+            }
+        }
+        user.intro = intro;
+        return user;
     }
 
     function setServersOfUser(id, servers){
         db.get(users).find({id: id}).assign({ servers: servers}).write();
     }
 
-    function log(user, serverName, message){
+    function logPlaySound(user, serverName, message){
         let query = {};
         query.username = user.username;
         query.message = message;
-        query.timestamp = Date.now();
         query.serverName = serverName;
-        let logs = getLog();
-        if(logs.length > maxLogsStored){
-            logs = logs.slice(logs.length-(maxLogsDeleted+1));
-            logs.push(query);
-            db.assign({log: logs}).write();
+        log(query);
+    }
+
+    function log(query){
+        query.timestamp = Date.now();
+        let logData = getLogs();
+        if(logData.length > maxLogsStored){
+            logData = logData.slice(logData.length-(maxLogsDeleted+1));
+            logData.push(query);
+            db.assign({log: logData}).write();
         }
         else{
-            db.get('log').push(query).write();
+            db.get(logs).push(query).write();
         }
     }
 
+    function logSoundUpload(soundMeta){
+        log({username: soundMeta.user.name, message:'Sound Upload', fileName: soundMeta.fileName, fileId: soundMeta.id});
+    }
+
+    function logSoundDelete(soundMeta){
+        log({username: soundMeta.user.name, message:'Sound Delete', fileName: soundMeta.fileName, fileId: soundMeta.id});
+    }
+
+    function getLogs(){
+        return db.get(logs).value();
+    }
+
     function getLog(){
-        let logs = db.get('log').value();
-        return logs.slice(logs.length - (maxLogsReturned+1)).sort((a,b) => (b.timestamp - a.timestamp));
+        let logsData = getLogs();
+        return logsData.slice(logsData.length > maxLogsReturned ? (logsData.length - (maxLogsReturned+1)): 0).sort((a,b) => (b.timestamp - a.timestamp));
     }
 }
