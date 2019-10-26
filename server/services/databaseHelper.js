@@ -40,13 +40,16 @@ module.exports = () =>{
         getSoundCategories: getSoundCategories,
         setIntro: setIntro,
         getIntro: getIntro,
-        getUsersInfo: getUsersInfo
+        getUsersInfo: getUsersInfo,
+        addUserWithoutToken: addUserWithoutToken
     }
     return databaseHelper;
 
     function addUser(user, authData, servers){
-        if(!getUser(user.id)){
-            let query = JSON.parse(JSON.stringify(user)); //without reference
+        const userInfo = getUser(user.id);
+        if(!userInfo || !userInfo.info){
+            const userClone = JSON.parse(JSON.stringify(user));//without reference
+            let query = userInfo ? {...userInfo, ...userClone} : userClone;
             query.info = authData;
             query.servers = servers;
             query.time = new Date().getTime();
@@ -57,12 +60,19 @@ module.exports = () =>{
         }
     }
 
+    function addUserWithoutToken(user){
+        db.get(users).push(user).write();
+    }
+
     function setIntro(userId, soundId){
+        if(!getUser(userId)){
+            addUserWithoutToken({id: userId});
+        }
         db.get(users).find({id: userId}).assign({intro: soundId}).write();
     }
 
-    function getIntro(userid){
-        let userInfo = getUser(userid);
+    function getIntro(userId){
+        let userInfo = getUser(userId);
         return userInfo ? userInfo.intro : undefined;
     }
 
