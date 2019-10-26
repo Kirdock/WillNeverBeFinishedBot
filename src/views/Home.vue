@@ -168,7 +168,7 @@ export default {
         .then(response => {
           if(!this.sounds[selectedCat]){
             this.sounds[selectedCat] = [];
-            this.soundCategories.push({name: selectedCat, show: true});
+            this.soundCategories = this.soundCategories.push({name: selectedCat, show: true}).sort((a,b)=> a.name.localeCompare(b.name));
           }
           this.sounds[selectedCat] = this.sounds[selectedCat].concat(response.data).sort((a,b) => a.fileName.localeCompare(b.fileName));
           this.$forceUpdate();

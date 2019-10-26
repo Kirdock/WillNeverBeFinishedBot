@@ -43,7 +43,8 @@ module.exports = () =>{
         getIntro: getIntro,
         getUserInfo: getUserInfo,
         getUsersInfo: getUsersInfo,
-        addUserWithoutToken: addUserWithoutToken
+        addUserWithoutToken: addUserWithoutToken,
+        getSoundMetaByName: getSoundMetaByName
     }
     return databaseHelper;
 
@@ -98,6 +99,10 @@ module.exports = () =>{
 
     function getSoundMeta(id){
         return db.get(sounds).find({id: id}).value();
+    }
+
+    function getSoundMetaByName(name){
+        return db.get(sounds).find({fileName: name}).value();
     }
 
     function getSoundCategories(){

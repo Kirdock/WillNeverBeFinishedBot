@@ -4,7 +4,7 @@ const playCommand = 'play';
 const q = require('q');
 const ytdl = require('ytdl-core');
 
-module.exports = (config, logger, voiceHelper) =>{
+module.exports = (config, logger, voiceHelper, databaseHelper) =>{
     let playSoundCommand = {
         doWork: doWork,
         isCommand: isCommand,
@@ -23,18 +23,18 @@ module.exports = (config, logger, voiceHelper) =>{
 
     function doWork(message, content){
         const command = content.substring(playCommand.length).trim();
-        const foundFile = fileHelper.tryGetSoundFile(command);
-        if(!foundFile){
+        const {path} = databaseHelper.getSoundMetaByName(command);
+        if(!path){
             message.reply(fileNotFoundMessage);
             return;
         }
         if(voiceHelper.hasConnection(message.guild.id)){
-            playSound(foundFile, message.guild.id);
+            playSound(path, message.guild.id);
         }
         else{
             voiceHelper.joinVoiceChannel(message)
             .then(connection =>{
-                playSound(foundFile, message.guild.id, connection);
+                playSound(path, message.guild.id, connection);
             })
             .catch(error =>{
                 if(error.message){
