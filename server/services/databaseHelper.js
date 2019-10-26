@@ -55,13 +55,16 @@ module.exports = () =>{
     }
 
     function addSoundsMeta(files,user, category){
-        files.forEach(file =>{
-            addSoundMeta(fileHelper.getFileName(file.filename), file.path, fileHelper.getFileName(file.originalname), user, category);
+        return files.map(file =>{
+            return addSoundMeta(fileHelper.getFileName(file.filename), file.path, fileHelper.getFileName(file.originalname), user, category);
         });
     }
 
-    function addSoundMeta(id, path, fileName, user, category){
-        db.get(sounds).push({id: id, path: path, fileName: fileName, category: category, user: {id: user.id, name: user.username}, time: new Date().getTime()}).write();
+    function addSoundMeta(id, filePath, fileName, user, category){
+        const query = {id: id, path: filePath, fileName: fileName, category: category, user: {id: user.id, name: user.username}, time: new Date().getTime()};
+        db.get(sounds).push(query).write();
+        let {path, ...result} = query;
+        return result;
     }
 
     function getSoundsMeta(){

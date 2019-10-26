@@ -62,7 +62,7 @@
                 <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(false)">Collapse all categories</button>
             </div>
             
-            <div v-for="category in soundCategories" :key="category">
+            <div v-for="category in soundCategories" :key="category.name">
                 <h2 class="control-label">{{category.name}}</h2>
                 <button type="button" class="btn btn-primary" v-on:click="changeCategoryVisibility(category)" style="width: 40px; height: 40px">{{category.show ? '-' : '+'}}</button>
                 <table class="table text-break" v-show="category.show">
@@ -74,7 +74,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="sound in sounds[category.name]" :key="sound">
+                        <tr v-for="(sound, $index) in sounds[category.name]" :key="sound.id">
                             <td>
                                 {{sound.fileName}}
                             </td>
@@ -85,7 +85,7 @@
                                 <a href="#" @click.prevent="playSound(sound.id)" title="Sound abspielen">
                                   <i class="far fa-play-circle"></i>
                                 </a>
-                                <a href="#" @click.prevent="deleteSound(sound.id)" title="Sound löschen">
+                                <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Sound löschen" :class="userId == sound.user.id || isAdmin ? '' : 'disabled'">
                                   <i class="fas fa-trash-alt"></i>
                                 </a>
                             </td>
@@ -98,6 +98,7 @@
 
 </template>
 <script>
+
 import dataservice from '../services/dataservice';
 import settings from '../services/settings';
 
@@ -119,6 +120,7 @@ export default {
       joinUser: true,
       youtubeUrl: undefined,
       searchText: '',
+      userId: undefined
     };
   },
   created() {
@@ -126,6 +128,7 @@ export default {
           this.loadSettings();
           const decodedToken = this.$auth.getDecodedToken();
           if(decodedToken){
+            this.userId = decodedToken.id;
             this.isAdmin = decodedToken.admin;
             if(this.isAdmin){
                 this.maxVolume = 100;
@@ -150,15 +153,22 @@ export default {
       });
     },
     submitFile(){
-      if(this.selectedCategory){
+      const selectedCat = this.selectedCategory;
+      if(selectedCat){
         let formData = new FormData();
-        formData.append('category', this.selectedCategory);
+        formData.append('category', selectedCat);
         for(let i = 0; i < this.$refs.file.files.length; i++){
           formData.append(`files`,this.$refs.file.files[i]);
         }
         
         dataservice.uploadFile(formData)
         .then(response => {
+          if(!this.sounds[selectedCat]){
+            this.sounds[selectedCat] = [];
+            this.soundCategories.push({name: selectedCat, show: true});
+          }
+          this.sounds[selectedCat] = this.sounds[selectedCat].concat(response.data).sort((a,b) => a.fileName.localeCompare(b.fileName));
+          this.$forceUpdate();
           this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
               title: 'Erfolg',
               autoHideDelay: this.$config.toastDelay,
@@ -207,7 +217,6 @@ export default {
           });
           this.setSoundCategories();
         }).catch(error =>{
-          console.log(error);
           this.$bvToast.toast(`Konn de Sounds nit lodn. Frog Mr. Admin wos do vakehrt laft`, {
             title: 'Fehler',
             autoHideDelay: this.$config.toastDelay,
@@ -217,11 +226,10 @@ export default {
         });
     },
     setSoundCategories(){
-      this.soundCategories = [];
-      Object.keys(this.sounds).sort((a,b) => a.localeCompare(b)).forEach(category =>{
-        this.soundCategories.push({name: category, show: true}); //vue.js does not recognize new elements. that's why I have to add "show"
-      });
-      // this.selectedCategory = this.soundCategories[0].name;
+      this.soundCategories = Object.keys(this.sounds).sort((a,b) => a.localeCompare(b)).map(category =>({name: category, show: true})); //vue.js does not recognize new elements. that's why I have to add "show"
+      if(this.soundCategories.length > 0){
+        this.selectedCategory = this.soundCategories[0].name;
+      }
     },
     playSound(soundId){
       const data = {
@@ -247,8 +255,22 @@ export default {
         });
       });
     },
-    deleteSound(id){
-      dataservice.deleteSound(id).then(()=>{
+    deleteSound(soundId, index, categoryName){
+      dataservice.deleteSound(soundId).then(()=>{
+        this.sounds[categoryName].splice(index,1);
+        if(this.sounds[categoryName].length == 0){
+          delete this.sounds[categoryName];
+          let index = -1;
+          this.soundCategories.forEach((category, $index) =>{
+            if(category.name == categoryName){
+              index = $index;
+            }
+          })
+          if(index !== -1){
+            this.soundCategories.splice(index,1);
+          }
+        }
+        this.$forceUpdate();
         this.$bvToast.toast('Die Datei wurde gelöscht My Lord', {
           title: 'Erfolg',
           autoHideDelay: this.$config.toastDelay,
@@ -387,5 +409,11 @@ export default {
 /*Action icons*/
 table a i {
   font-size: 40px !important;
+}
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+  color: gray;
 }
 </style>

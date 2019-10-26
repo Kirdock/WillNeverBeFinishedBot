@@ -229,8 +229,8 @@ module.exports = function (router, logger, discordClient, config) {
     router.route('/uploadFile')
     .put(upload.array('files'),function (req, res){
       userHelper.auth(req).then(result =>{
-        databaseHelper.addSoundsMeta(req.files,result.user,req.body.category);
-        res.status(200).json();
+        let addedFiles = databaseHelper.addSoundsMeta(req.files,result.user,req.body.category);
+        res.status(200).json(addedFiles);
       }).catch(error =>{
         fileHelper.deleteFiles(req.files).then(()=>{
           loginFailed(res, error);
