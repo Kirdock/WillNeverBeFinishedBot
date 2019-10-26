@@ -70,18 +70,21 @@
                         <tr>
                             <th>Name</th>
                             <th>Uploader</th>
-                            <th style="width: 100px">Action</th>
+                            <th style="width: 180px">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(sound, $index) in sounds[category.name]" :key="sound.id">
+                        <tr v-for="(sound, $index) in filteredSounds(category.name)" :key="sound.id">
                             <td>
                                 {{sound.fileName}}
                             </td>
                             <td>
                                 {{sound.user.name}}
                             </td>
-                            <td style="width: 100px">
+                            <td>
+                                <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
+                                  <i class="fas fa-save"></i>
+                                </a>
                                 <a href="#" @click.prevent="playSound(sound.id)" title="Sound abspielen">
                                   <i class="far fa-play-circle"></i>
                                 </a>
@@ -255,6 +258,23 @@ export default {
         });
       });
     },
+    setIntro(soundId){
+      dataservice.setIntro(soundId).then(()=>{
+        this.$bvToast.toast('Intro gsetzt', {
+          title: 'Erfolg',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'success',
+          appendToast: true
+        });
+      }).catch(()=>{
+        this.$bvToast.toast('Konn des Intro nit setzn', {
+          title: 'Fehler',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'danger',
+          appendToast: true
+        });
+      })
+    },
     deleteSound(soundId, index, categoryName){
       dataservice.deleteSound(soundId).then(()=>{
         this.sounds[categoryName].splice(index,1);
@@ -347,7 +367,7 @@ export default {
     filteredSounds(categoryName){
       if(this.searchText.length > 0){
         const re = new RegExp(this.searchText,'i');
-        return this.sounds[categoryName].filter(server => re.test(server.name));
+        return this.sounds[categoryName].filter(sound => re.test(sound.fileName));
       }
       else{
         return this.sounds[categoryName];
@@ -409,6 +429,7 @@ export default {
 /*Action icons*/
 table a i {
   font-size: 40px !important;
+  padding-right: 10px;
 }
 
 a.disabled {

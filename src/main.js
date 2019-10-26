@@ -38,7 +38,7 @@ axios.interceptors.response.use(function (response) {
       if(instances.vue){
         instances.vue.authFail();
       }
-      router.push({path:'/Login',params:{auth: true}});
+      router.push('/Login');
     }
   }
   return Promise.reject(error);

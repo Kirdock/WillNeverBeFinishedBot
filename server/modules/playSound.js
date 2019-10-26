@@ -45,18 +45,14 @@ module.exports = (config, logger, voiceHelper) =>{
         }
     }
 
-    function doWorkWithoutMessage(file, serverId, channelId){
-        const foundFile = fileHelper.tryGetSoundFile(file);
-        if(!foundFile){
-            return;
-        }
+    function doWorkWithoutMessage(path, serverId, channelId){
         if(voiceHelper.hasConnection(serverId)){
-            playSound(foundFile, serverId);
+            playSound(path, serverId);
         }
         else{
             voiceHelper.joinVoiceChannelById(serverId,channelId)
             .then(connection =>{
-                playSound(foundFile, serverId, connection);
+                playSound(path, serverId, connection);
             })
             .catch(error =>{
                 if(error.message){

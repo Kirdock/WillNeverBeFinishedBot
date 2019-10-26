@@ -37,7 +37,10 @@ module.exports = () =>{
         log: log,
         getLog: getLog,
         updateUserToken: updateUserToken,
-        getSoundCategories: getSoundCategories
+        getSoundCategories: getSoundCategories,
+        setIntro: setIntro,
+        getIntro: getIntro,
+        getUsersInfo: getUsersInfo
     }
     return databaseHelper;
 
@@ -52,6 +55,15 @@ module.exports = () =>{
         else{
             updateUserToken(user.id, authData);
         }
+    }
+
+    function setIntro(userId, soundId){
+        db.get(users).find({id: userId}).assign({intro: soundId}).write();
+    }
+
+    function getIntro(userid){
+        let userInfo = getUser(userid);
+        return userInfo ? userInfo.intro : undefined;
     }
 
     function addSoundsMeta(files,user, category){
@@ -109,6 +121,27 @@ module.exports = () =>{
 
     function getUser(id){
         return db.get(users).find({id: id}).value();
+    }
+
+    function getUsersInfo(users){
+        return users.map(user =>{
+            const userInfo = getUser(user.id);
+            let intro = {};
+            if(userInfo){
+                if(userInfo.intro){
+                    intro = {
+                        id: userInfo.intro,
+                        fileName: getSoundMeta(userInfo.intro).fileName
+                    };
+                }
+                else{
+                    user.servers = userInfo.servers;
+                }
+            }
+            user.intro = intro;
+            
+            return user;
+        });
     }
 
     function setServersOfUser(id, servers){

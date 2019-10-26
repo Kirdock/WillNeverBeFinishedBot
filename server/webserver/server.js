@@ -6,7 +6,7 @@ const history = require('connect-history-api-fallback');
 const https = require('https');
 const fs = require('fs');
 
-module.exports = (discordClient, config, logger)=> {
+module.exports = (discordClient, config, logger, databaseHelper)=> {
     const port = process.env.PORT || config.port;
     const isLocal = process.env.local;
     const staticFileMiddleware = express.static(__dirname+'/../../dist');
@@ -30,7 +30,7 @@ module.exports = (discordClient, config, logger)=> {
     app.use(history());
     app.use(staticFileMiddleware);
     
-    require('./routes.js')(router, logger, discordClient, config);
+    require('./routes.js')(router, logger, discordClient, config, databaseHelper);
     app.use('/api',router);
 
     if(isLocal){

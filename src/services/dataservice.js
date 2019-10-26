@@ -1,6 +1,12 @@
 import config from './config.js';
 import axios from 'axios';
 
+const options = {
+    headers:{
+        'Content-Type': 'application/json'
+    }
+};
+
 let dataservice = {
     fetchServers: fetchServers,
     uploadFile: uploadFile,
@@ -14,7 +20,17 @@ let dataservice = {
     stopPlaying: stopPlaying,
     login: login,
     updateServerList: updateServerList,
-    fetchLogs: fetchLogs
+    fetchLogs: fetchLogs,
+    setIntro: setIntro,
+    fetchUserData: fetchUserData
+}
+
+function setIntro(soundId, userId){
+    return axios.post(config.api+'/setIntro', {soundId, userId}, options);
+}
+
+function fetchUserData(){
+    return axios.get(config.api+'/users');
 }
 
 function fetchServers(){
@@ -26,13 +42,7 @@ function fetchLogs(){
 }
 
 function playSound(data){
-    return axios.post(config.api+'/playSound', data,
-    {
-        headers:{
-            'Content-Type': 'application/json'
-        }
-    }
-    );
+    return axios.post(config.api+'/playSound', data, options);
 }
 
 function deleteSound(id){
@@ -74,12 +84,7 @@ function login(code, redirectUrl){
     return axios.post(config.api+'/login',{
         code: code,
         redirectUrl: redirectUrl
-    },
-    {
-        headers:{
-            'Content-Type': 'application/json'
-        }
-    });
+    },options);
 }
 
 function updateServerList(){

@@ -9,9 +9,10 @@ const listCommand = require('../modules/list.js')(config, logger);
 const questionCommand = require('../modules/question.js')(config, logger);
 const voiceHelper = require('../services/voiceHelper.js')(client, config, logger);
 const playSoundCommand = require('../modules/playSound.js')(config, logger, voiceHelper);
+const databaseHelper = require('../services/databaseHelper.js')();
 // client.on('debug', console.log);
 
-require('../webserver/server.js')(client, config, logger);
+require('../webserver/server.js')(client, config, logger, databaseHelper);
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -26,24 +27,14 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
     
     if(!oldUserChannel && newUserChannel && newState.guild.channels.get(newUserChannel).members.size > 1) {
-        let sound = 'servus';
-        if(newState.id == '131072858083426304'){ //Klausi
-            sound = 'Klaus';
+        let soundId = databaseHelper.getIntro(newState.id);
+        if(soundId){
+            let soundMeta = databaseHelper.getSoundMeta(soundId);
+            if(soundMeta){
+                playSoundCommand.doWorkWithoutMessage(soundMeta.path,newState.guild.id,newState.channelID);
+            }
+            //else remove intro if not found?
         }
-        else if(newState.id == '174203817351446529'){ //Timmy
-            sound = 'timmy'
-        }
-        else if(newState.id == '174202864443326464'){ //Hössl
-            sound = 'behindert';
-        }
-        else if(newState.id == '161084180560609280'){ //Thaler
-            sound = 'qq';
-        }
-        else if(newState.id == '300642449049780224' || newState.id == '103645166740463616'){ //Trupp, Kapfe
-            sound = 'pickn';
-        }
-
-        playSoundCommand.doWorkWithoutMessage(sound,newState.guild.id,newState.channelID);
     } else if(newUserChannel === undefined){
 
         // User leaves a voice channel

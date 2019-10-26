@@ -5,13 +5,12 @@ const path = require('path');
 const fileHelper = require('../services/fileHelper.js')();
 const nanoid = require('nanoid');
 
-module.exports = function (router, logger, discordClient, config) {
+module.exports = function (router, logger, discordClient, config, databaseHelper) {
 
   const voiceHelper = require('../services/voiceHelper.js')(discordClient);
   const playSound = require('../modules/playSound.js')(config,logger,voiceHelper);
   const updateHelper = require('../services/updateHelper.js')(config, logger);
   const userHelper = require('../services/userHelper.js')(config);
-  const databaseHelper = require('../services/databaseHelper.js')();
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, fileHelper.soundFolder)
@@ -240,12 +239,23 @@ module.exports = function (router, logger, discordClient, config) {
         })
       });
     });
+
+    router.route('/setIntro')
+		.post(function (req, res) {
+      userHelper.auth(req).then(result =>{
+        const id = req.body.userId && result.user.admin ? req.body.userId : result.user.id;
+        databaseHelper.setIntro(id, req.body.soundId);
+        res.status(200).json();
+      }).catch(error =>{
+        loginFailed(res, error);
+      });
+    });
     
     router.route('/users')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
         if(result.user.admin){
-          res.status(200).json(discordClient.users.map(item =>{return {id: item.id, name: item.username, status: item.presence.status}}));
+          res.status(200).json(databaseHelper.getUsersInfo(getUsers()));
         }
         else{
           notAdmin(res);
@@ -281,6 +291,21 @@ module.exports = function (router, logger, discordClient, config) {
     }
 
     function getBotServers(){
-      return discordClient.guilds.map(item =>{return {id: item.id, name: item.name}});
+      return discordClient.guilds.map(guild =>{
+        return {
+          id: guild.id,
+          name: guild.name
+        }
+      });
+    }
+
+    function getUsers(){
+      return discordClient.users.map(user =>{
+        return {
+          id: user.id,
+          name: user.username,
+          status: user.presence.status
+        }
+      }).sort((a,b) => a.name.localeCompare(b.name));
     }
 }
