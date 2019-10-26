@@ -188,7 +188,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
             res.status(200).json();
           }).catch(error =>{
             logger.error(error,'DeleteFile');
-            databaseHelper.addSoundMeta(meta.id, meta.path, meta.filename, meta.user, meta.category);
+            databaseHelper.addSoundMeta(meta.id, meta.path, meta.fileName, meta.user, meta.category);
             res.status(500).json();
           }).catch(error =>{
             logger.error(error,'AddSoundMeta');

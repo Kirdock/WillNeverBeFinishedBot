@@ -52,15 +52,19 @@ module.exports = () =>{
 
     function deleteFile(path){
         const defer = q.defer();
-
-        fs.unlink(path,function (error){
-            if(error){
-                defer.reject(error);
-            }
-            else{
-                defer.resolve({success: true});
-            }
-        })
+        if(fs.existsSync(path)){
+            fs.unlink(path,function (error){
+                if(error){
+                    defer.reject(error);
+                }
+                else{
+                    defer.resolve({success: true});
+                }
+            })
+        }
+        else{
+            defer.resolve({success: true});
+        }
 
         return defer.promise;
     }

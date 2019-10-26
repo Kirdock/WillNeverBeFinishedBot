@@ -150,7 +150,7 @@ module.exports = () =>{
 
     function getUserInfo(user){
         const userInfo = getUser(user.id);
-        let intro = {};
+        let intro = {id:''};
         if(userInfo){
             if(userInfo.intro){
                 intro = {
@@ -158,9 +158,7 @@ module.exports = () =>{
                     fileName: getSoundMeta(userInfo.intro).fileName
                 };
             }
-            else{
-                user.servers = userInfo.servers;
-            }
+            user.servers = userInfo.servers;
         }
         user.intro = intro;
         return user;
