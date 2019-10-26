@@ -56,7 +56,12 @@ module.exports = () =>{
             query.info = authData;
             query.servers = servers;
             query.time = new Date().getTime();
-            db.get(users).push(query).write();
+            if(userInfo){
+                db.get(users).find({id:user.id}).assign(query).write();
+            }
+            else{
+                db.get(users).push(query).write();
+            }
         }
         else{
             updateUserToken(user.id, authData);
