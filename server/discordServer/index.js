@@ -58,6 +58,7 @@ client.on('message', message => {
         content = message.content.substring(config.clientId.length+3);
     }
     if(content){
+
         content = content.trim();
         if(playSoundCommand.isCommand(content))
         {
@@ -65,7 +66,6 @@ client.on('message', message => {
         }
         else{
             content = content.toLocaleLowerCase();
-
             if(listCommand.isCommand(content)){
                 message.reply('https://kirdock.synology.me:4599/');
             }
@@ -73,8 +73,7 @@ client.on('message', message => {
             {
                 questionCommand.doWork(content, message);
             }
-            
-            if(content === 'ping'){
+            else if(content === 'ping'){
                 message.reply('pong');
             }
             else if(content === 'stop'){

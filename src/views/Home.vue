@@ -12,7 +12,7 @@
                 <button type="button" class="btn btn-primary col-md-2" v-on:click="updateServerList()">Serverliste aktualisieren</button>
             </div>
 
-            <h1>Sounds Hochladen</h1>
+            <h1>Sounds hochladen</h1>
             <div class="form-group">
                 <label class="control-label">Wähle eine Kategorie aus</label>
                 <div class="input-group">
