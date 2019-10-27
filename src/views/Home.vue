@@ -171,7 +171,7 @@ export default {
           }
           Array.prototype.push.apply(this.sounds[selectedCat],response.data);
           this.sounds[selectedCat].sort((a,b) => a.fileName.localeCompare(b.fileName));
-          // this.$forceUpdate();
+          this.$forceUpdate();
           this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
               title: 'Erfolg',
               autoHideDelay: this.$config.toastDelay,

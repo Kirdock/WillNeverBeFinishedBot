@@ -9,6 +9,7 @@ const db = low(adapter);
 const users = 'users';
 const sounds = 'sounds';
 const logs = 'log';
+const servers = 'servers';
 const maxLogsReturned = 20;
 const maxLogsStored = 100;
 const maxLogsDeleted = 50;
@@ -19,6 +20,7 @@ function setDefault(){
     query[users] = [];
     query[sounds] = [];
     query[logs] = [];
+    query[servers] = [];
     db.defaults(query).write();
 }
 
@@ -44,7 +46,10 @@ module.exports = () =>{
         getUserInfo: getUserInfo,
         getUsersInfo: getUsersInfo,
         addUserWithoutToken: addUserWithoutToken,
-        getSoundMetaByName: getSoundMetaByName
+        getSoundMetaByName: getSoundMetaByName,
+        getServersInfo: getServersInfo,
+        udpateServerInfo: udpateServerInfo,
+        getServerInfo: getServerInfo
     }
     return databaseHelper;
 
@@ -211,5 +216,22 @@ module.exports = () =>{
     function getLog(){
         let logsData = getLogs();
         return logsData.slice(logsData.length > maxLogsReturned ? (logsData.length - (maxLogsReturned+1)): 0).sort((a,b) => (b.timestamp - a.timestamp));
+    }
+
+    function getServersInfo(botServers){
+        return botServers.map(server => getServerInfo(server.id) || server);
+    }
+
+    function getServerInfo(id){
+        return db.get(servers).find({id: id}).value();
+    }
+
+    function udpateServerInfo(serverInfo){
+        if(getServerInfo(serverInfo.id)){
+            db.get(servers).find({id: serverInfo.id}).assign(serverInfo).write();
+        }
+        else{
+            db.get(servers).push(serverInfo).write();
+        }
     }
 }

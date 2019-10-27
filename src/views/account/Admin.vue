@@ -5,8 +5,8 @@
             <b-tab title="Benutzer Intros" active>
                 <div class="form-group col-md-5">
                     <label class="control-label">Server</label>
-                    <select class="form-control" v-model="selectedServer">
-                        <option v-for="server in servers" :key="server.id" :value="server.id">
+                    <select class="form-control" v-model="selectedIntroServer">
+                        <option v-for="server in serversWithAll" :key="server.id" :value="server.id">
                             {{server.name}}
                         </option>
                     </select>
@@ -81,6 +81,45 @@
                     </tbody>
                 </table>
             </b-tab>
+            <b-tab title="Server-Einstellungen">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label">Server</label>
+                        <select class="form-control col-md-5" v-model="selectedServer">
+                            <option v-for="server in servers" :key="server.id" :value="server">
+                                {{server.name}}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="serverIntro" v-model="selectedServer.intro" @change="updateServerInfo()" >
+                        <label class="form-check-label" for="serverIntro">
+                            Server Intro
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="serverMinUser" v-model="selectedServer.minUser" @change="updateServerInfo()" >
+                        <label class="form-check-label" for="serverMinUser">
+                            Zumindest ein Benutzer im Channel, damit das Intro abgespielt wird
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Default Intro</label>
+                        <div class="input-group">
+                            <select class="form-control col-md-5" v-model="selectedServer.defaultIntro" @change="updateServerInfo()">
+                                <optgroup v-for="category in soundCategories" :label="category" :key="category">
+                                    <option v-for="sound in sounds[category]" :key="sound.id" :value="sound.id">
+                                        {{sound.fileName}}
+                                    </option>
+                                </optgroup>
+                            </select>
+                            <a href="#" @click.prevent="selectedServer.defaultIntro = ''; updateServerInfo()" title="Intro zurücksetzen">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </b-tab>
         </b-tabs>
     </div>
 </template>
@@ -96,7 +135,9 @@ export default {
           users: [],
           searchText: '',
           servers: [],
-          selectedServer: undefined
+          serversWithAll: [],
+          selectedServer: {},
+          selectedIntroServer: undefined
         };
     },
     created() {
@@ -108,8 +149,12 @@ export default {
     methods: {
         fetchServers(){
             dataservice.fetchServers().then(response=>{
-                this.servers = [{name: 'Alle'}];
-                Array.prototype.push.apply(this.servers,response.data);
+                this.serversWithAll = [{name: 'Alle'}];
+                this.servers = response.data;
+                if(this.servers.length > 0){
+                    this.selectedServer = this.servers[0];
+                }
+                Array.prototype.push.apply(this.serversWithAll,response.data);
             }).catch(()=>{
                 this.$bvToast.toast(`Server kennan nit glodn werdn`, {
                     title: 'Fehler',
@@ -134,10 +179,10 @@ export default {
         filteredUsers(){
             if(this.searchText.length > 0){
                 const re = new RegExp(this.searchText,'i');
-                return this.users.filter(user => re.test(user.name) && user.servers.some(server => this.selectedServer ? server.id === this.selectedServer : true));
+                return this.users.filter(user => re.test(user.name) && user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true));
             }
             else{
-                return this.users.filter(user => user.servers.some(server => this.selectedServer ? server.id === this.selectedServer : true))
+                return this.users.filter(user => user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true))
             }
         },
         updateIntro(user,event){
@@ -194,13 +239,32 @@ export default {
         formatTime(time){
             const date = new Date(time);
             return date.toLocaleDateString() + '  ' + date.toLocaleTimeString();
+        },
+        updateServerInfo(){
+            if(this.selectedServer){
+                dataservice.updateServerInfo(this.selectedServer).then(()=>{
+                    this.$bvToast.toast(`Änderung durchgeführt`, {
+                        title: 'Erfolg',
+                        autoHideDelay: this.$config.toastDelay,
+                        variant: 'success',
+                        appendToast: true
+                    });
+                }).catch(()=>{
+                    this.$bvToast.toast(`Update fehlgeschlagen`, {
+                        title: 'Fehler',
+                        autoHideDelay: this.$config.toastDelay,
+                        variant: 'danger',
+                        appendToast: true
+                    });
+                });
+            }
         }
     }
 }
 </script>
 <style scoped>
 /*Action icons*/
-table a i {
+a i {
   font-size: 35px !important;
   padding-right: 10px;
 }

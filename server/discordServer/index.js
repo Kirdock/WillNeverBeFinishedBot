@@ -21,13 +21,14 @@ client.on('ready', () => {
 client.on('voiceStateUpdate', (oldState, newState) => {
     let newUserChannel = newState.channelID;
     let oldUserChannel = oldState.channelID;
+    const serverInfo = databaseHelper.getServerInfo(newState.guild.id);
 
-    if(newState && newState.id == config.clientId){
+    if(!serverInfo || !serverInfo.intro || newState && newState.id == config.clientId){
         return;
     }
     
-    if(!oldUserChannel && newUserChannel && newState.guild.channels.get(newUserChannel).members.size > 1) {
-        let soundId = databaseHelper.getIntro(newState.id);
+    if(!oldUserChannel && newUserChannel && (!serverInfo.minUser || newState.guild.channels.get(newUserChannel).members.size > 1)) {
+        let soundId = databaseHelper.getIntro(newState.id) || serverInfo.defaultIntro;
         if(soundId){
             let soundMeta = databaseHelper.getSoundMeta(soundId);
             if(soundMeta){

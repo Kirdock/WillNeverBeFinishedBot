@@ -48,17 +48,37 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/servers')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        userHelper.getServersEquivalent(result.user, getBotServers())
-          .then(result =>{
-            res.status(200).json(result);
-          })
-          .catch(error =>{
-            console.log(error);
-            res.status(404).json();
-          })
+        if(result.user.admin){
+          res.status(200).json(getBotServerInfos());
+        }
+        else{
+          userHelper.getServersEquivalent(result.user, getBotServers())
+            .then(result =>{
+              res.status(200).json(result);
+            })
+            .catch(error =>{
+              console.log(error);
+              res.status(404).json();
+            });
+          }
       }).catch(error =>{
         loginFailed(res, error);
       })
+    });
+
+    router.route('/serverInfo')
+		.post(function (req, res) {
+      userHelper.auth(req).then(result =>{
+        if(result.user.admin){
+          databaseHelper.udpateServerInfo(req.body.serverInfo)
+          res.status(200).json();
+        }
+        else{
+          notAdmin(res);
+        }
+      }).catch(error =>{
+        loginFailed(res, error);
+      });
     });
 
     router.route('/updateServer')
@@ -306,6 +326,10 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           name: guild.name
         }
       });
+    }
+
+    function getBotServerInfos(){
+      return databaseHelper.getServersInfo(getBotServers());
     }
 
     function getUsers(){
