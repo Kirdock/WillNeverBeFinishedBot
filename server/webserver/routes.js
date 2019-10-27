@@ -310,20 +310,22 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
 
     function getUsers(){
       return discordClient.users.map(user =>{
-        return {
-          id: user.id,
-          name: user.username,
-          status: user.presence.status
-        }
+        return getUser(user.id, user);
       }).sort((a,b) => a.name.localeCompare(b.name));
     }
 
-    function getUser(userId){
-      const user = discordClient.users.get(userId);
+    function getUser(userId, userLoaded){
+      const user = userLoaded || discordClient.users.get(userId);
+      const servers = discordClient.guilds.filter(guild =>guild.members.get(userId)).map(guild =>{
+        return {
+          id: guild.id,
+          name: guild.name
+        }
+      });
       return user ? {
         id: user.id,
         name: user.username,
-        status: user.presence.status
+        servers: servers
       } : undefined;
     }
 }

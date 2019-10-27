@@ -163,7 +163,9 @@ module.exports = () =>{
                     fileName: getSoundMeta(userInfo.intro).fileName
                 };
             }
-            user.servers = userInfo.servers;
+            if(userInfo.servers){
+                user.servers = userInfo.servers;
+            }
         }
         user.intro = intro;
         return user;

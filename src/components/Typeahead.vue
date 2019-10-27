@@ -6,6 +6,7 @@
         @keydown.up="up"
         @input="change"
         @focus="show"
+        @blur="hide"
     />
     <div class="dropdown-menu" v-show="matches.length > 0" :class="open ? 'show' : ''">
         <a v-for="(suggestion,$index) in matches"
@@ -78,17 +79,21 @@ export default {
         show(){
             this.current = 0;
             this.open = true;
+            this.focus = true;
             window.addEventListener('click', this.close);
             if(!this.selection){
                 this.selection = '';
             }
+        },
+        hide(){
+            this.focus = false;
         },
         selectItem(index) {
             this.selection = this.matches[index];
             this.open = false;
         },
         close(e){
-            if (!this.open || !this.$el.contains(e.target)) {
+            if (!this.$el.contains(e.target) && !this.focus || !this.open) {
                 this.open = false;
                 window.removeEventListener('click', this.close);
             }

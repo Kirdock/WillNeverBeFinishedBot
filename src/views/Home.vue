@@ -82,15 +82,15 @@
                                 {{sound.user.name}}
                             </td>
                             <td>
-                                <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
-                                  <i class="fas fa-save"></i>
-                                </a>
-                                <a href="#" @click.prevent="playSound(sound.id)" title="Sound abspielen">
-                                  <i class="far fa-play-circle"></i>
-                                </a>
-                                <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Sound löschen" :class="userId == sound.user.id || isAdmin ? '' : 'disabled'">
-                                  <i class="fas fa-trash-alt"></i>
-                                </a>
+                              <a href="#" @click.prevent="playSound(sound.id)" title="Sound abspielen">
+                                <i class="far fa-play-circle"></i>
+                              </a>
+                              <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
+                                <i class="fas fa-save"></i>
+                              </a>
+                              <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Sound löschen" :class="userId == sound.user.id || isAdmin ? '' : 'disabled'">
+                                <i class="fas fa-trash-alt"></i>
+                              </a>
                             </td>
                         </tr>
                     </tbody>
@@ -109,13 +109,11 @@ export default {
   data() {
     return {
       servers: [],
-      sounds: [],
+      sounds: {},
       channels: [],
       soundCategories: [],
-      logs: [],
       volume: 0.5,
       selectedCategory: undefined,
-      newCatInput: undefined,
       selectedServer: undefined,
       selectedChannel: undefined,
       isAdmin: false,
@@ -168,10 +166,12 @@ export default {
         .then(response => {
           if(!this.sounds[selectedCat]){
             this.sounds[selectedCat] = [];
-            this.soundCategories = this.soundCategories.push({name: selectedCat, show: true}).sort((a,b)=> a.name.localeCompare(b.name));
+            this.soundCategories.push({name: selectedCat, show: true});
+            this.soundCategories.sort((a,b)=> a.name.localeCompare(b.name));
           }
-          this.sounds[selectedCat] = this.sounds[selectedCat].concat(response.data).sort((a,b) => a.fileName.localeCompare(b.fileName));
-          this.$forceUpdate();
+          Array.prototype.push.apply(this.sounds[selectedCat],response.data);
+          this.sounds[selectedCat].sort((a,b) => a.fileName.localeCompare(b.fileName));
+          // this.$forceUpdate();
           this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
               title: 'Erfolg',
               autoHideDelay: this.$config.toastDelay,

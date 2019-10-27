@@ -1,75 +1,87 @@
 <template>
     <div>
         <h1>Admin Panel</h1>
-        <h2>Benutzer Intros</h2>
-        <div class="form-group col-md-5">
-            <label class="control-label">Suche Benutzer</label>
-            <input class="form-control" v-model="searchText">
-        </div>
-        <table class="table text-break">
-            <thead>
-                <tr>
-                    <th>Benutzer ID</th>
-                    <th>Benutzername</th>
-                    <th>Intro</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="user in filteredUsers()" :key="user.id">
-                    <td>
-                        {{user.id}}
-                    </td>
-                    <td>
-                        {{user.name}}
-                    </td>
-                    <td>
-                        <div class="input-group">
-                            <select class="form-control" :value="user.intro.id" @change="updateIntro(user, $event)">
-                                <optgroup v-for="category in soundCategories" :label="category" :key="category">
-                                    <option v-for="sound in sounds[category]" :key="sound.id" :value="sound.id">
-                                        {{sound.fileName}}
-                                    </option>
-                                </optgroup>
-                            </select>
-                            <a href="#" @click.prevent="updateIntro(user)" title="Intro zurücksetzen">
-                                <i class="fas fa-undo"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <h2>Logs</h2>
-        <table class="table text-break">
-            <thead>
-                <tr>
-                    <th>Datum & Zeit</th>
-                    <th>Server</th>
-                    <th>Dateiname</th>
-                    <th>Benutzername</th>
-                    <th>Aktion</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="log in logs" :key="log">
-                    <td>
-                        {{formatTime(log.timestamp)}}
-                    </td>
-                    <td>
-                        {{log.serverName}}
-                    </td>
-                    <td>
-                        {{log.fileName}}
-                    </td>
-                    <td>
-                        {{log.username}}
-                    </td>
-                    <td>
-                        {{log.message}}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <b-tabs content-class="mt-3">
+            <b-tab title="Benutzer Intros" active>
+                <div class="form-group col-md-5">
+                    <label class="control-label">Server</label>
+                    <select class="form-control" v-model="selectedServer">
+                        <option v-for="server in servers" :key="server.id" :value="server.id">
+                            {{server.name}}
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group col-md-5">
+                    <label class="control-label">Suche Benutzer</label>
+                    <input class="form-control" v-model="searchText">
+                </div>
+                <table class="table text-break">
+                    <thead>
+                        <tr>
+                            <th>Benutzer ID</th>
+                            <th>Benutzername</th>
+                            <th>Intro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="user in filteredUsers()" :key="user.id">
+                            <td>
+                                {{user.id}}
+                            </td>
+                            <td>
+                                {{user.name}}
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <select class="form-control" :value="user.intro.id" @change="updateIntro(user, $event)">
+                                        <optgroup v-for="category in soundCategories" :label="category" :key="category">
+                                            <option v-for="sound in sounds[category]" :key="sound.id" :value="sound.id">
+                                                {{sound.fileName}}
+                                            </option>
+                                        </optgroup>
+                                    </select>
+                                    <a href="#" @click.prevent="updateIntro(user)" title="Intro zurücksetzen">
+                                        <i class="fas fa-undo"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </b-tab>
+             <b-tab title="Logs">
+                <table class="table text-break">
+                    <thead>
+                        <tr>
+                            <th>Datum & Zeit</th>
+                            <th>Server</th>
+                            <th>Dateiname</th>
+                            <th>Benutzername</th>
+                            <th>Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="log in logs" :key="log">
+                            <td>
+                                {{formatTime(log.timestamp)}}
+                            </td>
+                            <td>
+                                {{log.serverName}}
+                            </td>
+                            <td>
+                                {{log.fileName}}
+                            </td>
+                            <td>
+                                {{log.username}}
+                            </td>
+                            <td>
+                                {{log.message}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </b-tab>
+        </b-tabs>
     </div>
 </template>
 <script>
@@ -82,15 +94,31 @@ export default {
           soundCategories: [],
           sounds: [],
           users: [],
-          searchText: ''
+          searchText: '',
+          servers: [],
+          selectedServer: undefined
         };
     },
     created() {
         this.fetchLogs();
         this.fetchSounds();
         this.fetchUserData();
+        this.fetchServers();
     },
     methods: {
+        fetchServers(){
+            dataservice.fetchServers().then(response=>{
+                this.servers = [{name: 'Alle'}];
+                Array.prototype.push.apply(this.servers,response.data);
+            }).catch(()=>{
+                this.$bvToast.toast(`Server kennan nit glodn werdn`, {
+                    title: 'Fehler',
+                    autoHideDelay: this.$config.toastDelay,
+                    variant: 'danger',
+                    appendToast: true
+                });
+            });
+        },
         fetchLogs(){
             dataservice.fetchLogs().then(response =>{
                 this.logs = response.data;
@@ -106,10 +134,10 @@ export default {
         filteredUsers(){
             if(this.searchText.length > 0){
                 const re = new RegExp(this.searchText,'i');
-                return this.users.filter(user => re.test(user.name));
+                return this.users.filter(user => re.test(user.name) && user.servers.some(server => this.selectedServer ? server.id === this.selectedServer : true));
             }
             else{
-                return this.users;
+                return this.users.filter(user => user.servers.some(server => this.selectedServer ? server.id === this.selectedServer : true))
             }
         },
         updateIntro(user,event){

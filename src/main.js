@@ -7,17 +7,19 @@ import './assets/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 // import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-vue';
-import { ToastPlugin } from 'bootstrap-vue';
+import { ToastPlugin, TabsPlugin } from 'bootstrap-vue';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 import config from './services/config';
 import auth from './services/authentication';
 import Typeahead from './components/Typeahead.vue';
-Vue.component('typeahead', Typeahead);
+
 Vue.prototype.$config = config;
 Vue.prototype.$auth = auth;
 
 Vue.config.productionTip = false;
 Vue.use(ToastPlugin);
+Vue.use(TabsPlugin);
+Vue.component('typeahead', Typeahead);
 
 let instances = {};
 
@@ -61,4 +63,3 @@ instances.vue = new Vue({
     Typeahead
   }
 }).$mount('#app');
-
