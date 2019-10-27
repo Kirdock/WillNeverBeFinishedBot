@@ -165,13 +165,13 @@ export default {
         dataservice.uploadFile(formData)
         .then(response => {
           if(!this.sounds[selectedCat]){
-            this.sounds[selectedCat] = [];
+            this.$set(this.sounds, selectedCat, []);
             this.soundCategories.push({name: selectedCat, show: true});
             this.soundCategories.sort((a,b)=> a.name.localeCompare(b.name));
           }
           Array.prototype.push.apply(this.sounds[selectedCat],response.data);
           this.sounds[selectedCat].sort((a,b) => a.fileName.localeCompare(b.fileName));
-          this.$forceUpdate();
+          
           this.$bvToast.toast(`Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:`, {
               title: 'Erfolg',
               autoHideDelay: this.$config.toastDelay,
@@ -214,7 +214,7 @@ export default {
           this.sounds = {};
           response.data.forEach(sound =>{
             if(!this.sounds[sound.category]){
-              this.sounds[sound.category] = []
+              this.$set(this.sounds, sound.category, []);
             }
             this.sounds[sound.category].push(sound);
           });
@@ -290,7 +290,6 @@ export default {
             this.soundCategories.splice(index,1);
           }
         }
-        this.$forceUpdate();
         this.$bvToast.toast('Die Datei wurde gelöscht My Lord', {
           title: 'Erfolg',
           autoHideDelay: this.$config.toastDelay,

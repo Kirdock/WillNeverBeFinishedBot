@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const databaseHelper = require('./databaseHelper.js')();
 const fetch = require('node-fetch');
 const FormData = require('form-data');
+const { Permissions } = require('discord.js');
 
 module.exports = (config) =>{
     const userHelper = {
@@ -49,9 +50,12 @@ module.exports = (config) =>{
                         defer.reject({message: 'Not authorized'});
                     }
                     else{
-                        
-                        fetchServers(res).then(servers =>{
+                        //needs some refactor. this is not needed, also the role "guilds" is not needed
+                        //just iterate through all guilds and look if the user is in it
+                        fetchServers(res).then(servers =>{ 
                             userData.owner = config.owner == userData.id;
+                            // const permissions = new Permissions(userData.permissions);
+                            // userData.admin = permissions.has('ADMINISTRATOR');
                             userData.admin = config.admins.includes(userData.id);
                             userData.application = application;
 
