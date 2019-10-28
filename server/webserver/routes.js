@@ -141,7 +141,6 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           }
           let validJoin = true;
           const guild = discordClient.guilds.get(req.body.serverId);
-          databaseHelper.logPlaySound(auth.user, guild.id, guild.name, 'Play Sound');
           if(req.body.joinUser){
             if(guild){
               const member = guild.members.get(auth.user.id);
@@ -160,12 +159,19 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           }
           if(validJoin){
             if(req.body.soundId){
-              playSound.requestSound(databaseHelper.getSoundMeta(req.body.soundId).path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
-                res.status(200).json(response);
-              }).catch(error =>{
-                logger.error(error, 'requestSound');
-                res.status(404).json(error);
-              })
+              const meta = databaseHelper.getSoundMeta(req.body.soundId);
+              if(meta){
+                databaseHelper.logPlaySound(auth.user, guild.id, guild.name, meta);
+                playSound.requestSound(meta.path, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{
+                  res.status(200).json(response);
+                }).catch(error =>{
+                  logger.error(error, 'requestSound');
+                  res.status(404).json(error);
+                });
+              }
+              else{
+                res.status(404).json();
+              }
             }
             else{
               playSound.requestYoutube(req.body.url, req.body.serverId, req.body.channelId, req.body.volume).then(response =>{

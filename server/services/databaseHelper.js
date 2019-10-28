@@ -161,14 +161,16 @@ module.exports = () =>{
         return user;
     }
 
-    function logPlaySound(user, serverName, serverId, message){
+    function logPlaySound(user, serverId, serverName, meta){
         let query = {};
         query.username = user.username;
-        query.message = message;
+        query.message = 'Play Sound';
         query.server = {
             id: serverId,
             name: serverName
         };
+        query.fileId = meta.id;
+        query.fileName = meta.fileName;
         log(query);
     }
 
