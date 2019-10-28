@@ -4,7 +4,7 @@
             <button type="button" class="btn btn-primary" v-on:click="updateWebsite()" v-if="isOwner">Server aktualisieren</button>
             <h1 class="control-label">Server</h1>
             <div class="input-group">
-                <select class="form-control" v-model="selectedServer" @change="fetchChannels(); saveSettings(); fetchSounds()">
+                <select class="form-control" v-model="selectedServer" @change="setAdmin(); fetchChannels(); saveSettings(); fetchSounds()">
                     <option v-for="server in servers" :value="server.id" :key="server.id">
                         {{server.name}}
                     </option>
@@ -87,7 +87,7 @@
                               <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
                                 <i class="fas fa-save"></i>
                               </a>
-                              <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Sound löschen" :class="userId == sound.user.id || selectedServer.admin ? '' : 'disabled'">
+                              <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Sound löschen" :class="userId == sound.user.id || isAdmin || isOwner ? '' : 'disabled'">
                                 <i class="fas fa-trash-alt"></i>
                               </a>
                             </td>
@@ -120,7 +120,8 @@ export default {
       joinUser: true,
       youtubeUrl: undefined,
       searchText: '',
-      userId: undefined
+      userId: undefined,
+      isAdmin: false
     };
   },
   created() {
@@ -137,16 +138,17 @@ export default {
           if(this.selectedServer){
             this.fetchSounds();
           }
+          this.setAdmin();
       });
   },
   methods: {
+    setAdmin(){
+      this.isAdmin = this.servers.filter(server => server.id == this.selectedServer)[0].admin;
+    },
     fetchServers() {
       return dataservice.fetchServers().then(response => {
           this.servers = response.data;
           this.selectedServer = this.servers[0].id;
-          if(this.isOwner){
-            console.log(this.servers);
-          }
       })
       .catch(error =>{
           this.$bvToast.toast(`Konn de Channels nit lodn. Ka wos do los is`, {

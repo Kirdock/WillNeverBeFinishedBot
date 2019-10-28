@@ -149,10 +149,13 @@ module.exports = () =>{
         const userInfo = getUser(user.id);
         let intro = {id:''};
         if(userInfo && userInfo.intro){
-            intro = {
-                id: userInfo.intro,
-                fileName: getSoundMeta(userInfo.intro).fileName
-            };
+            const meta = getSoundMeta(userInfo.intro);
+            if(meta){
+                intro = {
+                    id: userInfo.intro,
+                    fileName: getSoundMeta(userInfo.intro).fileName
+                };
+            }
         }
         user.intro = intro;
         return user;
