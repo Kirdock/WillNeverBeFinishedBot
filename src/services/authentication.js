@@ -11,15 +11,18 @@ const authorization = {
     getDecodedToken: getDecodedToken,
     deleteToken: deleteToken,
     isLoggedIn: isLoggedIn,
-    isAdmin: isAdmin
+    isOwner: isOwner,
+    setHasAdminServers: setHasAdminServers,
+    getHasAdminServers: getHasAdminServers
 }
 
 
 
 function getToken(){
     if (!cachedToken) {
-        if(storage.getItem(tokenName)){
-            cachedToken = storage.getItem(tokenName);
+        const tempToken = storage.getItem(tokenName);
+        if(tempToken){
+            cachedToken = tempToken;
         }
     }
     return cachedToken;
@@ -28,6 +31,14 @@ function getToken(){
 function setToken(token){
     cachedToken = token;
     storage.setItem(tokenName, token);
+}
+
+function setHasAdminServers(status){
+    storage.setItem('hasAdminServers', status);
+}
+
+function getHasAdminServers(){
+    return !!storage.getItem('hasAdminServers');
 }
 
 function hasToken(){
@@ -69,9 +80,9 @@ function isLoggedIn(){
     return !!getToken();
 }
 
-function isAdmin(){
+function isOwner(){
     const payload = getDecodedToken();
-    return payload && payload.admin;
+    return payload && payload.owner;
 }
 
     

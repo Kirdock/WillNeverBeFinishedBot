@@ -67,7 +67,7 @@ router.beforeEach((to, from, next) => {
   else if (to.meta.authentication && !router.app.$auth.isLoggedIn()) {
     next('/Login');
   }    
-  else if(to.meta.admin && !router.app.$auth.isAdmin()) {
+  else if(to.meta.admin && !router.app.$auth.getHasAdminServers()) {
     next('/');
   }
   else if(to.name === 'NotFound'){

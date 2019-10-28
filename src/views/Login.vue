@@ -19,6 +19,7 @@ export default {
             if (code) {
               dataservice.login(code, this.getLocation()).then(response=>{
                 this.$auth.setToken(response.data);
+                this.$parent.updateLogin();
                 this.$router.push('/');
               }).catch(error =>{
                 this.$bvToast.toast(`Der Login hot nit funktioniert. Probiers noch amol`, {

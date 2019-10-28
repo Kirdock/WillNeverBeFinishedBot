@@ -23,7 +23,8 @@ let dataservice = {
     setIntro: setIntro,
     fetchUserData: fetchUserData,
     fetchUsersData: fetchUsersData,
-    updateServerInfo: updateServerInfo
+    updateServerInfo: updateServerInfo,
+    hasAdminServers: hasAdminServers
 }
 
 function setIntro(soundId, userId){
@@ -73,8 +74,8 @@ function uploadFile(file){
     )
 }
 
-function fetchSounds(){
-    return axios.get(config.api+'/sounds');
+function fetchSounds(serverId){
+    return axios.get(config.api+'/sounds' + (serverId ? '/'+serverId : ''));
 }
 
 function fetchChannels(serverId){
@@ -94,6 +95,10 @@ function login(code, redirectUrl){
         code: code,
         redirectUrl: redirectUrl
     },options);
+}
+
+function hasAdminServers(){
+    return axios.get(config.api+'/hasAdminServers');
 }
 
 export default dataservice;

@@ -13,8 +13,8 @@
               <li class="nav-item">
                 <router-link class="nav-link" to="/Account">Account</router-link>
               </li>
-              <li class="nav-item" v-if="$auth.isAdmin()">
-                <router-link class="nav-link" to="/Admin">Admin</router-link>
+              <li class="nav-item">
+                <router-link class="nav-link" v-if="hasAdminServers" to="/Admin">Admin</router-link>
               </li>
               <li class="nav-item" v-if="$auth.isLoggedIn()">
                 <a class="nav-link" href="#" @click="logout">Abmelden</a>
@@ -36,6 +36,7 @@ export default {
   data() {
       return{
           username: undefined,
+          hasAdminServers: false
       }
   },
   methods: {
@@ -47,11 +48,33 @@ export default {
     },
     logout(){
         this.$auth.deleteToken();
+        this.hasAdminServers = false;
+        this.$auth.setHasAdminServers(false);
+        this.username = undefined;
         this.$router.push('/Login');
+    },
+    setHasAdminServers(){
+      if(this.$auth.isLoggedIn()){
+        dataservice.hasAdminServers().then(response =>{
+          this.$auth.setHasAdminServers(response.data);
+          this.hasAdminServers = response.data;
+        }).catch(()=>{
+          this.$bvToast.toast(`I konn nit nochfrogn ob du a Admin bist`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
+        });
+      }
+    },
+    updateLogin(){
+      this.setUserData();
+      this.setHasAdminServers();
     }
   },
   created(){
-    this.setUserData();
+    this.updateLogin();
   }
 };
 </script>

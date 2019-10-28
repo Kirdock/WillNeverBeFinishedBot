@@ -34,8 +34,8 @@
                             <td>
                                 <div class="input-group">
                                     <select class="form-control" :value="user.intro.id" @change="updateIntro(user, $event)">
-                                        <optgroup v-for="category in soundCategories" :label="category" :key="category">
-                                            <option v-for="sound in sounds[category]" :key="sound.id" :value="sound.id">
+                                        <optgroup v-for="category in getSoundCategories(user.servers)" :label="category" :key="category">
+                                            <option v-for="sound in getSounds(user.servers, category)" :key="sound.id" :value="sound.id">
                                                 {{sound.fileName}}
                                             </option>
                                         </optgroup>
@@ -66,7 +66,7 @@
                                 {{formatTime(log.timestamp)}}
                             </td>
                             <td>
-                                {{log.serverName}}
+                                {{log.server.name}}
                             </td>
                             <td>
                                 {{log.fileName}}
@@ -86,7 +86,7 @@
                     <div class="form-group">
                         <label class="control-label">Server</label>
                         <select class="form-control col-md-5" v-model="selectedServer">
-                            <option v-for="server in servers" :key="server.id" :value="server">
+                            <option v-for="server in adminServers" :key="server.id" :value="server">
                                 {{server.name}}
                             </option>
                         </select>
@@ -107,8 +107,8 @@
                         <label class="control-label">Default Intro</label>
                         <div class="input-group">
                             <select class="form-control col-md-5" v-model="selectedServer.defaultIntro" @change="updateServerInfo()">
-                                <optgroup v-for="category in soundCategories" :label="category" :key="category">
-                                    <option v-for="sound in sounds[category]" :key="sound.id" :value="sound.id">
+                                <optgroup v-for="category in soundCategories[selectedServer.id]" :label="category" :key="category">
+                                    <option v-for="sound in sounds[selectedServer.id][category]" :key="sound.id" :value="sound.id">
                                         {{sound.fileName}}
                                     </option>
                                 </optgroup>
@@ -155,9 +155,30 @@ export default {
             else{
                 return this.users.filter(user => user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true))
             }
+        },
+        adminServers(){
+            return this.servers.filter(server => server.admin);
         }
     },
     methods: {
+        getSoundCategories(servers){
+            let temp = [];
+            servers.forEach(server =>{
+                temp = temp.concat(this.soundCategories[server.id]);
+            });
+            return temp;
+        },
+        getSounds(servers, category){
+            let temp = [];
+            if(category && servers){
+                servers.forEach(server =>{
+                    if(this.sounds[server.id][category]){
+                        temp = temp.concat(this.sounds[server.id][category]);
+                    }
+                });
+            }
+            return temp;
+        },
         fetchServers(){
             dataservice.fetchServers().then(response=>{
                 this.serversWithAll = [{name: 'Alle'}];
@@ -210,13 +231,20 @@ export default {
         fetchSounds(){
             dataservice.fetchSounds().then(response =>{
                 this.sounds = {};
+                this.soundCategories = {};
                 response.data.forEach(sound =>{
-                    if(!this.sounds[sound.category]){
-                    this.sounds[sound.category] = []
+                    if(!this.sounds[sound.serverId]){
+                        this.$set(this.sounds,sound.serverId,{});
+                        this.$set(this.soundCategories,sound.serverId,{});
                     }
-                    this.sounds[sound.category].push(sound);
+                    if(!this.sounds[sound.serverId][sound.category]){
+                        this.$set(this.sounds[sound.serverId],sound.category,[]);
+                    }
+                    this.sounds[sound.serverId][sound.category].push(sound);
                 });
-                this.soundCategories = Object.keys(this.sounds).sort((a,b) => a.localeCompare(b));
+                Object.keys(this.soundCategories).forEach(serverId =>{
+                    this.soundCategories[serverId] =  Object.keys(this.sounds[serverId]).sort((a,b) => a.localeCompare(b));
+                });
             }).catch(()=>{
                 this.$bvToast.toast(`Sounds kennan nit glodn werdn`, {
                     title: 'Fehler',

@@ -45,8 +45,7 @@ module.exports = (config) =>{
                         defer.reject({message: 'Not authorized'});
                     }
                     else{
-                        userData.owner = config.owner == userData.id;
-                        userData.admin = config.admins.includes(userData.id);
+                        userData.owner = config.owners.includes(userData.id);
                         userData.application = application;
                         databaseHelper.addUser(userData, res);
                         defer.resolve(jwt.sign(userData, secret));

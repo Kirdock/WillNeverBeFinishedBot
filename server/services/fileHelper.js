@@ -11,8 +11,6 @@ module.exports = () =>{
 
     const fileHelper = {
         getDirectories: getDirectories,
-        tryGetSoundFile: tryGetSoundFile,
-        createCatFolder: createCatFolder,
         existsFile: existsFile,
         getDirectoriesOfSoundFolder: getDirectoriesOfSoundFolder,
         soundFolder: soundFolder,
@@ -32,18 +30,6 @@ module.exports = () =>{
 
     function getDirectoriesOfSoundFolder(){
         return getDirectories(soundFolder);
-    }
-
-    function getFiles(source){
-        return fs.readdirSync(source).map(name => path.join(source, name)).filter(isFile);
-    }
-    
-    function createCatFolder(folderName){
-        const folder = path.join(soundFolder, folderName);
-        if(!fs.existsSync(folder)){
-            fs.mkdirSync(folder);
-        }
-        return folder;
     }
 
     function existsFile(folder){
@@ -75,20 +61,6 @@ module.exports = () =>{
             return deleteFile(file.path);
         });
         return q.all(actions);
-    }
-
-    function tryGetSoundFile(name){
-        const dirs = getDirectories(soundFolder);
-        let foundFile = undefined;
-        for(let i = 0; i < dirs.length; i++){
-            let file = path.join(dirs[i],name+'.mp3');
-            if(fs.existsSync(file))
-            {
-                foundFile = file;
-                break;
-            }
-        }
-        return foundFile;
     }
 
     function checkAndCreateFolder(dir){

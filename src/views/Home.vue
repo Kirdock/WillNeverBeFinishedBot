@@ -1,10 +1,10 @@
 <template>
     <div class="container" style="margin-top:50px">
         <div id="fetch" class="form-horizontal" >
-            <button type="button" class="btn btn-primary" v-on:click="updateWebsite()" v-if="isAdmin">Server aktualisieren</button>
+            <button type="button" class="btn btn-primary" v-on:click="updateWebsite()" v-if="isOwner">Server aktualisieren</button>
             <h1 class="control-label">Server</h1>
             <div class="input-group">
-                <select class="form-control" v-model="selectedServer" @change="fetchChannels(); saveSettings()">
+                <select class="form-control" v-model="selectedServer" @change="fetchChannels(); saveSettings(); fetchSounds()">
                     <option v-for="server in servers" :value="server.id" :key="server.id">
                         {{server.name}}
                     </option>
@@ -87,7 +87,7 @@
                               <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
                                 <i class="fas fa-save"></i>
                               </a>
-                              <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Sound löschen" :class="userId == sound.user.id || isAdmin ? '' : 'disabled'">
+                              <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Sound löschen" :class="userId == sound.user.id || selectedServer.admin ? '' : 'disabled'">
                                 <i class="fas fa-trash-alt"></i>
                               </a>
                             </td>
@@ -115,7 +115,7 @@ export default {
       selectedCategory: undefined,
       selectedServer: undefined,
       selectedChannel: undefined,
-      isAdmin: false,
+      isOwner: false,
       maxVolume: 1,
       joinUser: true,
       youtubeUrl: undefined,
@@ -129,13 +129,15 @@ export default {
           const decodedToken = this.$auth.getDecodedToken();
           if(decodedToken){
             this.userId = decodedToken.id;
-            this.isAdmin = decodedToken.admin;
-            if(this.isAdmin){
+            this.isOwner = decodedToken.owner;
+            if(this.isOwner){
                 this.maxVolume = 100;
             }
           }
+          if(this.selectedServer){
+            this.fetchSounds();
+          }
       });
-      this.fetchSounds();
   },
   methods: {
     fetchServers() {
@@ -157,6 +159,7 @@ export default {
       if(selectedCat){
         let formData = new FormData();
         formData.append('category', selectedCat);
+        formData.append('serverId', this.selectedServer)
         for(let i = 0; i < this.$refs.file.files.length; i++){
           formData.append(`files`,this.$refs.file.files[i]);
         }
@@ -209,29 +212,29 @@ export default {
         });
     },
     fetchSounds(){
-        dataservice.fetchSounds().then(response =>{
-          this.sounds = {};
-          response.data.forEach(sound =>{
-            if(!this.sounds[sound.category]){
-              this.$set(this.sounds, sound.category, []);
-            }
-            this.sounds[sound.category].push(sound);
-          });
-          this.setSoundCategories();
-        }).catch(error =>{
-          this.$bvToast.toast(`Konn de Sounds nit lodn. Frog Mr. Admin wos do vakehrt laft`, {
-            title: 'Fehler',
-            autoHideDelay: this.$config.toastDelay,
-            variant: 'danger',
-            appendToast: true
-          });
+      this.soundCategories = [];
+      this.selectedCategory = '';
+      dataservice.fetchSounds(this.selectedServer).then(response =>{
+        this.sounds = {};
+        response.data.forEach(sound =>{
+          if(!this.sounds[sound.category]){
+            this.$set(this.sounds, sound.category, []);
+          }
+          this.sounds[sound.category].push(sound);
         });
+        this.setSoundCategories();
+      }).catch(error =>{
+        this.$bvToast.toast(`Konn de Sounds nit lodn. Frog Mr. Admin wos do vakehrt laft`, {
+          title: 'Fehler',
+          autoHideDelay: this.$config.toastDelay,
+          variant: 'danger',
+          appendToast: true
+        });
+      });
     },
     setSoundCategories(){
       this.soundCategories = Object.keys(this.sounds).sort((a,b) => a.localeCompare(b)).map(category =>({name: category, show: true})); //vue.js does not recognize new elements. that's why I have to add "show"
-      if(this.soundCategories.length > 0){
-        this.selectedCategory = this.soundCategories[0].name;
-      }
+      this.selectedCategory = this.soundCategories.length > 0 ? this.soundCategories[0].name : '';
     },
     playSound(soundId){
       const data = {
