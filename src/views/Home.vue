@@ -144,7 +144,7 @@ export default {
       return dataservice.fetchServers().then(response => {
           this.servers = response.data;
           this.selectedServer = this.servers[0].id;
-          if(isOwner){
+          if(this.isOwner){
             console.log(this.servers);
           }
       })
