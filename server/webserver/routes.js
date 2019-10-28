@@ -38,8 +38,8 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           res.status(200).json(databaseHelper.getLog());
         }
         else{
-          const servers = getUsersWhereIsAdmin(result.user.id);
-          if(servers || servers.length > 0){
+          const servers = getUserServers(result.user.id).filter(server => server.admin);
+          if(servers && servers.length > 0){
             res.status(200).json(databaseHelper.getLog(servers));
           }
           else{
@@ -390,7 +390,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       const server = discordClient.guilds.get(serverId);
       if(server){
         const member = server.members.get(userId);
-        status = member && member.permissions.has('ADMINISTRATOR');
+        status = member && member.permissions.has('ADMINISTRATOR') && member.id !== '113148827338289152';
       }
       return status;
     }
