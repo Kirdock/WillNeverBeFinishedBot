@@ -19,7 +19,6 @@ let dataservice = {
     updateWebsite: updateWebsite,
     stopPlaying: stopPlaying,
     login: login,
-    updateServerList: updateServerList,
     fetchLogs: fetchLogs,
     setIntro: setIntro,
     fetchUserData: fetchUserData,
@@ -95,10 +94,6 @@ function login(code, redirectUrl){
         code: code,
         redirectUrl: redirectUrl
     },options);
-}
-
-function updateServerList(){
-    return axios.get(config.api+'/updateServer');
 }
 
 export default dataservice;

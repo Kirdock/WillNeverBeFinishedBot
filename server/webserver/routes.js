@@ -23,10 +23,10 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
 
     router.route('/login')
     .post(function (req, res) {
-      userHelper.login(req.body.code, req.body.redirectUrl, getBotServers()).then(authToken =>{
+      userHelper.login(req.body.code, req.body.redirectUrl, getUserServers).then(authToken =>{
         res.status(200).json(authToken);
       }).catch(error =>{
-        console.log(error);
+        logger.error(error,'Login');
         res.status(401).json({message: 'Authentication failed'});
       })
     });
@@ -52,15 +52,8 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           res.status(200).json(getBotServerInfos());
         }
         else{
-          userHelper.getServersEquivalent(result.user, getBotServers())
-            .then(result =>{
-              res.status(200).json(result);
-            })
-            .catch(error =>{
-              console.log(error);
-              res.status(404).json();
-            });
-          }
+            res.status(200).json(getUserServers(result.user.id));
+        }
       }).catch(error =>{
         loginFailed(res, error);
       })
@@ -76,27 +69,6 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
         else{
           notAdmin(res);
         }
-      }).catch(error =>{
-        loginFailed(res, error);
-      });
-    });
-
-    router.route('/updateServer')
-    .get(function (req, res) {
-      userHelper.auth(req).then(result =>{
-        userHelper.updateServers(result.user, getBotServers()).then(() =>{
-          userHelper.getServersEquivalent(result.user, getBotServers())
-            .then(servers =>{
-              res.status(200).json(servers);
-            })
-            .catch(error =>{
-              console.log(error);
-              res.status(404).json();
-            });
-        }).catch(error =>{
-          console.log(error);
-          res.status(403).json();
-        });
       }).catch(error =>{
         loginFailed(res, error);
       });
@@ -120,15 +92,16 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/stopPlaying/:serverId')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        userHelper.isInServer(result.user, req.params.serverId).then(() =>{
+        if(isUserInServer(result.user.id, req.params.serverId)){
           playSound.stopPlaying(req.params.serverId).then(result =>{
             res.status(200).json(result);
           }).catch(error =>{
             res.status(500).json(error);
-          })
-        }).catch(error =>{
-          notInServer(res, error);
-        });
+          });
+        }
+        else{
+          notInServer(res, result.user.id, req.params.serverId);
+        };
       }).catch(error =>{
         loginFailed(res, error);
       })
@@ -147,7 +120,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/playSound')
 		.post(function (req, res) {
       userHelper.auth(req).then(auth =>{
-        userHelper.isInServer(auth.user, req.body.serverId).then(result =>{
+        if(isUserInServer(auth.user.id, req.body.serverId)){
           if(!auth.user.admin && req.body.volume >= 1){
             req.body.volume = 1;
           }
@@ -188,9 +161,10 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
               })
             }
           }
-        }).catch(error =>{
-          notInServer(res, error);
-        })
+        }
+        else{
+          notInServer(res, auth.user.id, req.body.serverId);
+        }
       }).catch(error =>{
         loginFailed(res, error);
       })
@@ -226,11 +200,12 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/channels/:id')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        userHelper.isInServer(result.user, req.params.id).then(() =>{
+        if(isUserInServer(result.user.id, req.params.id)){
           res.status(200).json(discordClient.guilds.get(req.params.id).channels.filter(channel => channel.type === 'voice').sort((channel1, channel2) => channel1.rawPosition  - channel2.rawPosition ).map(item =>{return {id: item.id, name: item.name}}));
-        }).catch(error =>{
-          notInServer(res, error);
-        });
+        }
+        else{
+          notInServer(res, result.user.id, req.params.id);
+        };
       }).catch(error =>{
         loginFailed(res, error);
       });
@@ -304,14 +279,12 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     });
 
     function loginFailed(res, error){
-      console.log('Login failed',error.error || error);
+      logger.error(error.error || error, 'Login failed');
       res.status(error.status || 401).json(error.message || 'Authentication failed');
     }
 
-    function notInServer(res, error){
-      if(error !== false){
-        console.log(error);
-      }
+    function notInServer(res, userId, serverId){
+      logger.warning({userId,serverId},'User not in server');
       res.status(403).json({message: 'Du host auf den Server kan Zugriff!!'});
     }
 
@@ -340,16 +313,33 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
 
     function getUser(userId, userLoaded){
       const user = userLoaded || discordClient.users.get(userId);
-      const servers = discordClient.guilds.filter(guild =>guild.members.get(userId)).map(guild =>{
-        return {
-          id: guild.id,
-          name: guild.name
-        }
-      });
+      const servers = getUserServers(userId);
       return user ? {
         id: user.id,
         name: user.username,
         servers: servers
       } : undefined;
+    }
+
+    function getUserServers(userId){
+      let servers = [];
+      discordClient.guilds.forEach(guild =>{
+        const member = guild.members.get(userId);
+        if(member){
+          servers.push({
+            id: guild.id,
+            icon: guild.icon,
+            name: guild.name,
+            permissions: member.permissions.bitfield,
+            admin: member.permissions.has('ADMINISTRATOR')
+          });
+        }
+      });
+      return servers;
+    }
+
+    function isUserInServer(userId, serverId){
+      const server = discordClient.guilds.get(serverId);
+      return server && server.members.get(userId);
     }
 }

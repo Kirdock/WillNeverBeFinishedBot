@@ -36,7 +36,6 @@ module.exports = () =>{
         getSoundMeta: getSoundMeta,
         removeUser: removeUser,
         getUser: getUser,
-        setServersOfUser: setServersOfUser,
         logPlaySound: logPlaySound,
         getLog: getLog,
         updateUserToken: updateUserToken,
@@ -53,13 +52,12 @@ module.exports = () =>{
     }
     return databaseHelper;
 
-    function addUser(user, authData, servers){
+    function addUser(user, authData){
         const userInfo = getUser(user.id);
         if(!userInfo || !userInfo.info){
             const userClone = JSON.parse(JSON.stringify(user));//without reference
             let query = userInfo ? {...userInfo, ...userClone} : userClone;
             query.info = authData;
-            query.servers = servers;
             query.time = new Date().getTime();
             if(userInfo){
                 db.get(users).find({id:user.id}).assign(query).write();
@@ -161,23 +159,14 @@ module.exports = () =>{
     function getUserInfo(user){
         const userInfo = getUser(user.id);
         let intro = {id:''};
-        if(userInfo){
-            if(userInfo.intro){
-                intro = {
-                    id: userInfo.intro,
-                    fileName: getSoundMeta(userInfo.intro).fileName
-                };
-            }
-            if(userInfo.servers){
-                user.servers = userInfo.servers;
-            }
+        if(userInfo && userInfo.intro){
+            intro = {
+                id: userInfo.intro,
+                fileName: getSoundMeta(userInfo.intro).fileName
+            };
         }
         user.intro = intro;
         return user;
-    }
-
-    function setServersOfUser(id, servers){
-        db.get(users).find({id: id}).assign({ servers: servers}).write();
     }
 
     function logPlaySound(user, serverName, message){

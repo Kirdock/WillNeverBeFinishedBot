@@ -24,7 +24,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="user in filteredUsers()" :key="user.id">
+                        <tr v-for="user in filteredUsers" :key="user.id">
                             <td>
                                 {{user.id}}
                             </td>
@@ -146,6 +146,17 @@ export default {
         this.fetchUserData();
         this.fetchServers();
     },
+    computed:{
+        filteredUsers(){
+            if(this.searchText.length > 0){
+                const re = new RegExp(this.searchText,'i');
+                return this.users.filter(user => re.test(user.name) && user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true));
+            }
+            else{
+                return this.users.filter(user => user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true))
+            }
+        }
+    },
     methods: {
         fetchServers(){
             dataservice.fetchServers().then(response=>{
@@ -175,15 +186,6 @@ export default {
                     appendToast: true
                 });
             });
-        },
-        filteredUsers(){
-            if(this.searchText.length > 0){
-                const re = new RegExp(this.searchText,'i');
-                return this.users.filter(user => re.test(user.name) && user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true));
-            }
-            else{
-                return this.users.filter(user => user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true))
-            }
         },
         updateIntro(user,event){
             const id = event ? event.target.value : undefined;

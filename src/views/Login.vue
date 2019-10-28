@@ -9,7 +9,7 @@ import dataservice from '../services/dataservice';
 export default {
     data(){
         return {
-            loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+this.getLocationEncoded()+'&response_type=code&scope=identify%20guilds'
+            loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+this.getLocationEncoded()+'&response_type=code&scope=identify'
         }
     },
     methods: {
@@ -24,7 +24,8 @@ export default {
                 this.$bvToast.toast(`Der Login hot nit funktioniert. Probiers noch amol`, {
                     title: 'Fehler',
                     autoHideDelay: this.$config.toastDelay,
-                    appendToast: true
+                    variant: 'danger',
+                    appendToast: true,
                 });
               });
             }

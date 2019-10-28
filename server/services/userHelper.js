@@ -10,13 +10,8 @@ const { Permissions } = require('discord.js');
 module.exports = (config) =>{
     const userHelper = {
         login: login,
-        refreshToken: refreshToken,
         tryGetToken: tryGetToken,
-        getServers: getServers,
-        auth: auth,
-        getServersEquivalent: getServersEquivalent,
-        isInServer: isInServer,
-        updateServers: updateServers
+        auth: auth
     }
     const secret = 'Q8{He@4et!5Prhr/Zy:s';
     const application = 'DiscordBot';
@@ -24,7 +19,7 @@ module.exports = (config) =>{
     return userHelper;
 
     //returns JSON WebToken with user data (auth_token not included)
-    function login(code, redirectUrl, botServers){
+    function login(code, redirectUrl){
         var defer = q.defer();
         const data = new FormData();
 
@@ -50,19 +45,11 @@ module.exports = (config) =>{
                         defer.reject({message: 'Not authorized'});
                     }
                     else{
-                        //needs some refactor. this is not needed, also the role "guilds" is not needed
-                        //just iterate through all guilds and look if the user is in it
-                        fetchServers(res).then(servers =>{ 
-                            userData.owner = config.owner == userData.id;
-                            // const permissions = new Permissions(userData.permissions);
-                            // userData.admin = permissions.has('ADMINISTRATOR');
-                            userData.admin = config.admins.includes(userData.id);
-                            userData.application = application;
-
-                            databaseHelper.addUser(userData, res, getSameServers(servers, botServers));
-
-                            defer.resolve(jwt.sign(userData, secret));
-                        }).catch(defer.reject)
+                        userData.owner = config.owner == userData.id;
+                        userData.admin = config.admins.includes(userData.id);
+                        userData.application = application;
+                        databaseHelper.addUser(userData, res);
+                        defer.resolve(jwt.sign(userData, secret));
                     }
                 })
                 .catch(defer.reject);
@@ -72,14 +59,14 @@ module.exports = (config) =>{
         return defer.promise;
     }
 
-    function refreshToken(refresh_token, request_url){
+    function refreshToken(refresh_token, scope, request_url){
         const data = new FormData();
 
         data.append('client_id', config.clientId);
         data.append('client_secret', config.clientSecret);
         data.append('grant_type', 'refresh_token');
         data.append('redirect_uri', request_url);
-        data.append('scope', config.scope);
+        data.append('scope', scope);
         data.append('refresh_token', refresh_token);
 
         return fetch('https://discordapp.com/api/oauth2/token',{
@@ -173,7 +160,7 @@ module.exports = (config) =>{
             databaseHelper.updateUserToken(user.id, user.info);
             //reset time just in case there are several requests by the user
             //else there will be several refresh request if the first one has not received a response
-            refreshToken(user.info.refresh_token, request_url).then(result =>{
+            refreshToken(user.info.refresh_token, user.info.scope, request_url).then(result =>{
                 if(result.error){
                     result.status = 401;
                     result.user = user;
@@ -189,80 +176,6 @@ module.exports = (config) =>{
         else{
             defer.resolve(user);
         }
-        return defer.promise;
-    }
-
-    function getServers(user){
-        const defer = q.defer();
-        defer.resolve(user.servers);
-        return defer.promise;
-    }
-
-    function fetchServers(info){
-        return fetch('https://discordapp.com/api/users/@me/guilds', {
-            method: 'GET',
-            headers: {
-                authorization: `${info.token_type} ${info.access_token}`,
-            },
-        }).then(res => res.json());
-    }
-
-    function getServersEquivalent(user, botServers){
-        const defer = q.defer();
-        getServers(user).then(servers =>{
-            defer.resolve(getSameServers(servers,botServers));
-        }).catch(defer.reject);
-        return defer.promise;
-    }
-
-    function getSameServers(userServers, botServers){
-        let sameServers = [];
-        if(userServers && botServers){
-            userServers.forEach(server =>{
-                for(let i = 0; i < botServers.length; i++){
-                    if(botServers[i].id == server.id){
-                        sameServers.push(server);
-                        break;
-                    }
-                }
-            });
-        }
-        return sameServers;
-    }
-
-    function updateServers(user, botServers){
-        return fetchServers(user.info).then(servers =>{
-            if(servers.error){
-                return q.reject(servers.error);
-            }
-            else{
-                databaseHelper.setServersOfUser(user.id,getSameServers(servers,botServers));
-            }
-        });
-    }
-
-    function isInServer(user,serverId){
-        var defer = q.defer();
-        getServers(user).then(servers =>{
-            if(servers.retry_after){
-                defer.reject(servers);
-            }
-            else{
-                let status = false;
-                for(let i = 0; i < servers.length; i++){
-                    if(servers[i].id == serverId){
-                        status = true;
-                        break;
-                    }
-                }
-                if(status){
-                    defer.resolve(status);
-                }
-                else{
-                    defer.reject(status);
-                }
-            }
-        }).catch(defer.reject);
         return defer.promise;
     }
 }

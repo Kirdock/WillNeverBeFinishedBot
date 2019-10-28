@@ -9,7 +9,6 @@
                         {{server.name}}
                     </option>
                 </select>
-                <button type="button" class="btn btn-primary col-md-2" v-on:click="updateServerList()">Serverliste aktualisieren</button>
             </div>
 
             <h1>Sounds hochladen</h1>
@@ -139,7 +138,7 @@ export default {
       this.fetchSounds();
   },
   methods: {
-    fetchServers(loadChannels) {
+    fetchServers() {
       return dataservice.fetchServers().then(response => {
           this.servers = response.data;
           this.selectedServer = this.servers[0].id;
@@ -344,24 +343,6 @@ export default {
           appendToast: true
         });
       })
-    },
-    updateServerList(){
-      dataservice.updateServerList().then(servers =>{
-        this.servers = servers.data;
-        this.$bvToast.toast(`Listn is aktualisiert`, {
-          title: 'Erfolg',
-          autoHideDelay: this.$config.toastDelay,
-          variant: 'success',
-          appendToast: true
-        });
-      }).catch(error =>{
-        this.$bvToast.toast(`Die Server protestiern grod in Hong Kong und hobm ka Zeit`, {
-            title: 'Fehler',
-            autoHideDelay: this.$config.toastDelay,
-            variant: 'danger',
-            appendToast: true
-          });
-      });
     },
     filteredSounds(categoryName){
       if(this.searchText.length > 0){
