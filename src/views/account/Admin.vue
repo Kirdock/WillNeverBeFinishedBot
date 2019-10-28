@@ -172,7 +172,7 @@ export default {
             let temp = [];
             if(category && servers){
                 servers.forEach(server =>{
-                    if(this.sounds[server.id][category]){
+                    if(this.sounds[server.id] && this.sounds[server.id][category]){
                         temp = temp.concat(this.sounds[server.id][category]);
                     }
                 });

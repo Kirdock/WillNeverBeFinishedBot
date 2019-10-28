@@ -144,6 +144,9 @@ export default {
       return dataservice.fetchServers().then(response => {
           this.servers = response.data;
           this.selectedServer = this.servers[0].id;
+          if(isOwner){
+            console.log(this.servers);
+          }
       })
       .catch(error =>{
           this.$bvToast.toast(`Konn de Channels nit lodn. Ka wos do los is`, {
