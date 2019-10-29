@@ -271,7 +271,10 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       userHelper.auth(req).then(result =>{
         const meta = databaseHelper.getSoundMeta(req.body.soundId);
         const id = req.body.userId && (result.user.owner || isUserAdminWhereAnotherUser(result.user.id, req.body.userId)) ? req.body.userId : result.user.id;
-        if(isUserInServer(id,meta.serverId)){
+        if(!meta){
+          databaseHelper.setIntro(id);
+        }
+        else if(isUserInServer(id,meta.serverId)){
           databaseHelper.setIntro(id, req.body.soundId);
         }
         res.status(200).json();

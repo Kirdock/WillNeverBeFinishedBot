@@ -118,6 +118,27 @@
                             </a>
                         </div>
                     </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="serverOutro" v-model="selectedServer.outro" @change="updateServerInfo()" >
+                        <label class="form-check-label" for="serverOutro">
+                            Server Outro
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Default Outro</label>
+                        <div class="input-group">
+                            <select class="form-control col-md-5" v-model="selectedServer.defaultOutro" @change="updateServerInfo()">
+                                <optgroup v-for="category in soundCategories[selectedServer.id]" :label="category" :key="category">
+                                    <option v-for="sound in sounds[selectedServer.id][category]" :key="sound.id" :value="sound.id">
+                                        {{sound.fileName}}
+                                    </option>
+                                </optgroup>
+                            </select>
+                            <a href="#" @click.prevent="selectedServer.defaultOutro = ''; updateServerInfo()" title="Outro zurücksetzen">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </b-tab>
         </b-tabs>

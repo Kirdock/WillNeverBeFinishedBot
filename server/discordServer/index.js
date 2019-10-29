@@ -23,11 +23,11 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     let oldUserChannel = oldState.channelID;
     const serverInfo = databaseHelper.getServerInfo(newState.guild.id);
 
-    if(!serverInfo || !serverInfo.intro || newState && newState.id == config.clientId){
+    if(!serverInfo || newState && newState.id == config.clientId){
         return;
     }
     
-    if(!oldUserChannel && newUserChannel && (!serverInfo.minUser || newState.guild.channels.get(newUserChannel).members.size > 1)) {
+    if(!oldUserChannel && newUserChannel && serverInfo.intro && (!serverInfo.minUser || newState.guild.channels.get(newUserChannel).members.size > 1)) {
         let soundId = databaseHelper.getIntro(newState.id) || serverInfo.defaultIntro;
         if(soundId){
             let soundMeta = databaseHelper.getSoundMeta(soundId);
@@ -36,9 +36,16 @@ client.on('voiceStateUpdate', (oldState, newState) => {
             }
             //else remove intro if not found?
         }
-    } else if(newUserChannel === undefined){
-
+    } else if(!newUserChannel && oldUserChannel && serverInfo.outro && oldState.guild.channels.get(oldUserChannel).members.size > 0){
         // User leaves a voice channel
+        let soundId = serverInfo.defaultOutro;
+        if(soundId){
+            let soundMeta = databaseHelper.getSoundMeta(soundId);
+            if(soundMeta){
+                playSoundCommand.doWorkWithoutMessage(soundMeta.path,oldState.guild.id,oldState.channelID);
+            }
+            //else remove intro if not found?
+        }
     }
   });
 
