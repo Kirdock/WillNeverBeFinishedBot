@@ -308,7 +308,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           res.status(200).json(databaseHelper.getUsersInfo(getUsers()));
         }
         else{
-          const users = getUsersWhereIsAdmin(result.user.id);
+          const users = getUsersWhereIsAdmin(result.user.id, result.user.owner);
           if(users && users.length > 0){
             res.status(200).json(databaseHelper.getUsersInfo(users));
           }
@@ -350,9 +350,9 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       }).sort((a,b) => a.name.localeCompare(b.name));
     }
 
-    function getUsersWhereIsAdmin(userId){
+    function getUsersWhereIsAdmin(userId, isOwner){
       return discordClient.guilds
-        .filter(guild => guild.members.get(userId) && guild.members.get(userId).permissions.has('ADMINISTRATOR')) //get all guilds where user is admin
+        .filter(guild => isOwner || guild.members.get(userId) && guild.members.get(userId).permissions.has('ADMINISTRATOR')) //get all guilds where user is admin
         .map(guild => guild.members).reduce((a,b) => a.concat(b)) //return all members (select many)
         .map(member => getUser(member.user.id, member.user)) //return all users
         .sort((a,b) => a.name.localeCompare(b.name));
