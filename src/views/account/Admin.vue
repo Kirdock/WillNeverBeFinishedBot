@@ -86,7 +86,7 @@
                     <div class="form-group">
                         <label class="control-label">Server</label>
                         <select class="form-control col-md-5" v-model="selectedServer">
-                            <option v-for="server in adminServers" :key="server.id" :value="server">
+                            <option v-for="server in servers" :key="server.id" :value="server">
                                 {{server.name}}
                             </option>
                         </select>
@@ -176,9 +176,6 @@ export default {
             else{
                 return this.users.filter(user => user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true))
             }
-        },
-        adminServers(){
-            return this.servers.filter(server => server.admin);
         }
     },
     methods: {
@@ -203,11 +200,11 @@ export default {
         fetchServers(){
             dataservice.fetchServers().then(response=>{
                 this.serversWithAll = [{name: 'Alle'}];
-                this.servers = response.data;
+                this.servers = response.data.filter(server => server.admin);
                 if(this.servers.length > 0){
                     this.selectedServer = this.servers[0];
                 }
-                Array.prototype.push.apply(this.serversWithAll,response.data);
+                Array.prototype.push.apply(this.serversWithAll,this.servers);
             }).catch(()=>{
                 this.$bvToast.toast(`Server kennan nit glodn werdn`, {
                     title: 'Fehler',

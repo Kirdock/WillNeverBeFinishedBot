@@ -23,7 +23,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
 
     router.route('/login')
     .post(function (req, res) {
-      userHelper.login(req.body.code, req.body.redirectUrl, getUserServers).then(authToken =>{
+      userHelper.login(req.body.code, req.body.redirectUrl).then(authToken =>{
         res.status(200).json(authToken);
       }).catch(error =>{
         logger.error(error,'Login');
@@ -38,7 +38,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           res.status(200).json(databaseHelper.getLog());
         }
         else{
-          const servers = getUserServers(result.user.id).filter(server => server.admin);
+          const servers = getUserServers(result.user.id, result.user.owner).filter(server => server.admin);
           if(servers && servers.length > 0){
             res.status(200).json(databaseHelper.getLog(servers));
           }
@@ -54,7 +54,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/servers')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        res.status(200).json(getUserServers(result.user.id));
+        res.status(200).json(getUserServers(result.user.id, result.user.owner));
       }).catch(error =>{
         loginFailed(res, error);
       })
@@ -63,7 +63,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/serverInfo')
 		.post(function (req, res) {
       userHelper.auth(req).then(result =>{
-        if(isUserAdmin(result.user.id,req.body.serverInfo.id)){
+        if(result.user.owner || isUserAdmin(result.user.id,req.body.serverInfo.id)){
           databaseHelper.udpateServerInfo(req.body.serverInfo)
           res.status(200).json();
         }
@@ -93,7 +93,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/stopPlaying/:serverId')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        if(isUserInServer(result.user.id, req.params.serverId)){
+        if(result.user.owner || isUserInServer(result.user.id, req.params.serverId)){
           playSound.stopPlaying(req.params.serverId).then(result =>{
             res.status(200).json(result);
           }).catch(error =>{
@@ -112,7 +112,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/sounds')
 		.get(function (req, res) {
       userHelper.auth(req).then((result) =>{
-        res.status(200).json(databaseHelper.getSoundsMeta(getUserServers(result.user.id)));
+        res.status(200).json(databaseHelper.getSoundsMeta(getUserServers(result.user.id, result.user.owner)));
       }).catch(error =>{
         loginFailed(res, error);
       })
@@ -121,7 +121,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/sounds/:serverId')
 		.get(function (req, res) {
       userHelper.auth(req).then((result) =>{
-        if(isUserInServer(result.user.id,req.params.serverId)){
+        if(result.user.owner || isUserInServer(result.user.id,req.params.serverId)){
           res.status(200).json(databaseHelper.getSoundsMeta([{id:req.params.serverId}]));
         }
         else{
@@ -135,7 +135,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/playSound')
 		.post(function (req, res) {
       userHelper.auth(req).then(auth =>{
-        if(isUserInServer(auth.user.id, req.body.serverId)){
+        if(auth.user.owner || isUserInServer(auth.user.id, req.body.serverId)){
           if(!auth.user.owner && req.body.volume >= 1){
             req.body.volume = 1;
           }
@@ -221,7 +221,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/channels/:id')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        if(isUserInServer(result.user.id, req.params.id)){
+        if(result.user.owner || isUserInServer(result.user.id, req.params.id)){
           res.status(200).json(discordClient.guilds.get(req.params.id).channels.filter(channel => channel.type === 'voice').sort((channel1, channel2) => channel1.rawPosition  - channel2.rawPosition ).map(item =>{return {id: item.id, name: item.name}}));
         }
         else{
@@ -244,7 +244,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/uploadFile')
     .put(upload.array('files'),function (req, res){
       userHelper.auth(req).then(result =>{
-        if(isUserAdmin(result.user.id, req.body.serverId)){
+        if(result.user.owner || isUserAdmin(result.user.id, req.body.serverId)){
           let addedFiles = databaseHelper.addSoundsMeta(req.files,result.user,req.body.category, req.body.serverId, getServerName(req.body.serverId));
           res.status(200).json(addedFiles);
         }
@@ -268,13 +268,13 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
 
     router.route('/setIntro')
 		.post(function (req, res) {
-      userHelper.auth(req).then(result =>{
+      userHelper.auth(req).then(auth =>{
         const meta = databaseHelper.getSoundMeta(req.body.soundId);
-        const id = req.body.userId && (result.user.owner || isUserAdminWhereAnotherUser(result.user.id, req.body.userId)) ? req.body.userId : result.user.id;
+        const id = req.body.userId && (auth.user.owner || isUserAdminWhereAnotherUser(auth.user.id, req.body.userId, auth.user.owner)) ? req.body.userId : auth.user.id;
         if(!meta){
           databaseHelper.setIntro(id);
         }
-        else if(isUserInServer(id,meta.serverId)){
+        else if(auth.user.owner || isUserInServer(id,meta.serverId)){
           databaseHelper.setIntro(id, req.body.soundId);
         }
         res.status(200).json();
@@ -295,7 +295,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/hasAdminServers')
 		.get(function (req, res) {
       userHelper.auth(req).then(result =>{
-        res.status(200).json(hasUserAdminServers(result.user.id));
+        res.status(200).json(hasUserAdminServers(result.user.id, result.user.owner));
       }).catch(error =>{
         loginFailed(res, error);
       });
@@ -360,7 +360,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
 
     function getUser(userId, userLoaded){
       const user = userLoaded || discordClient.users.get(userId);
-      const servers = getUserServers(userId);
+      const servers = getUserServers(userId, user.owner);
       return user ? {
         id: user.id,
         name: user.username,
@@ -368,7 +368,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       } : undefined;
     }
 
-    function getUserServers(userId){
+    function getUserServers(userId, isOwner){
       let servers = [];
       discordClient.guilds.forEach(guild =>{
         const member = guild.members.get(userId);
@@ -378,11 +378,21 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
             icon: guild.icon,
             name: guild.name,
             permissions: member.permissions.bitfield,
-            admin: member.permissions.has('ADMINISTRATOR') && userId !== '113148827338289152' //exclude Berni/Xenatra
+            admin: isOwner || member.permissions.has('ADMINISTRATOR') && userId !== '113148827338289152' //exclude Berni/Xenatra
           };
           if(server.admin){
             server = {...databaseHelper.getServerInfo(guild.id), ...server};
           }
+          servers.push(server);
+        }
+        else if(isOwner){
+          let server = {
+            id: guild.id,
+            icon: guild.icon,
+            name: guild.name,
+            admin: isOwner
+          };
+          server = {...databaseHelper.getServerInfo(guild.id), ...server};
           servers.push(server);
         }
       });
@@ -404,15 +414,15 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       return status;
     }
 
-    function hasUserAdminServers(userId){
-      return getUserServers(userId).some(server => server.admin);
+    function hasUserAdminServers(userId, isOwner){
+      return getUserServers(userId, isOwner).some(server => server.admin);
     }
 
-    function isUserAdminWhereAnotherUser(userIdAdmin, userId){
-      const adminServers = getUserServers(userIdAdmin);
+    function isUserAdminWhereAnotherUser(userIdAdmin, userId, isOwner){
+      const adminServers = getUserServers(userIdAdmin, isOwner);
       let status = false;
       if(adminServers && adminServers.length > 0){
-        status = adminServers.some(server => server.admin && isUserInServer(userId, server.id));
+        status = adminServers.some(server => (isOwner || server.admin) && isUserInServer(userId, server.id));
       }
       return status;
     }
