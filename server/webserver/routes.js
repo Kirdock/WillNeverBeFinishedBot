@@ -412,7 +412,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       const adminServers = getUserServers(userIdAdmin);
       let status = false;
       if(adminServers && adminServers.length > 0){
-        status = adminServers.some(server => server.admin && isUserInServer(userId));
+        status = adminServers.some(server => server.admin && isUserInServer(userId, server.id));
       }
       return status;
     }
