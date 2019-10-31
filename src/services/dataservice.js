@@ -24,11 +24,20 @@ let dataservice = {
     fetchUserData: fetchUserData,
     fetchUsersData: fetchUsersData,
     updateServerInfo: updateServerInfo,
-    hasAdminServers: hasAdminServers
+    hasAdminServers: hasAdminServers,
+    downloadSound: downloadSound
 }
 
 function setIntro(soundId, userId){
     return axios.post(config.api+'/setIntro', {soundId, userId}, options);
+}
+
+function downloadSound(soundId){
+    return axios({
+        method: 'GET',
+        url: config.api+'/sound/'+soundId,
+        responseType: 'blob'
+    });
 }
 
 function updateServerInfo(serverInfo){

@@ -118,6 +118,21 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       })
     });
 
+    router.route('/sound/:soundId')
+		.get(function (req, res) {
+      userHelper.auth(req).then((result) =>{
+        const meta = databaseHelper.getSoundMeta(req.params.soundId);
+        if(meta && (result.user.isOwner || isUserInServer(result.user.id, meta.serverId))){
+          res.status(200).download(meta.path, meta.fileName + path.extname(meta.path));
+        }
+        else{
+          res.status(404).json();
+        }
+      }).catch(error =>{
+        loginFailed(res, error);
+      })
+    });
+
     router.route('/sounds/:serverId')
 		.get(function (req, res) {
       userHelper.auth(req).then((result) =>{

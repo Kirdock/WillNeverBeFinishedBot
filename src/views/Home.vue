@@ -69,7 +69,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Benutzer</th>
-                            <th style="width: 180px">Aktion</th>
+                            <th style="width: 220px">Aktion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,6 +83,9 @@
                             <td>
                               <a href="#" @click.prevent="playSound(sound.id)" title="Sound abspielen">
                                 <i class="far fa-play-circle"></i>
+                              </a>
+                              <a href="#" @click.prevent="downloadSound(sound.id)" title="Sound herunterladen">
+                                <i class="fas fa-download"></i>
                               </a>
                               <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
                                 <i class="fas fa-save"></i>
@@ -201,6 +204,36 @@ export default {
             variant: 'warning',
             appendToast: true
         });
+      }
+    },
+    downloadSound(soundId){
+      dataservice.downloadSound(soundId).then(response =>{
+        const url = window.URL.createObjectURL(response.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', getFileNameOutOfHeader(response.headers));
+        document.body.appendChild(link);
+        link.click();
+      }).catch(()=>{
+        this.$bvToast.toast(`Konn de Datei nit obalodn`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
+      });
+
+      function getFileNameOutOfHeader(headers){
+        let fileName = "";
+        const disposition = headers['content-disposition'];
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+            var reg = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            var matches = reg.exec(disposition);
+            if (matches != null && matches[1]) { 
+              fileName = matches[1].replace(/['"]/g, '');
+            }
+        }
+        return fileName;
       }
     },
     fetchChannels(){
