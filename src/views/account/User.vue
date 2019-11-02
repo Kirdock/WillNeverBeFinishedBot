@@ -39,7 +39,9 @@ export default {
     methods: {
         updateIntro(reset){
             const id = reset ? undefined : this.user.intro.id;
-            this.user.intro.id = this.cacheIntroBefore;
+            if(!reset){
+                this.user.intro.id = this.cacheIntroBefore;
+            }
             dataservice.setIntro(id).then(()=>{
                 this.user.intro.id = id;
                 this.$bvToast.toast(`Intro is gsetzt!`, {
