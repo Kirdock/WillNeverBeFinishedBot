@@ -76,7 +76,7 @@ export default {
       return encodeURIComponent(this.getLocation());
     },
     getLocation(){
-      return window.location.protocol+'//'+window.location.host+this.$router.currentRoute.path;
+      return window.location.protocol+'//'+window.location.host+(this.$router.currentRoute.name === 'Login' ? this.$router.currentRoute.path : '/');
     },
     updateLogin(){
       this.setUserData();
