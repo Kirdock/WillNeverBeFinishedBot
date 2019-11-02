@@ -33,7 +33,7 @@
                             </td>
                             <td>
                                 <div class="input-group">
-                                    <select class="form-control" :value="user.intro.id" @change="updateIntro(user, $event)">
+                                    <select class="form-control" :value="user.intro" @change="updateIntro(user, $event)">
                                         <optgroup v-for="category in getSoundCategories(user.servers)" :label="category" :key="category">
                                             <option v-for="sound in getSounds(user.servers, category)" :key="sound.id" :value="sound.id">
                                                 {{sound.fileName}}
@@ -230,7 +230,7 @@ export default {
             const id = event ? event.target.value : undefined;
             
             dataservice.setIntro(id,user.id).then(()=>{
-                user.intro.id = id;
+                user.intro = id;
                 this.$bvToast.toast(`Intro is gsetzt!`, {
                     title: 'Erfolg',
                     autoHideDelay: this.$config.toastDelay,
