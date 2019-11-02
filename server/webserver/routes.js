@@ -287,10 +287,10 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
         const meta = databaseHelper.getSoundMeta(req.body.soundId);
         const id = req.body.userId && (auth.user.owner || isUserAdminWhereAnotherUser(auth.user.id, req.body.userId, auth.user.owner)) ? req.body.userId : auth.user.id;
         if(!meta){
-          databaseHelper.setIntro(id);
+          databaseHelper.setIntro(id, undefined, req.body.serverId);
         }
         else if(auth.user.owner || isUserInServer(id,meta.serverId)){
-          databaseHelper.setIntro(id, req.body.soundId);
+          databaseHelper.setIntro(id, req.body.soundId, req.body.serverId);
         }
         res.status(200).json();
       }).catch(error =>{
@@ -385,7 +385,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
 
     function getUserServers(userId, isOwner){
       let servers = [];
-      discordClient.guilds.forEach(guild =>{
+      for(const [id, guild] of discordClient.guilds){
         const member = guild.members.get(userId);
         if(member){
           let server = {
@@ -410,7 +410,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           server = {...databaseHelper.getServerInfo(guild.id), ...server};
           servers.push(server);
         }
-      });
+      };
       return servers;
     }
 

@@ -6,7 +6,7 @@
                 <div class="form-group col-md-5">
                     <label class="control-label">Server</label>
                     <select class="form-control" v-model="selectedIntroServer">
-                        <option v-for="server in serversWithAll" :key="server.id" :value="server.id">
+                        <option v-for="server in servers" :key="server.id" :value="server.id">
                             {{server.name}}
                         </option>
                     </select>
@@ -33,14 +33,14 @@
                             </td>
                             <td>
                                 <div class="input-group">
-                                    <select class="form-control" v-model="user.intro.id" @change="updateIntro(user)" @focus="cacheIntroBefore = user.intro.id">
-                                        <optgroup v-for="category in getSoundCategories(user.servers)" :label="category" :key="category">
-                                            <option v-for="sound in getSounds(user.servers, category)" :key="sound.id" :value="sound.id">
+                                    <select class="form-control" v-model="user.intros[selectedIntroServer].id" @change="updateIntro(user)" @focus="cacheIntroBefore = user.intros[selectedIntroServer].id">
+                                        <optgroup v-for="category in getSoundCategories()" :label="category" :key="category">
+                                            <option v-for="sound in getSounds(category)" :key="sound.id" :value="sound.id">
                                                 {{sound.fileName}}
                                             </option>
                                         </optgroup>
                                     </select>
-                                    <a href="#" @click.prevent="updateIntro(user, true)" @focus="cacheIntroBefore = user.intro.id" title="Intro zurücksetzen">
+                                    <a href="#" @click.prevent="updateIntro(user, true)" @focus="cacheIntroBefore = user.intros[selectedIntroServer].id" title="Intro zurücksetzen">
                                         <i class="fas fa-undo"></i>
                                     </a>
                                 </div>
@@ -156,7 +156,6 @@ export default {
           users: [],
           searchText: '',
           servers: [],
-          serversWithAll: [],
           selectedServer: {},
           selectedIntroServer: undefined,
           cacheIntroBefore: undefined
@@ -165,47 +164,39 @@ export default {
     created() {
         this.fetchLogs();
         this.fetchSounds();
-        this.fetchUserData();
-        this.fetchServers();
+        this.fetchServers().then(()=>{
+            this.fetchUserData()
+        });
     },
     computed:{
         filteredUsers(){
             if(this.searchText.length > 0){
                 const re = new RegExp(this.searchText,'i');
-                return this.users.filter(user => re.test(user.name) && user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true));
+                return this.users.filter(user => re.test(user.name) && user.servers.some(server => server.id === this.selectedIntroServer));
             }
             else{
-                return this.users.filter(user => user.servers.some(server => this.selectedIntroServer ? server.id === this.selectedIntroServer : true))
+                return this.users.filter(user => user.servers.some(server => server.id === this.selectedIntroServer));
             }
         }
     },
     methods: {
-        getSoundCategories(servers){
-            let temp = [];
-            servers.forEach(server =>{
-                temp = temp.concat(this.soundCategories[server.id]);
-            });
-            return temp;
+        getSoundCategories(){
+            return this.soundCategories[this.selectedIntroServer];
         },
-        getSounds(servers, category){
+        getSounds(category){
             let temp = [];
-            if(category && servers){
-                servers.forEach(server =>{
-                    if(this.sounds[server.id] && this.sounds[server.id][category]){
-                        temp = temp.concat(this.sounds[server.id][category]);
-                    }
-                });
+            if(category && this.sounds[this.selectedIntroServer] && this.sounds[this.selectedIntroServer][category]){
+                temp = this.sounds[this.selectedIntroServer][category];
             }
             return temp;
         },
         fetchServers(){
-            dataservice.fetchServers().then(response=>{
-                this.serversWithAll = [{name: 'Alle'}];
+            return dataservice.fetchServers().then(response=>{
                 this.servers = response.data.filter(server => server.admin);
                 if(this.servers.length > 0){
                     this.selectedServer = this.servers[0];
+                    this.selectedIntroServer = this.servers[0].id;
                 }
-                Array.prototype.push.apply(this.serversWithAll,this.servers);
             }).catch(()=>{
                 this.$bvToast.toast(`Server kennan nit glodn werdn`, {
                     title: 'Fehler',
@@ -228,12 +219,12 @@ export default {
             });
         },
         updateIntro(user, reset){
-            const id = reset ? undefined : user.intro.id;
+            const id = reset ? undefined : user.intros[this.selectedIntroServer].id;
             if(!reset){
-                user.intro.id = this.cacheIntroBefore;
+                user.intros[this.selectedIntroServer].id = this.cacheIntroBefore;
             }
-            dataservice.setIntro(id,user.id).then(()=>{
-                user.intro.id = id;
+            dataservice.setIntro(id,user.id, this.selectedIntroServer).then(()=>{
+                user.intros[this.selectedIntroServer].id = id;
                 this.$bvToast.toast(`Intro is gsetzt!`, {
                     title: 'Erfolg',
                     autoHideDelay: this.$config.toastDelay,

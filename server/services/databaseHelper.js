@@ -80,16 +80,18 @@ module.exports = () =>{
         db.get(users).push(user).write();
     }
 
-    function setIntro(userId, soundId){
+    function setIntro(userId, soundId, serverId){
         if(!getUser(userId)){
             addUserWithoutToken({id: userId});
         }
-        db.get(users).find({id: userId}).assign({intro: soundId}).write();
+        let query = {intros:{}};
+        query.intros[serverId] = soundId;
+        db.get(users).find({id: userId}).assign(query).write();
     }
 
-    function getIntro(userId){
+    function getIntro(userId, serverId){
         let userInfo = getUser(userId);
-        return userInfo ? userInfo.intro : undefined;
+        return userInfo && userInfo.intros ? userInfo.intros[serverId] : undefined;
     }
 
     function addSoundsMeta(files,user, category, serverId, serverName){
@@ -147,17 +149,28 @@ module.exports = () =>{
 
     function getUserInfo(user){
         const userInfo = getUser(user.id);
-        let intro = {id:''};
-        if(userInfo && userInfo.intro){
-            const meta = getSoundMeta(userInfo.intro);
-            if(meta){
-                intro = {
-                    id: userInfo.intro,
-                    fileName: meta.fileName
-                };
+        user.intros = {};
+        if(userInfo && userInfo.intros){
+            for(let serverId of Object.keys(userInfo.intros)){
+                let intro = {id:''};
+                const meta = getSoundMeta(userInfo.intros[serverId]);
+                if(meta){
+                    intro = {
+                        id: userInfo.intros[serverId],
+                        fileName: meta.fileName
+                    };
+                }
+                user.intros[serverId] = intro;
             }
         }
-        user.intro = intro;
+        for(const server of user.servers){
+            if(!user.intros){
+                user.intros = {};
+            }
+            if(!user.intros[server.id]){
+                user.intros[server.id] = {id:''};
+            }
+        }
         return user;
     }
 

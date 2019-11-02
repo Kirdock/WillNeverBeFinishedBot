@@ -300,7 +300,7 @@ export default {
       });
     },
     setIntro(soundId){
-      dataservice.setIntro(soundId).then(()=>{
+      dataservice.setIntro(soundId, undefined, this.selectedServer).then(()=>{
         this.$bvToast.toast('Intro gsetzt', {
           title: 'Erfolg',
           autoHideDelay: this.$config.toastDelay,

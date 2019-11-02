@@ -28,8 +28,8 @@ let dataservice = {
     downloadSound: downloadSound
 }
 
-function setIntro(soundId, userId){
-    return axios.post(config.api+'/setIntro', {soundId, userId}, options);
+function setIntro(soundId, userId, serverId){
+    return axios.post(config.api+'/setIntro', {soundId, userId, serverId}, options);
 }
 
 function downloadSound(soundId){
