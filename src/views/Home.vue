@@ -171,7 +171,7 @@ export default {
         for(let i = 0; i < this.$refs.file.files.length; i++){
           formData.append(`files`,this.$refs.file.files[i]);
         }
-        
+        this.$refs.file.value = '';
         dataservice.uploadFile(formData)
         .then(response => {
           if(!this.sounds[selectedCat]){
@@ -198,6 +198,7 @@ export default {
         });
       }
       else{
+        this.$refs.file.value = '';
         this.$bvToast.toast(`Gib bitte a Kategorie beim Upload on du Pliatz`, {
             title: 'Warnung',
             autoHideDelay: this.$config.toastDelay,
