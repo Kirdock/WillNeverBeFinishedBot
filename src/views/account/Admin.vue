@@ -33,14 +33,14 @@
                             </td>
                             <td>
                                 <div class="input-group">
-                                    <select class="form-control" :value="user.intro.id" @change="updateIntro(user, $event)">
+                                    <select class="form-control" v-model="user.intro.id" @change="updateIntro(user)" @focus="cacheIntroBefore = user.intro.id">
                                         <optgroup v-for="category in getSoundCategories(user.servers)" :label="category" :key="category">
                                             <option v-for="sound in getSounds(user.servers, category)" :key="sound.id" :value="sound.id">
                                                 {{sound.fileName}}
                                             </option>
                                         </optgroup>
                                     </select>
-                                    <a href="#" @click.prevent="updateIntro(user)" title="Intro zurücksetzen">
+                                    <a href="#" @click.prevent="updateIntro(user, true)" @focus="cacheIntroBefore = user.intro.id" title="Intro zurücksetzen">
                                         <i class="fas fa-undo"></i>
                                     </a>
                                 </div>
@@ -158,7 +158,8 @@ export default {
           servers: [],
           serversWithAll: [],
           selectedServer: {},
-          selectedIntroServer: undefined
+          selectedIntroServer: undefined,
+          cacheIntroBefore: undefined
         };
     },
     created() {
@@ -226,9 +227,9 @@ export default {
                 });
             });
         },
-        updateIntro(user,event){
-            const id = event ? event.target.value : undefined;
-            
+        updateIntro(user, reset){
+            const id = reset ? undefined : user.intro.id;
+            user.intro.id = this.cacheIntroBefore;
             dataservice.setIntro(id,user.id).then(()=>{
                 user.intro.id = id;
                 this.$bvToast.toast(`Intro is gsetzt!`, {

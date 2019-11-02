@@ -153,7 +153,7 @@ module.exports = () =>{
             if(meta){
                 intro = {
                     id: userInfo.intro,
-                    fileName: getSoundMeta(userInfo.intro).fileName
+                    fileName: meta.fileName
                 };
             }
         }

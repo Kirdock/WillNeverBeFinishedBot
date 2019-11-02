@@ -5,7 +5,7 @@
             <div class="input-group">
                 <label class="control-label">Intro</label>
                 <div class="col-md-5">
-                    <select class="form-control" :value="user.intro.id" @change="updateIntro($event)">
+                    <select class="form-control" v-model="user.intro.id" @change="updateIntro()" @focus="cacheIntroBefore = user.intro.id">
                         <optgroup v-for="category in soundCategories" :label="category" :key="category">
                             <option v-for="sound in sounds[category]" :key="sound.id" :value="sound.id">
                                 {{sound.fileName}}
@@ -13,7 +13,7 @@
                         </optgroup>
                     </select>
                 </div>
-                <a href="#" @click.prevent="updateIntro()" title="Intro zurücksetzen">
+                <a href="#" @click.prevent="updateIntro(true)" title="Intro zurücksetzen">
                     <i class="fas fa-undo"></i>
                 </a>
             </div>
@@ -28,7 +28,8 @@ export default {
         return {
           soundCategories: [],
           sounds: [],
-          user: {intro:{}}
+          user: {intro:{}},
+          cacheIntroBefore: undefined
         };
     },
     created() {
@@ -36,9 +37,9 @@ export default {
         this.fetchUserData();
     },
     methods: {
-        updateIntro(event){
-            const id = event ? event.target.value : undefined;
-            
+        updateIntro(reset){
+            const id = reset ? undefined : this.user.intro.id;
+            this.user.intro.id = this.cacheIntroBefore;
             dataservice.setIntro(id).then(()=>{
                 this.user.intro.id = id;
                 this.$bvToast.toast(`Intro is gsetzt!`, {
