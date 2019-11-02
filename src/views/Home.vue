@@ -81,16 +81,16 @@
                                 {{sound.user.name}}
                             </td>
                             <td>
-                              <a href="#" @click.prevent="playSound(sound.id)" title="Sound abspielen">
+                              <a href="#" @click.prevent="playSound(sound.id)" title="Abspielen">
                                 <i class="far fa-play-circle"></i>
                               </a>
-                              <a href="#" @click.prevent="downloadSound(sound.id)" title="Sound herunterladen">
+                              <a href="#" @click.prevent="downloadSound(sound.id)" title="Herunterladen">
                                 <i class="fas fa-download"></i>
                               </a>
                               <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
                                 <i class="fas fa-save"></i>
                               </a>
-                              <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Sound löschen" :class="userId == sound.user.id || isAdmin || isOwner ? '' : 'disabled'">
+                              <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Löschen" :class="userId == sound.user.id || isAdmin || isOwner ? '' : 'disabled'">
                                 <i class="fas fa-trash-alt"></i>
                               </a>
                             </td>

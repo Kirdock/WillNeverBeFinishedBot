@@ -9,7 +9,7 @@ import dataservice from '../services/dataservice';
 export default {
     data(){
         return {
-            loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+this.getLocationEncoded()+'&response_type=code&scope=identify'
+            loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+this.$parent.getLocationEncoded()+'&response_type=code&scope=identify'
         }
     },
     methods: {
@@ -17,7 +17,7 @@ export default {
             const url = new URL(window.location.href);
             const code = url.searchParams.get('code');
             if (code) {
-              dataservice.login(code, this.getLocation()).then(response=>{
+              dataservice.login(code, this.$parent.getLocation()).then(response=>{
                 this.$auth.setToken(response.data);
                 this.$parent.updateLogin();
                 this.$router.push('/');
@@ -30,12 +30,6 @@ export default {
                 });
               });
             }
-        },
-        getLocationEncoded(){
-            return encodeURIComponent(this.getLocation());
-        },
-        getLocation(){
-            return window.location.protocol+'//'+window.location.host+this.$router.currentRoute.path;
         }
     },
     created(){

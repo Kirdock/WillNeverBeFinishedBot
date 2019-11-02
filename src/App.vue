@@ -16,6 +16,9 @@
               <li class="nav-item">
                 <router-link class="nav-link" v-if="hasAdminServers" to="/Admin">Admin</router-link>
               </li>
+              <li class="nav-item">
+                <a class="nav-link" :href="addServerLink">Server hinzufügen</a>
+              </li>
               <li class="nav-item" v-if="$auth.isLoggedIn()">
                 <a class="nav-link" href="#" @click="logout">Abmelden</a>
               </li>
@@ -36,7 +39,8 @@ export default {
   data() {
       return{
           username: undefined,
-          hasAdminServers: false
+          hasAdminServers: false,
+          addServerLink: `https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&permissions=3148800&redirect_uri=${this.getLocationEncoded()}&scope=bot`
       }
   },
   methods: {
@@ -67,6 +71,12 @@ export default {
           });
         });
       }
+    },
+    getLocationEncoded(){
+      return encodeURIComponent(this.getLocation());
+    },
+    getLocation(){
+      return window.location.protocol+'//'+window.location.host+this.$router.currentRoute.path;
     },
     updateLogin(){
       this.setUserData();
