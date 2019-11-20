@@ -259,7 +259,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
     router.route('/uploadFile')
     .put(upload.array('files'),function (req, res){
       userHelper.auth(req).then(result =>{
-        if(result.user.owner || isUserAdmin(result.user.id, req.body.serverId)){
+        if(result.user.owner || isUserInServer(result.user.id, req.body.serverId)){
           let addedFiles = databaseHelper.addSoundsMeta(req.files,result.user,req.body.category, req.body.serverId, getServerName(req.body.serverId));
           res.status(200).json(addedFiles);
         }
