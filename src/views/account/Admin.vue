@@ -103,6 +103,12 @@
                             Zumindest ein Benutzer im Channel, damit das Intro abgespielt wird
                         </label>
                     </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="leaveAfterPlay" v-model="selectedServer.leaveChannelAfterPlay" @change="updateServerInfo()" >
+                        <label class="form-check-label" for="leaveAfterPlay">
+                            Bot soll nach dem Abspielen den Kanal verlassen
+                        </label>
+                    </div>
                     <div class="form-group">
                         <label class="control-label">Default Intro</label>
                         <div class="input-group">

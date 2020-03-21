@@ -85,6 +85,7 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
         let delay = config.playSoundDelay;
         const connection = (con || voiceHelper.getConnection(id));
         let dispatcher = connection.dispatcher;
+        const serverInfo = databaseHelper.getServerInfo(id);
         if(dispatcher){ //if bot is playing something at the moment, it interrupts and plays the other file
             dispatcher.destroy('playFile'); //Parameter = reason why dispatcher ended
             delay = 0;
@@ -101,7 +102,7 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
             }
 
             dispatcher.on('finish', (reason) => {
-                if(reason === 'stream' || !reason){ //atm reason is empty when file is finished
+                if(serverInfo.leaveChannelAfterPlay && (reason === 'stream' || !reason)){ //atm reason is empty when file is finished
                     voiceHelper.disconnectVoice(id);
                 }
             });
