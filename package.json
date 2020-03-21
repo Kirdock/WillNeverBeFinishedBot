@@ -57,7 +57,7 @@
     "@discordjs/opus": "^0.1.0"
   },
   "optionalDependencies": {
-    "node-opus": "^0.3.2"
+    "node-opus": "^0.3.3"
   },
   "postcss": {
     "plugins": {
