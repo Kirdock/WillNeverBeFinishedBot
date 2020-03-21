@@ -373,7 +373,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
           });
         }
         else{
-          userHelper.getUsersWhereIsAdmin(result.user.id, result.user.owner, discordClient.guilds.cache).then(users =>{
+          clientHelper.getUsersWhereIsAdmin(result.user.id, result.user.owner, discordClient.guilds.cache).then(users =>{
             res.status(200).json(databaseHelper.getUsersInfo(users, req.params.serverId));
           })
           .catch(()=>{

@@ -5,7 +5,7 @@
             <b-tab title="Benutzer Intros" active>
                 <div class="form-group col-md-5">
                     <label class="control-label">Server</label>
-                    <select class="form-control" v-model="selectedIntroServer">
+                    <select class="form-control" v-model="selectedIntroServer" @change="fetchUserData()">
                         <option v-for="server in servers" :key="server.id" :value="server.id">
                             {{server.name}}
                         </option>
@@ -267,6 +267,7 @@ export default {
             });
         },
         fetchUserData(){
+            this.users = [];
             dataservice.fetchUsersData(this.selectedIntroServer).then(response =>{
                 this.users = response.data;
             }).catch(()=>{

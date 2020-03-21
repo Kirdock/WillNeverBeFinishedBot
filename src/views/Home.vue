@@ -61,7 +61,7 @@
                 <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(false)">Alle Kategorien schließen</button>
             </div>
             
-            <div v-for="category in soundCategories" :key="category.name">
+            <div v-for="category in filteredSoundCategories" :key="category.name">
                 <h2 class="control-label">{{category.name}}</h2>
                 <button type="button" class="btn btn-primary" v-on:click="changeCategoryVisibility(category)" style="width: 40px; height: 40px">{{category.show ? '-' : '+'}}</button>
                 <table class="table text-break" v-show="category.show">
@@ -126,6 +126,13 @@ export default {
       userId: undefined,
       isAdmin: false
     };
+  },
+  computed:{
+    filteredSoundCategories(){
+      return this.soundCategories.filter(category =>{
+        return this.filteredSounds(category.name).length > 0;
+      })
+    }
   },
   created() {
       this.fetchServers().then(response => {
