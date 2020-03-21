@@ -96,14 +96,20 @@ function getUserServers(userId, isOwner){
 
   function isUserAdminInServer(userId, guild){
     return guild.members.fetch(userId).then(member =>{
-        member.permissions.has('ADMINISTRATOR') ? guild : false;
+        return member.permissions.has('ADMINISTRATOR') ? guild : false;
     });
   }
 
   function isUserAdminInServerThroughId(userId, serverId){
-    return client.guilds.fetch(serverId).then(server =>{
-        return isUserAdminInServer(userId,server);
-    });
+      const defer = q.defer();
+      const guild = client.guilds.cache.get(serverId);
+      if(guild){
+          defer.resolve(isUserAdminInServer(userId,guild));
+      }
+      else{
+          defer.reject(false);
+      }
+      return defer.promise;
   }
 
   function getUser(userId, userLoaded){
@@ -161,7 +167,7 @@ function getUserServers(userId, isOwner){
         defer.resolve(isOwner);
       }
       else{
-        isUserAdminInServerThroughId(userIdAdmin, serverId).then((status)=>{
+        isUserAdminInServerThroughId(userIdAdmin, serverId).then(status=>{
             if(status){
                 isUserInServer(userId, serverId, false).then(defer.resolve);
             }
