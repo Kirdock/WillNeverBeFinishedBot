@@ -95,9 +95,11 @@ function getUserServers(userId, isOwner){
   }
 
   function isUserAdminInServer(userId, guild){
-    return guild.members.fetch(userId).then(member =>{
-        return member.permissions.has('ADMINISTRATOR') ? guild : false;
-    });
+      const defer = q.defer();
+    guild.members.fetch(userId).then(member =>{
+        defer.resolve(member.permissions.has('ADMINISTRATOR') ? guild : false);
+    }).catch(() => defer.resolve(false));
+    return defer.promise;
   }
 
   function isUserAdminInServerThroughId(userId, serverId){
