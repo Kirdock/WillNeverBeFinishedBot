@@ -44,12 +44,12 @@ function updateServerInfo(serverInfo){
     return axios.post(config.api+'/serverInfo', {serverInfo}, options);
 }
 
-function fetchUsersData(){
-    return axios.get(config.api+'/users');
+function fetchUsersData(serverId){
+    return axios.get(config.api+'/users/'+serverId);
 }
 
-function fetchUserData(){
-    return axios.get(config.api+'/user');
+function fetchUserData(serverId){
+    return axios.get(config.api+'/user/'+serverId);
 }
 
 function fetchServers(){

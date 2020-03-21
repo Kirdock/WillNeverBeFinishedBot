@@ -165,17 +165,17 @@ export default {
         this.fetchLogs();
         this.fetchSounds();
         this.fetchServers().then(()=>{
-            this.fetchUserData()
+            this.fetchUserData();
         });
     },
     computed:{
         filteredUsers(){
             if(this.searchText.length > 0){
                 const re = new RegExp(this.searchText,'i');
-                return this.users.filter(user => re.test(user.name) && user.servers.some(server => server.id === this.selectedIntroServer));
+                return this.users.filter(user => re.test(user.name));
             }
             else{
-                return this.users.filter(user => user.servers.some(server => server.id === this.selectedIntroServer));
+                return this.users;
             }
         }
     },
@@ -267,7 +267,7 @@ export default {
             });
         },
         fetchUserData(){
-            dataservice.fetchUsersData().then(response =>{
+            dataservice.fetchUsersData(this.selectedIntroServer).then(response =>{
                 this.users = response.data;
             }).catch(()=>{
                 this.$bvToast.toast(`Benutzer kennan nit glodn werdn`, {

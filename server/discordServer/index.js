@@ -36,7 +36,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
             }
             //else remove intro if not found?
         }
-    } else if(!newUserChannel && oldUserChannel && serverInfo.outro && oldState.guild.channels.get(oldUserChannel).members.size > 0){
+    } else if(!newUserChannel && oldUserChannel && serverInfo.outro && oldState.guild.channels.cache.get(oldUserChannel).members.size > 0){
         // User leaves a voice channel
         let soundId = serverInfo.defaultOutro;
         if(soundId){

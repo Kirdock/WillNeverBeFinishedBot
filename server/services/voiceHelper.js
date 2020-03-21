@@ -25,10 +25,10 @@ module.exports = (client) =>{
     }
 
     function joinVoiceChannelById(serverId, clientId){
-        const server = client.guilds.get(serverId);
+        const server = client.guilds.cache.get(serverId);
         let defer = q.defer();
         if(server){
-            const channel = server.channels.get(clientId);
+            const channel = server.channels.cache.get(clientId);
             if(channel){
                 defer.resolve(channel.join());
             }

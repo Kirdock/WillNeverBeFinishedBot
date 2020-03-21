@@ -23,7 +23,8 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
 
     function doWork(message, content){
         const command = content.substring(playCommand.length).trim();
-        const {path} = databaseHelper.getSoundMetaByName(command);
+        const meta = databaseHelper.getSoundMetaByName(command);
+        const path = meta ? meta.path : undefined;
         if(!path){
             message.reply(fileNotFoundMessage);
             return;

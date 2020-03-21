@@ -141,13 +141,13 @@ module.exports = () =>{
         return db.get(users).find({id: id}).value();
     }
 
-    function getUsersInfo(users){
+    function getUsersInfo(users, serverId){
         return users.map(user =>{
-            return getUserInfo(user);
+            return getUserInfo(user, serverId);
         });
     }
 
-    function getUserInfo(user){
+    function getUserInfo(user, serverId){
         const userInfo = getUser(user.id);
         user.intros = {};
         if(userInfo && userInfo.intros){
@@ -163,13 +163,11 @@ module.exports = () =>{
                 user.intros[serverId] = intro;
             }
         }
-        for(const server of user.servers){
-            if(!user.intros){
-                user.intros = {};
-            }
-            if(!user.intros[server.id]){
-                user.intros[server.id] = {id:''};
-            }
+        if(!user.intros){
+            user.intros = {};
+        }
+        if(!user.intros[serverId]){
+            user.intros[serverId] = {id:''};
         }
         return user;
     }
