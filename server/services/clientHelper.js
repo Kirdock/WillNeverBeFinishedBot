@@ -2,7 +2,7 @@
 const q = require('q');
 const databaseHelper = require('./databaseHelper.js')();
 
-module.exports = (client) =>{
+module.exports = (client, logger) =>{
     const clientHelper = {
         getUserServers: getUserServers,
         hasUserAdminServers: hasUserAdminServers,
@@ -188,9 +188,15 @@ function getUserServers(userId, isOwner){
     }
     else{
         const guild = client.guilds.cache.get(serverId);
-        guild.members.fetch(userId)
-        .then(()=>defer.resolve(true))
-        .catch(()=> defer.resolve(false));
+        if(guild){
+            guild.members.fetch(userId)
+            .then(()=>defer.resolve(true))
+            .catch(()=> defer.resolve(false));
+        }
+        else{
+            logger.error('Server not found. id: '+serverId, 'isUserInServer');
+            defer.resolve(false);
+        }
     }
     return defer.promise;
   }
