@@ -34,6 +34,15 @@ module.exports = (client, config, logger) =>{
                     connection.on('error',reason =>{
                         logger.error(reason, 'Connection');
                     });
+                    connection.on('disconnect',reason =>{
+                        logger.error(reason, 'Connection');
+                    });
+                    connection.on('debug',reason =>{
+                        logger.error(reason, 'Connection');
+                    });
+                    connection.on('failed',reason =>{
+                        logger.error(reason, 'Connection');
+                    });
                     defer.resolve(connection);
                 }).catch(error =>{
                     logger.error(error, 'ConnectToChannel');
