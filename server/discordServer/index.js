@@ -27,7 +27,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         return;
     }
     
-    if(!oldUserChannel && newUserChannel && serverInfo.intro && (!serverInfo.minUser || newState.guild.channels.get(newUserChannel).members.size > 1)) {
+    if(!oldUserChannel && newUserChannel && serverInfo.intro && (!serverInfo.minUser || newState.guild.channels.cache.get(newUserChannel).members.size > 1)) {
         let soundId = databaseHelper.getIntro(newState.id, newState.guild.id) || serverInfo.defaultIntro;
         if(soundId){
             let soundMeta = databaseHelper.getSoundMeta(soundId);
