@@ -7,7 +7,7 @@ const nanoid = require('nanoid');
 
 module.exports = function (router, logger, discordClient, config, databaseHelper) {
   const clientHelper = require('../services/clientHelper.js')(discordClient, logger);
-  const voiceHelper = require('../services/voiceHelper.js')(discordClient);
+  const voiceHelper = require('../services/voiceHelper.js')(discordClient, config, logger);
   const playSound = require('../modules/playSound.js')(config,logger,voiceHelper, databaseHelper);
   const updateHelper = require('../services/updateHelper.js')(config, logger);
   const userHelper = require('../services/userHelper.js')(config);

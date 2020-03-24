@@ -2,7 +2,7 @@
 
 const q = require('q');
 
-module.exports = (client) =>{
+module.exports = (client, config, logger) =>{
     let voiceHelper = {
         joinVoiceChannel: joinVoiceChannel,
         disconnectVoice: disconnectVoice,
@@ -30,7 +30,15 @@ module.exports = (client) =>{
         if(server){
             const channel = server.channels.cache.get(clientId);
             if(channel){
-                defer.resolve(channel.join());
+                channel.join().then(connection =>{
+                    connection.on('error',reason =>{
+                        logger.error(reason, 'Connection');
+                    });
+                    defer.resolve(connection);
+                }).catch(error =>{
+                    logger.error(error, 'ConnectToChannel');
+                    defer.reject(error);
+                })
             }
             else{
                 defer.reject(new Error("ChannelId not found"));
