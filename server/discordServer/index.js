@@ -84,8 +84,11 @@ client.on('message', message => {
             else if(content === 'ping'){
                 message.reply('pong');
             }
-            else if(content === 'stop'){
+            else if(content === 'leave'){
                 voiceHelper.disconnectVoice(message.guild.id);
+            }
+            else if(content === 'stop'){
+                playSoundCommand.stopPlaying(message.guild.id);
             }
             else if(content === 'join'){
                 voiceHelper.joinVoiceChannel(message);
