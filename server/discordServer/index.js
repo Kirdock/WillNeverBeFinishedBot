@@ -19,30 +19,38 @@ client.on('ready', () => {
 });
 
 client.on('voiceStateUpdate', (oldState, newState) => {
-    let newUserChannel = newState.channelID;
-    let oldUserChannel = oldState.channelID;
     const serverInfo = databaseHelper.getServerInfo(newState.guild.id);
 
     if(!serverInfo || newState && newState.id == config.clientId){
         return;
     }
-    
-    if(!oldUserChannel && newUserChannel && serverInfo.intro && (!serverInfo.minUser || newState.guild.channels.cache.get(newUserChannel).members.size > 1)) {
-        let soundId = databaseHelper.getIntro(newState.id, newState.guild.id) || serverInfo.defaultIntro;
+
+    const newUserChannel = newState.channel && newState.channel.id;
+    const oldUserChannel = oldState.channel && oldState.channel.id;
+    const oldChannelMembers = oldUserChannel && oldState.guild.channels.cache.get(oldUserChannel).members;
+    const oldChannelMemberCount = oldChannelMembers && oldChannelMembers.size;
+
+    if(oldUserChannel && newUserChannel != oldUserChannel && oldChannelMemberCount === 1 && oldChannelMembers.get(config.clientId)){ //leave/switch to another channel
+        voiceHelper.disconnectVoice(oldState.guild.id);
+        return;
+    }
+    if(!oldUserChannel && newUserChannel && serverInfo.intro && (!serverInfo.minUser || newState.guild.channels.cache.get(oldUserChannel).members > 1)) {
+        const soundId = databaseHelper.getIntro(newState.id, newState.guild.id) || serverInfo.defaultIntro;
         if(soundId){
-            let soundMeta = databaseHelper.getSoundMeta(soundId);
+            const soundMeta = databaseHelper.getSoundMeta(soundId);
             if(soundMeta){
-                playSoundCommand.doWorkWithoutMessage(soundMeta.path,newState.guild.id,newState.channelID);
+                playSoundCommand.doWorkWithoutMessage(soundMeta.path,newState.guild.id,newUserChannel);
             }
             //else remove intro if not found?
         }
-    } else if(!newUserChannel && oldUserChannel && serverInfo.outro && oldState.guild.channels.cache.get(oldUserChannel).members.size > 0){
+    }
+    else if(!newUserChannel && oldUserChannel && serverInfo.outro && oldChannelMemberCount > 0){
         // User leaves a voice channel
-        let soundId = serverInfo.defaultOutro;
+        const soundId = serverInfo.defaultOutro;
         if(soundId){
-            let soundMeta = databaseHelper.getSoundMeta(soundId);
+            const soundMeta = databaseHelper.getSoundMeta(soundId);
             if(soundMeta){
-                playSoundCommand.doWorkWithoutMessage(soundMeta.path,oldState.guild.id,oldState.channelID);
+                playSoundCommand.doWorkWithoutMessage(soundMeta.path,oldState.guild.id,oldUserChannel);
             }
             //else remove intro if not found?
         }

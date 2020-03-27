@@ -33,7 +33,7 @@ module.exports = (discordClient, config, logger, databaseHelper)=> {
     require('./routes.js')(router, logger, discordClient, config, databaseHelper);
     app.use('/api',router);
 
-    if(isLocal){
+    if(isLocal || !fs.existsSync(__dirname+'/cert/privkey.pem')){
         console.log('start local')
         app.listen(port);
     }
