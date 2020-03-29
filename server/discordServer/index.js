@@ -34,7 +34,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         voiceHelper.disconnectVoice(oldState.guild.id);
         return;
     }
-    if((!oldUserChannel || serverInfo.playIntroWhenUnmuted && oldState.selfDeaf && !newState.selfDeaf) && newUserChannel && serverInfo.intro && (!serverInfo.minUser || newState.guild.channels.cache.get(newUserChannel).members > 1)) {
+    if((!oldUserChannel || serverInfo.playIntroWhenUnmuted && oldState.selfDeaf && !newState.selfDeaf) && newUserChannel && serverInfo.intro && (!serverInfo.minUser || newState.guild.channels.cache.get(newUserChannel).members.size > 1)) {
         const soundId = databaseHelper.getIntro(newState.id, newState.guild.id) || serverInfo.defaultIntro;
         if(soundId){
             const soundMeta = databaseHelper.getSoundMeta(soundId);
