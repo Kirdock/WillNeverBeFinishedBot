@@ -104,6 +104,12 @@
                         </label>
                     </div>
                     <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="playIntroWhenUnmuted" v-model="selectedServer.playIntroWhenUnmuted" @change="updateServerInfo()" >
+                        <label class="form-check-label" for="playIntroWhenUnmuted">
+                            Intro abspielen, wenn jemand seine Stummschaltung aufhebt
+                        </label>
+                    </div>
+                    <div class="form-check">
                         <input type="checkbox" class="form-check-input" id="leaveAfterPlay" v-model="selectedServer.leaveChannelAfterPlay" @change="updateServerInfo()" >
                         <label class="form-check-label" for="leaveAfterPlay">
                             Bot soll nach dem Abspielen den Kanal verlassen
