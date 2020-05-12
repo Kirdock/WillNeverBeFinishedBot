@@ -31,20 +31,19 @@ module.exports = (client, config, logger) =>{
             const channel = server.channels.cache.get(clientId);
             if(channel){
                 channel.join().then(connection =>{
-                    connection.on('error',reason =>{
-                        logger.error(reason, 'Connection');
-                    });
-                    // connection.on('debug',reason =>{
-                    //     logger.error(reason, 'Connection');
-                    // });
-                    connection.on('failed',reason =>{
-                        logger.error(reason, 'Connection');
-                    });
+                    if(connection.listenerCount('error') === 0){
+                        connection.on('error',reason =>{
+                            logger.error(reason, 'Connection');
+                        });
+                        connection.on('failed',reason =>{
+                            logger.error(reason, 'Connection');
+                        });
+                    }
                     defer.resolve(connection);
                 }).catch(error =>{
                     logger.error(error, 'ConnectToChannel');
                     defer.reject(error);
-                })
+                });
             }
             else{
                 defer.reject(new Error("ChannelId not found"));
