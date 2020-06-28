@@ -69,6 +69,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Benutzer</th>
+                            <th>Abspielen</th>
                             <th style="width: 270px">Aktion</th>
                         </tr>
                     </thead>
@@ -79,6 +80,13 @@
                             </td>
                             <td>
                                 {{sound.user.name}}
+                            </td>
+                            <td>
+                              <a href="#" @click.prevent="playFile(sound.id)" title="Laden">
+                                <i class="fa fa-sync"></i>
+                              </a>
+                              <audio controls :ref="`audio_${sound.id}`">
+                              </audio>
                             </td>
                             <td>
                               <a href="#" v-if="isAdmin || isOwner" @click.prevent="playSound(sound.id, true)" title="Abspielen ohne Unterbrechung">
@@ -214,6 +222,34 @@ export default {
             autoHideDelay: this.$config.toastDelay,
             variant: 'warning',
             appendToast: true
+        });
+      }
+    },
+    playFile(id){
+      const audio = this.$refs[`audio_${id}`][0];
+      console.log('here', audio)
+      if(!audio.src){
+        dataservice.downloadSound(id).then(response =>{
+          try{
+            audio.pause();
+            audio.src = URL.createObjectURL(response.data);
+            audio.play();
+          }
+          catch{
+            this.$bvToast.toast(`Konn de Datei nit obspüln\nFormat weat onscheinend nit unterstützt`, {
+              title: 'Fehler',
+              autoHideDelay: this.$config.toastDelay,
+              variant: 'danger',
+              appendToast: true
+            });  
+          }
+        }).catch(()=>{
+          this.$bvToast.toast(`Konn de Datei nit obspüln`, {
+            title: 'Fehler',
+            autoHideDelay: this.$config.toastDelay,
+            variant: 'danger',
+            appendToast: true
+          });
         });
       }
     },
