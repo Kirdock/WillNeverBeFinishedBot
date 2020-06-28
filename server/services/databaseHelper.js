@@ -10,6 +10,7 @@ const users = 'users';
 const sounds = 'sounds';
 const logs = 'log';
 const servers = 'servers';
+const settings = 'settings';
 const maxLogsReturned = 20;
 const maxLogsStored = 100;
 const maxLogsDeleted = 50;
@@ -27,6 +28,7 @@ function setDefault(){
     query[sounds] = [];
     query[logs] = [];
     query[servers] = [];
+    query[settings] = {};
     db.defaults(query).write();
 }
 
@@ -53,9 +55,19 @@ module.exports = () =>{
         getSoundMetaByName: getSoundMetaByName,
         getServersInfo: getServersInfo,
         udpateServerInfo: udpateServerInfo,
-        getServerInfo: getServerInfo
+        getServerInfo: getServerInfo,
+        setForceLock,
+        getForceLock
     }
     return databaseHelper;
+
+    function setForceLock(forceLock){
+        return db.get(settings).assign({forceLock});
+    }
+
+    function getForceLock(){
+        return db.get(settings).value().forceLock;
+    }
 
     function addUser(user, authData){
         const userInfo = getUser(user.id);

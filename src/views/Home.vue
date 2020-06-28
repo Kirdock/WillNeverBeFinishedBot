@@ -82,7 +82,7 @@
                             </td>
                             <td>
                               <a href="#" v-if="isAdmin || isOwner" @click.prevent="playSound(sound.id, true)" title="Abspielen ohne Unterbrechung">
-                                <i class="far fa-play"></i>
+                                <i class="fa fa-play"></i>
                               </a>
                               <a href="#" @click.prevent="playSound(sound.id)" title="Abspielen">
                                 <i class="far fa-play-circle"></i>

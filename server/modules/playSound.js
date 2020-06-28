@@ -3,9 +3,9 @@ const fileHelper = require('../services/fileHelper.js')();
 const playCommand = 'play';
 const q = require('q');
 const ytdl = require('ytdl-core');
-let forcePlayLock = false;
 
 module.exports = (config, logger, voiceHelper, databaseHelper) =>{
+
     let playSoundCommand = {
         doWork: doWork,
         isCommand: isCommand,
@@ -83,11 +83,13 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
     }
 
     function playSound(file, id, con, volumeMultiplier = 0.5, url, forcePlay){
+        let forcePlayLock = databaseHelper.getForceLock();
         if(forcePlayLock && !forcePlay){
             return;
         }
         if(forcePlay){
             forcePlayLock = true;
+            databaseHelper.setForceLock(true);
         }
         let delay = config.playSoundDelay;
         const connection = (con || voiceHelper.getConnection(id));
@@ -109,7 +111,9 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
             }
 
             dispatcher.on('finish', (reason) => {
-                forcePlayLock = false;
+                if(forcePlayLock){
+                    databaseHelper.setForceLock(false);
+                }
                 if(serverInfo.leaveChannelAfterPlay && (reason === 'stream' || !reason)){ //atm reason is empty when file is finished
                     voiceHelper.disconnectVoice(id);
                 }
@@ -139,6 +143,7 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
     }
 
     function stopPlaying(serverId, isAdmin){
+        const forcePlayLock = databaseHelper.getForceLock();
         if(forcePlayLock && !isAdmin){
             return;
         }
