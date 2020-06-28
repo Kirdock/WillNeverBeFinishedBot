@@ -69,7 +69,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Benutzer</th>
-                            <th style="width: 220px">Aktion</th>
+                            <th style="width: 270px">Aktion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -81,6 +81,9 @@
                                 {{sound.user.name}}
                             </td>
                             <td>
+                              <a href="#" v-if="isAdmin || isOwner" @click.prevent="playSound(sound.id, true)" title="Abspielen ohne Unterbrechung">
+                                <i class="far fa-play"></i>
+                              </a>
                               <a href="#" @click.prevent="playSound(sound.id)" title="Abspielen">
                                 <i class="far fa-play-circle"></i>
                               </a>
@@ -282,9 +285,10 @@ export default {
       this.soundCategories = Object.keys(this.sounds).sort((a,b) => a.localeCompare(b)).map(category =>({name: category, show: true})); //vue.js does not recognize new elements. that's why I have to add "show"
       this.selectedCategory = this.soundCategories.length > 0 ? this.soundCategories[0].name : '';
     },
-    playSound(soundId){
+    playSound(soundId, forcePlay){
       const data = {
-        soundId: soundId,
+        soundId,
+        forcePlay,
         serverId: this.selectedServer,
         channelId: this.selectedChannel,
         volume: this.volume,

@@ -10,6 +10,7 @@ const listCommand = require('../modules/list.js')(config, logger);
 const questionCommand = require('../modules/question.js')(config, logger);
 const voiceHelper = require('../services/voiceHelper.js')(client, config, logger);
 const playSoundCommand = require('../modules/playSound.js')(config, logger, voiceHelper, databaseHelper);
+const clientHelper = require('../services/clientHelper.js')(client, logger);
 // client.on('debug', console.log);
 
 require('../webserver/server.js')(client, config, logger, databaseHelper);
@@ -96,7 +97,11 @@ client.on('message', message => {
                 voiceHelper.disconnectVoice(message.guild.id);
             }
             else if(content === 'stop'){
-                playSoundCommand.stopPlaying(message.guild.id);
+                clientHelper.isUserAdminInServer(result.user.id,req.body.serverInfo.id).then(()=>{
+                    playSoundCommand.stopPlaying(message.guild.id, true);
+                }).catch(()=>{
+                    playSoundCommand.stopPlaying(message.guild.id);
+                })
             }
             else if(content === 'join'){
                 voiceHelper.joinVoiceChannel(message);

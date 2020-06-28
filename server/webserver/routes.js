@@ -108,11 +108,19 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       userHelper.auth(req).then(result =>{
         return clientHelper.isUserInServer(result.user.id, req.params.serverId, result.user.owner).then(status =>{
           if(status){
-            playSound.stopPlaying(req.params.serverId).then(result =>{
-              res.status(200).json(result);
-            }).catch(error =>{
-              res.status(500).json(error);
-            });
+            clientHelper.isUserAdminInServer(result.user.id,req.params.serverInfo).then(()=>{
+              playSound.stopPlaying(req.params.serverId, true).then(result =>{
+                res.status(200).json(result);
+              }).catch(error =>{
+                res.status(500).json(error);
+              });
+            }).catch(()=>{
+              playSound.stopPlaying(req.params.serverId).then(result =>{
+                res.status(200).json(result);
+              }).catch(error =>{
+                res.status(500).json(error);
+              });
+            })
           }
           else{
             notInServer(res, result.user.id, req.params.serverId);
@@ -140,7 +148,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       userHelper.auth(req).then((result) =>{
         const meta = databaseHelper.getSoundMeta(req.params.soundId);
         if(meta){
-          return clientHelper.isUserInServer(result.user.id, meta.serverId, result.user.isOwner).then(status =>{
+          return clientHelper.isUserInServer(result.user.id, meta.serverId, result.user.owner).then(status =>{
             if(status){
               res.status(200).download(meta.path, meta.fileName + path.extname(meta.path));
             }
@@ -188,12 +196,31 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
                 const meta = databaseHelper.getSoundMeta(req.body.soundId);
                 if(meta){
                   databaseHelper.logPlaySound(auth.user, guild.id, guild.name, meta);
-                  playSound.requestSound(meta.path, req.body.serverId, channelId, req.body.volume).then(response =>{
-                    res.status(200).json(response);
-                  }).catch(error =>{
-                    logger.error(error, 'requestSound');
-                    res.status(404).json(error);
-                  });
+                  if(req.body.forcePlay){
+                    clientHelper.isUserAdminInServer(auth.user.id,req.body.serverId).then(()=>{
+                      playSound.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, undefined, req.body.forcePlay).then(response =>{
+                        res.status(200).json(response);
+                      }).catch(error =>{
+                        logger.error(error, 'requestSound');
+                        res.status(404).json(error);
+                      });
+                    }).catch(()=>{
+                      playSound.requestSound(meta.path, req.body.serverId, channelId, req.body.volume).then(response =>{
+                        res.status(200).json(response);
+                      }).catch(error =>{
+                        logger.error(error, 'requestSound');
+                        res.status(404).json(error);
+                      });
+                    })
+                  }
+                  else{
+                    playSound.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, undefined, req.body.forcePlay && auth.user.owner).then(response =>{
+                      res.status(200).json(response);
+                    }).catch(error =>{
+                      logger.error(error, 'requestSound');
+                      res.status(404).json(error);
+                    });
+                  }
                 }
                 else{
                   res.status(404).json();

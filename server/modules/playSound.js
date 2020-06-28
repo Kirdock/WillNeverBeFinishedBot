@@ -3,6 +3,7 @@ const fileHelper = require('../services/fileHelper.js')();
 const playCommand = 'play';
 const q = require('q');
 const ytdl = require('ytdl-core');
+let forcePlayLock = false;
 
 module.exports = (config, logger, voiceHelper, databaseHelper) =>{
     let playSoundCommand = {
@@ -81,7 +82,13 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
         })
     }
 
-    function playSound(file, id, con, volumeMultiplier = 0.5, url){
+    function playSound(file, id, con, volumeMultiplier = 0.5, url, forcePlay){
+        if(forcePlayLock && !forcePlay){
+            return;
+        }
+        if(forcePlay){
+            forcePlayLock = true;
+        }
         let delay = config.playSoundDelay;
         const connection = (con || voiceHelper.getConnection(id));
         let dispatcher = connection.dispatcher;
@@ -102,6 +109,7 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
             }
 
             dispatcher.on('finish', (reason) => {
+                forcePlayLock = false;
                 if(serverInfo.leaveChannelAfterPlay && (reason === 'stream' || !reason)){ //atm reason is empty when file is finished
                     voiceHelper.disconnectVoice(id);
                 }
@@ -130,7 +138,10 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
         },delay);
     }
 
-    function stopPlaying(serverId){
+    function stopPlaying(serverId, isAdmin){
+        if(forcePlayLock && !isAdmin){
+            return;
+        }
         var defer = q.defer();
         const message = 'Does not play anything on this server';
         const connection = voiceHelper.getConnection(serverId);
