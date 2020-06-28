@@ -65,10 +65,10 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
         }
     }
 
-    function requestSound(path, serverId, channelId, volumeMultiplier){
+    function requestSound(path, serverId, channelId, volumeMultiplier, forcePlay){
         if(fileHelper.existsFile(path)){
             return voiceHelper.joinVoiceChannelById(serverId, channelId).then(connection =>{
-                playSound(path,serverId,connection, volumeMultiplier);
+                playSound(path,serverId,connection, volumeMultiplier, undefined, forcePlay);
             });
         }
         else{
@@ -83,13 +83,14 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
     }
 
     function playSound(file, id, con, volumeMultiplier = 0.5, url, forcePlay){
-        let forcePlayLock = databaseHelper.getForceLock();
+        let forcePlayLock = databaseHelper.getForceLock(id);
         if(forcePlayLock && !forcePlay){
             return;
         }
+        console.log(forcePlay)
         if(forcePlay){
             forcePlayLock = true;
-            databaseHelper.setForceLock(true);
+            databaseHelper.setForceLock(id, true);
         }
         let delay = config.playSoundDelay;
         const connection = (con || voiceHelper.getConnection(id));
@@ -111,8 +112,9 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
             }
 
             dispatcher.on('finish', (reason) => {
+                console.log('end', forcePlayLock)
                 if(forcePlayLock){
-                    databaseHelper.setForceLock(false);
+                    databaseHelper.setForceLock(id, false);
                 }
                 if(serverInfo.leaveChannelAfterPlay && (reason === 'stream' || !reason)){ //atm reason is empty when file is finished
                     voiceHelper.disconnectVoice(id);
@@ -143,7 +145,7 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
     }
 
     function stopPlaying(serverId, isAdmin){
-        const forcePlayLock = databaseHelper.getForceLock();
+        const forcePlayLock = databaseHelper.getForceLock(serverId);
         if(forcePlayLock && !isAdmin){
             return;
         }

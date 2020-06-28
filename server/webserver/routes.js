@@ -198,7 +198,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
                   databaseHelper.logPlaySound(auth.user, guild.id, guild.name, meta);
                   if(req.body.forcePlay){
                     clientHelper.isUserAdminInServer(auth.user.id,req.body.serverId).then(()=>{
-                      playSound.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, undefined, req.body.forcePlay).then(response =>{
+                      playSound.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, req.body.forcePlay).then(response =>{
                         res.status(200).json(response);
                       }).catch(error =>{
                         logger.error(error, 'requestSound');
@@ -214,7 +214,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
                     })
                   }
                   else{
-                    playSound.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, undefined, req.body.forcePlay && auth.user.owner).then(response =>{
+                    playSound.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, req.body.forcePlay && auth.user.owner).then(response =>{
                       res.status(200).json(response);
                     }).catch(error =>{
                       logger.error(error, 'requestSound');

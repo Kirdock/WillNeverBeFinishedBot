@@ -1,6 +1,7 @@
 'use strict'
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
+const server = require('../webserver/server.js');
 const fileHelper = require('./fileHelper.js')();
 const database = __dirname+'/../config/database.json';
 fileHelper.checkAndCreateFile(database);
@@ -28,7 +29,7 @@ function setDefault(){
     query[sounds] = [];
     query[logs] = [];
     query[servers] = [];
-    query[settings] = {};
+    query[settings] = [];
     db.defaults(query).write();
 }
 
@@ -61,12 +62,20 @@ module.exports = () =>{
     }
     return databaseHelper;
 
-    function setForceLock(forceLock){
-        return db.get(settings).assign({forceLock});
+    function setForceLock(serverId, forceLock){
+        console.log('before', forceLock, serverId)
+        if(!db.get(settings).find({serverId}).value()){
+            console.log('here', forceLock, serverId)
+            db.get(settings).push({serverId, forceLock}).write();
+        }
+        else{
+            db.get(settings).find({serverId}).assign({forceLock}).write();
+        }
     }
 
-    function getForceLock(){
-        return db.get(settings).value().forceLock;
+    function getForceLock(serverId){
+        const lockInfo = db.get(settings).find({serverId}).value();
+        return lockInfo && lockInfo.forceLock;
     }
 
     function addUser(user, authData){
