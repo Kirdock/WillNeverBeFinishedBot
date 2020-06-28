@@ -63,9 +63,7 @@ module.exports = () =>{
     return databaseHelper;
 
     function setForceLock(serverId, forceLock){
-        console.log('before', forceLock, serverId)
         if(!db.get(settings).find({serverId}).value()){
-            console.log('here', forceLock, serverId)
             db.get(settings).push({serverId, forceLock}).write();
         }
         else{

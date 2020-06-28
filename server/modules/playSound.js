@@ -87,7 +87,6 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
         if(forcePlayLock && !forcePlay){
             return;
         }
-        console.log(forcePlay)
         if(forcePlay){
             forcePlayLock = true;
             databaseHelper.setForceLock(id, true);
@@ -112,7 +111,6 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
             }
 
             dispatcher.on('finish', (reason) => {
-                console.log('end', forcePlayLock)
                 if(forcePlayLock){
                     databaseHelper.setForceLock(id, false);
                 }
