@@ -67,7 +67,7 @@
                 <table class="table text-break" v-show="category.show">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th style="width: 300px">Name</th>
                             <th>Benutzer</th>
                             <th style="width: 380px">Abspielen</th>
                             <th style="width: 270px">Aktion</th>
