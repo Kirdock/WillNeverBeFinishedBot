@@ -96,8 +96,10 @@ client.on('message', message => {
             else if(content === 'leave'){
                 const forceLock = databaseHelper.getForceLock(message.guild.id);
                 if(forceLock){
-                    clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(()=>{
-                        voiceHelper.disconnectVoice(message.guild.id);
+                    clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(guild=>{
+                        if(guild){
+                            voiceHelper.disconnectVoice(message.guild.id);
+                        }
                     });
                 }
                 else{
@@ -106,8 +108,13 @@ client.on('message', message => {
                 
             }
             else if(content === 'stop'){
-                clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(()=>{
-                    playSoundCommand.stopPlaying(message.guild.id, true);
+                clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(guild=>{
+                    if(guild){
+                        playSoundCommand.stopPlaying(message.guild.id, true);
+                    }
+                    else{
+                        playSoundCommand.stopPlaying(message.guild.id);
+                    }
                 }).catch(()=>{
                     playSoundCommand.stopPlaying(message.guild.id);
                 })

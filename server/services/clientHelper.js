@@ -95,7 +95,7 @@ function getUserServers(userId, isOwner){
   }
 
   function isUserAdminInServer(userId, guild){
-      const defer = q.defer();
+    const defer = q.defer();
     guild.members.fetch(userId).then(member =>{
         defer.resolve(member.permissions.has('ADMINISTRATOR') ? guild : false);
     }).catch(() => defer.resolve(false));
