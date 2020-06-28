@@ -69,7 +69,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Benutzer</th>
-                            <th>Abspielen</th>
+                            <th style="width: 380px">Abspielen</th>
                             <th style="width: 270px">Aktion</th>
                         </tr>
                     </thead>
