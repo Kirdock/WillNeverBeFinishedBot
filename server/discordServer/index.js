@@ -94,10 +94,19 @@ client.on('message', message => {
                 message.reply('pong');
             }
             else if(content === 'leave'){
-                voiceHelper.disconnectVoice(message.guild.id);
+                const forceLock = databaseHelper.getForceLock(message.guild.id);
+                if(forceLock){
+                    clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(()=>{
+                        voiceHelper.disconnectVoice(message.guild.id);
+                    });
+                }
+                else{
+                    voiceHelper.disconnectVoice(message.guild.id);
+                }
+                
             }
             else if(content === 'stop'){
-                clientHelper.isUserAdminInServer(result.user.id,req.body.serverInfo.id).then(()=>{
+                clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(()=>{
                     playSoundCommand.stopPlaying(message.guild.id, true);
                 }).catch(()=>{
                     playSoundCommand.stopPlaying(message.guild.id);
