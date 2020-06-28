@@ -144,24 +144,26 @@ module.exports = (config, logger, voiceHelper, databaseHelper) =>{
 
     function stopPlaying(serverId, isAdmin){
         const forcePlayLock = databaseHelper.getForceLock(serverId);
-        if(forcePlayLock && !isAdmin){
-            return;
-        }
         var defer = q.defer();
         const message = 'Does not play anything on this server';
-        const connection = voiceHelper.getConnection(serverId);
-        if(connection){
-            const dispatcher = connection.dispatcher;
-            if(dispatcher){
-                dispatcher.end('stream');
-                defer.resolve('stopped');
+        if(forcePlayLock && !isAdmin){
+            defer.reject(message);
+        }
+        else{
+            const connection = voiceHelper.getConnection(serverId);
+            if(connection){
+                const dispatcher = connection.dispatcher;
+                if(dispatcher){
+                    dispatcher.end('stream');
+                    defer.resolve('stopped');
+                }
+                else{
+                    defer.reject(message);
+                }
             }
             else{
                 defer.reject(message);
             }
-        }
-        else{
-            defer.reject(message);
         }
         return defer.promise;
     }

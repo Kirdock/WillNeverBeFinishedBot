@@ -108,7 +108,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       userHelper.auth(req).then(result =>{
         return clientHelper.isUserInServer(result.user.id, req.params.serverId, result.user.owner).then(status =>{
           if(status){
-            clientHelper.isUserAdminInServer(result.user.id,req.params.serverInfo).then(()=>{
+            clientHelper.isUserAdminInServer(result.user.id,req.params.serverId).then(()=>{
               playSound.stopPlaying(req.params.serverId, true).then(result =>{
                 res.status(200).json(result);
               }).catch(error =>{
