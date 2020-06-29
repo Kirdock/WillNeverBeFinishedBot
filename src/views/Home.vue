@@ -1,4 +1,5 @@
 <template>
+  <div>
     <div class="container" style="margin-top:50px">
         <div id="fetch" class="form-horizontal" >
             <button type="button" class="btn btn-primary" v-on:click="updateWebsite()" v-if="isOwner">Server aktualisieren</button>
@@ -60,57 +61,57 @@
                 <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(true)">Alle Kategorien erweitern</button>
                 <button type="button" class="btn btn-primary" v-on:click="setCategoriesVisibility(false)">Alle Kategorien schließen</button>
             </div>
-            
-            <div v-for="category in filteredSoundCategories" :key="category.name">
-                <h2 class="control-label">{{category.name}}</h2>
-                <button type="button" class="btn btn-primary" v-on:click="changeCategoryVisibility(category)" style="width: 40px; height: 40px">{{category.show ? '-' : '+'}}</button>
-                <table class="table text-break" v-show="category.show">
-                    <thead>
-                        <tr>
-                            <th style="width: 300px">Name</th>
-                            <th>Benutzer</th>
-                            <th style="width: 380px">Abspielen</th>
-                            <th style="width: 270px">Aktion</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(sound, $index) in filteredSounds(category.name)" :key="sound.id">
-                            <td>
-                                {{sound.fileName}}
-                            </td>
-                            <td>
-                                {{sound.user.name}}
-                            </td>
-                            <td>
-                              <a href="#" @click.prevent="playFile(sound.id)" title="Laden">
-                                <i class="fa fa-sync"></i>
-                              </a>
-                              <audio controls :ref="`audio_${sound.id}`">
-                              </audio>
-                            </td>
-                            <td>
-                              <a href="#" v-if="isAdmin || isOwner" @click.prevent="playSound(sound.id, true)" title="Abspielen ohne Unterbrechung">
-                                <i class="fa fa-play"></i>
-                              </a>
-                              <a href="#" @click.prevent="playSound(sound.id)" title="Abspielen">
-                                <i class="far fa-play-circle"></i>
-                              </a>
-                              <a href="#" @click.prevent="downloadSound(sound.id)" title="Herunterladen">
-                                <i class="fas fa-download"></i>
-                              </a>
-                              <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
-                                <i class="fas fa-save"></i>
-                              </a>
-                              <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Löschen" :class="userId == sound.user.id || isAdmin || isOwner ? '' : 'disabled'">
-                                <i class="fas fa-trash-alt"></i>
-                              </a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
     </div>
+    <div v-for="category in filteredSoundCategories" :key="category.name" class="col-md-8" style="margin: 0 auto">
+      <h2 class="control-label">{{category.name}}</h2>
+      <button type="button" class="btn btn-primary" v-on:click="changeCategoryVisibility(category)" style="width: 40px; height: 40px">{{category.show ? '-' : '+'}}</button>
+      <table class="table text-break" v-show="category.show">
+          <thead>
+              <tr>
+                  <th>Name</th>
+                  <th style="width: 300px">Benutzer</th>
+                  <th style="width: 380px;">Abspielen</th>
+                  <th style="width: 270px">Aktion</th>
+              </tr>
+          </thead>
+          <tbody>
+              <tr v-for="(sound, $index) in filteredSounds(category.name)" :key="sound.id">
+                  <td>
+                      {{sound.fileName}}
+                  </td>
+                  <td>
+                      {{sound.user.name}}
+                  </td>
+                  <td>
+                    <a href="#" @click.prevent="playFile(sound.id)" title="Laden">
+                      <i class="fa fa-sync"></i>
+                    </a>
+                    <audio controls :ref="`audio_${sound.id}`">
+                    </audio>
+                  </td>
+                  <td>
+                    <a href="#" v-if="isAdmin || isOwner" @click.prevent="playSound(sound.id, true)" title="Abspielen ohne Unterbrechung">
+                      <i class="fa fa-play"></i>
+                    </a>
+                    <a href="#" @click.prevent="playSound(sound.id)" title="Abspielen">
+                      <i class="far fa-play-circle"></i>
+                    </a>
+                    <a href="#" @click.prevent="downloadSound(sound.id)" title="Herunterladen">
+                      <i class="fas fa-download"></i>
+                    </a>
+                    <a href="#" @click.prevent="setIntro(sound.id)" title="Als Intro festlegen">
+                      <i class="fas fa-save"></i>
+                    </a>
+                    <a href="#" @click.prevent="deleteSound(sound.id, $index, category.name)" title="Löschen" :class="userId == sound.user.id || isAdmin || isOwner ? '' : 'disabled'">
+                      <i class="fas fa-trash-alt"></i>
+                    </a>
+                  </td>
+              </tr>
+          </tbody>
+      </table>
+    </div>
+  </div>
 
 </template>
 <script>
