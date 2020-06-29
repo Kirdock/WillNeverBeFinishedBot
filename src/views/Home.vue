@@ -145,42 +145,42 @@ export default {
       })
     }
   },
-  created() {
-      this.fetchServers().then(response => {
-          this.loadSettings();
-          const decodedToken = this.$auth.getDecodedToken();
-          if(decodedToken){
-            this.userId = decodedToken.id;
-            this.isOwner = decodedToken.owner;
-            if(this.isOwner){
-                this.maxVolume = 100;
-            }
-          }
-          if(this.selectedServer){
-            this.fetchSounds();
-          }
-          this.setAdmin();
-      });
+  async created() {
+      await this.fetchServers();
+      this.loadSettings();
+      const decodedToken = this.$auth.getDecodedToken();
+      if(decodedToken){
+        this.userId = decodedToken.id;
+        this.isOwner = decodedToken.owner;
+        if(this.isOwner){
+            this.maxVolume = 100;
+        }
+      }
+      if(this.selectedServer){
+        this.fetchSounds();
+      }
+      this.setAdmin();
   },
   methods: {
     setAdmin(){
       this.isAdmin = this.servers.filter(server => server.id == this.selectedServer)[0].admin;
     },
-    fetchServers() {
-      return dataservice.fetchServers().then(response => {
-          this.servers = response.data;
-          this.selectedServer = this.servers[0].id;
-      })
-      .catch(error =>{
+    async fetchServers() {
+      try{
+        const response = await dataservice.fetchServers()
+        this.servers = response.data;
+        this.selectedServer = this.servers[0].id;
+      }
+      catch{
           this.$bvToast.toast(`Konn de Channels nit lodn. Ka wos do los is`, {
             title: 'Fehler',
             autoHideDelay: this.$config.toastDelay,
             variant: 'danger',
             appendToast: true
           });
-      });
+      }
     },
-    submitFile(){
+    async submitFile(){
       const selectedCat = this.selectedCategory;
       if(selectedCat){
         let formData = new FormData();
@@ -190,8 +190,8 @@ export default {
           formData.append(`files`,this.$refs.file.files[i]);
         }
         this.$refs.file.value = '';
-        dataservice.uploadFile(formData)
-        .then(response => {
+        try{
+          await dataservice.uploadFile(formData);
           if(!this.sounds[selectedCat]){
             this.$set(this.sounds, selectedCat, []);
             this.soundCategories.push({name: selectedCat, show: true});
@@ -206,14 +206,15 @@ export default {
               variant: 'success',
               appendToast: true
             });
-        }).catch(error =>{
+        }
+        catch{
           this.$bvToast.toast(`Konn de Datei nit aufelodn ¯\\_(ツ)_/¯`, {
               title: 'Fehler',
               autoHideDelay: this.$config.toastDelay,
               variant: 'danger',
               appendToast: true
           });
-        });
+        };
       }
       else{
         this.$refs.file.value = '';
@@ -227,7 +228,6 @@ export default {
     },
     playFile(id){
       const audio = this.$refs[`audio_${id}`][0];
-      console.log('here', audio)
       if(!audio.src){
         dataservice.downloadSound(id).then(response =>{
           try{
@@ -436,7 +436,7 @@ export default {
     filteredSounds(categoryName){
       if(this.searchText.length > 0){
         const re = new RegExp(this.searchText,'i');
-        return this.sounds[categoryName].filter(sound => re.test(sound.fileName));
+        return this.sounds[categoryName].filter(sound => re.test(sound.fileName) || re.test(sound.user.name));
       }
       else{
         return this.sounds[categoryName];
