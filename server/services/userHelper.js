@@ -30,7 +30,7 @@ module.exports = (config) =>{
         data.append('scope', config.scope);
         data.append('code', code);
         
-        fetch('https://discordapp.com/api/oauth2/token',{
+        fetch('https://discord.com/api/oauth2/token',{
             method: 'POST',
             body: data
         }).then(res => res.json())
@@ -68,14 +68,14 @@ module.exports = (config) =>{
         data.append('scope', scope);
         data.append('refresh_token', refresh_token);
 
-        return fetch('https://discordapp.com/api/oauth2/token',{
+        return fetch('https://discord.com/api/oauth2/token',{
             method: 'POST',
             body: data
         }).then(r=>r.json());
     }
 
     function fetchData(info){
-        return fetch('https://discordapp.com/api/users/@me', {
+        return fetch('https://discord.com/api/users/@me', {
             headers: {
                 authorization: `${info.token_type} ${info.access_token}`
             },

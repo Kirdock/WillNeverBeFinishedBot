@@ -40,7 +40,7 @@ export default {
       return{
           username: undefined,
           hasAdminServers: false,
-          addServerLink: `https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&permissions=3148800&redirect_uri=${this.getLocationEncoded()}&scope=bot`
+          addServerLink: `https://discord.com/api/oauth2/authorize?client_id=630064403525533706&permissions=3148800&redirect_uri=${this.getLocationEncoded()}&scope=bot`
       }
   },
   methods: {

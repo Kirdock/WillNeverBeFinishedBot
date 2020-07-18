@@ -9,7 +9,7 @@ import dataservice from '../services/dataservice';
 export default {
     data(){
         return {
-            loginLink: 'https://discordapp.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+this.$parent.getLocationEncoded()+'&response_type=code&scope=identify'
+            loginLink: 'https://discord.com/api/oauth2/authorize?client_id=630064403525533706&redirect_uri='+this.$parent.getLocationEncoded()+'&response_type=code&scope=identify'
         }
     },
     methods: {
