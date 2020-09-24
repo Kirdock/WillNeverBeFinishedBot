@@ -24,7 +24,7 @@ Location: `./server/config/config.json`
     "token": "TOKEN",
     "clientSecret": "CLIENT_SECRET",
     "scope": "identify",
-    "owners": ["FULL_ADMIN1_USER_ID", "FULL_ADMIN2_USER_ID"],
+    "owners": ["POWER_ADMIN1_USER_ID", "POWER_ADMIN2_USER_ID"],
     "port": 4599
 }
 ```
