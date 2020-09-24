@@ -10,7 +10,8 @@ Most of the features are realized on the website and not as commands. Up to now 
 
 ## Admin-Features (users that are admin on the specified server)
 - Change intros for every user on this server
-- see latest logs for this server (played, uploaded sound)
+- See latest logs for this server (played, uploaded sound)
+- Change server settings (like "enable intros" or "bot should leave/stay after sound ends")
 
 ## Power-Admin Features
 - No restriction to server
