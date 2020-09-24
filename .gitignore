@@ -7,6 +7,7 @@ yarn-error.log*
 lerna-debug.log*
 server/assets/sounds/
 server/config/database.json
+server/config/config.json
 /dist
 cert/
 
