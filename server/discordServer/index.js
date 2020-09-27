@@ -109,12 +109,7 @@ client.on('message', message => {
             }
             else if(content === 'stop'){
                 clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(guild=>{
-                    if(guild){
-                        playSoundCommand.stopPlaying(message.guild.id, true);
-                    }
-                    else{
-                        playSoundCommand.stopPlaying(message.guild.id);
-                    }
+                    playSoundCommand.stopPlaying(message.guild.id, !!guild);
                 }).catch(()=>{
                     playSoundCommand.stopPlaying(message.guild.id);
                 })
@@ -129,12 +124,6 @@ client.on('message', message => {
                 message.reply('Red Deitsch mit mir! I hob kan Plan wos du von mir wüllst!');
             }
         }
-    }
-    else if(messageContent === 'sieg'){
-        message.reply('Heil!');
-    }
-    else if(messageContent === 'heil'){
-        message.reply('Hitler!');
     }
 });
 
