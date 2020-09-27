@@ -195,6 +195,7 @@ module.exports = function (router, logger, discordClient, config, databaseHelper
       userHelper.auth(req).then(auth =>{
         return clientHelper.isUserInServer(auth.user.id, req.body.serverId, auth.user.owner).then(status =>{
           if(status){
+            req.body.volume = Math.abs(req.body.volume); //negative values should not be possible
             if(!auth.user.owner && req.body.volume >= 1){
               req.body.volume = 1;
             }

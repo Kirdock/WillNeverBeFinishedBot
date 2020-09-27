@@ -40,7 +40,7 @@
             </div>
             <div class="form-group">
                 <label class="control-label">Laustärke (von 0,0-1)</label>
-                <input class="form-control col-md-1" type="number" v-model="volume" step="0.5" :max="maxVolume"  @change="saveSettings()">
+                <input class="form-control col-md-1" type="number" v-model="volume" step="0.5" min="0" :max="maxVolume"  @change="saveSettings()">
             </div>
             
             <div class="form-group">
