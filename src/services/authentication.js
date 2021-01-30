@@ -57,7 +57,7 @@ function getDecodedToken () {
     const token = getToken();
 
     if (token) {
-        payload = token.split(".")[1];
+        payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
         switch (payload.length % 4) {
             case 0:
                 break;
