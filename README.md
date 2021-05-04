@@ -17,14 +17,11 @@ Most of the features are realized on the website and not as commands. Up to now 
 - No restriction to server
 
 # Configuration
-Location: `./server/config/config.json`
-```javascript
-{
-    "clientId": "CLIENT_ID",
-    "token": "TOKEN",
-    "clientSecret": "CLIENT_SECRET",
-    "scope": "identify",
-    "owners": ["POWER_ADMIN1_USER_ID", "POWER_ADMIN2_USER_ID"],
-    "port": 4599
-}
-```
+Environment Variables:
+- TOKEN (required). Token for Discord bot
+- CLIENT_SECRET (required). Secret for Webtoken
+- PORT. Port for webserver. Default: 4599
+- OWNERS. "id1,id2,...". Super admins
+- PREFIXES. "!,-,...". Prefixes for bot commands in chat. Default: !
+- SCOPE. "identify,...". Scopes of the bot. Default: identify
+- WEBTOKEN_SECRET. Secret to encode webtoken.
