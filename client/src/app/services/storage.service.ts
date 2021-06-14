@@ -1,25 +1,29 @@
+import { Injectable } from "@angular/core";
 import { HomeSettings } from "../models/HomeSettings";
 import { UserPayload } from "../models/UserPayload";
 
+@Injectable({
+    providedIn: 'root'
+})
 export class StorageService {
-    private cachedToken: string = '';
+    private _token: string = '';
     private readonly storage = window.localStorage;
     private readonly tokenName = 'OiToken';
     private readonly homeSettingsName = 'Settings';
     private userPayload?: UserPayload;
     
     public get token(): string {
-        if (!this.cachedToken) {
+        if (!this._token) {
             const token = this.storage.getItem(this.tokenName);
             if(token){
-                this.cachedToken = token;
+                this._token = token;
             }
         }
-        return this.cachedToken;
+        return this._token;
     }
 
     public set token(token: string) {
-        this.cachedToken = token;
+        this._token = token;
         this.storage.setItem(this.tokenName, JSON.stringify(token));
     }
 
@@ -40,7 +44,7 @@ export class StorageService {
     }
 
     public deleteToken(){
-        this.cachedToken = '';
+        this._token = '';
         this.userPayload = undefined;
         this.storage.removeItem(this.tokenName);
     }

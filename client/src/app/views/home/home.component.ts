@@ -7,10 +7,10 @@ import { Category } from 'src/app/models/Category';
 import { Channel } from 'src/app/models/Channel';
 import { HomeSettings } from 'src/app/models/HomeSettings';
 import { PlaySoundRequest } from 'src/app/models/PlaySoundRequest';
+import { Server } from 'src/app/models/Server';
 import { SoundMeta } from 'src/app/models/SoundMeta';
 import { Sounds } from 'src/app/models/Sounds';
 import { ToastTitles } from 'src/app/models/ToastTitles';
-import { UserServerInformation } from 'src/app/models/UserServerInformation';
 import { AuthService } from 'src/app/services/auth.service';
 import { DataService } from 'src/app/services/data.service';
 import { StorageService } from 'src/app/services/storage.service';
@@ -21,7 +21,7 @@ import { StorageService } from 'src/app/services/storage.service';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  public servers: UserServerInformation[] = [];
+  public servers: Server[] = [];
   public sounds: Sounds | undefined;
   public channels: Channel[] = [];
   public soundCategories: Category[] = [];
@@ -264,7 +264,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   public setIntro(soundId: string) {
     if(this.selectedServerId) {
-      this.dataService.setIntro(soundId, this.selectedServerId).subscribe(() => {
+      this.dataService.updateIntro(soundId, this.selectedServerId).subscribe(() => {
       });
     }
   }
@@ -285,7 +285,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     if(this.sounds) {
       if(this.searchText.length > 0){
         const re = new RegExp(this.searchText,'i');
-        sounds = this.sounds[category].filter(sound => re.test(sound.fileName) || re.test(sound.userName));
+        sounds = this.sounds[category].filter(sound => re.test(sound.fileName) || (sound.username && re.test(sound.username)));
       }
       else{
         sounds = this.sounds[category];

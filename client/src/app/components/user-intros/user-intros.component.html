@@ -23,12 +23,12 @@
                 <td [textContent]="user.username"></td>
                 <td>
                     <div class="input-group">
-                        <select class="form-control" [(ngModel)]="user.intros[selectedServer.id]" (change)="updateIntro(user.id, user.intros[selectedServer.id])" (focus)="cacheIntroBefore = user.intros[selectedServer.id]">
+                        <select class="form-control" [(ngModel)]="user.intros[selectedServer.id]" (change)="updateIntro(user.id, selectedServer.id, user.intros[selectedServer.id])" (focus)="cacheIntroBefore = user.intros[selectedServer.id]">
                             <optgroup *ngFor="let category of soundCategories" [label]="category">
                                 <option *ngFor="let sound of sounds[category]" [value]="sound._id" [textContent]="sound.fileName"></option>
                             </optgroup>
                         </select>
-                        <a [routerLink]="" (click)="updateIntro(user.id, undefined)" (focus)="cacheIntroBefore = user.intros[selectedServer.id]" title="Intro zurücksetzen">
+                        <a [routerLink]="" (click)="updateIntro(user.id, selectedServer.id, undefined)" (focus)="cacheIntroBefore = user.intros[selectedServer.id]" title="Intro zurücksetzen">
                             <i class="fas fa-undo"></i>
                         </a>
                     </div>

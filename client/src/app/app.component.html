@@ -1,5 +1,5 @@
 <nav id="nav" class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <a class="navbar-brand" href="#">WillNeverBeFinishedBot</a>
+  <a class="navbar-brand" [routerLink]="['/']">WillNeverBeFinishedBot</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -9,20 +9,20 @@
         <a class="nav-link" [routerLink]="['/']">Startseite</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" [routerLink]="['Account']">Account</a>
+        <a class="nav-link" [routerLink]="['Account']" *ngIf="isLoggedIn">Account</a>
       </li>
       <li class="nav-item" *ngIf="hasAdminServers$ | async">
         <a class="nav-link" [routerLink]="['Admin']">Admin</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" :href="addServerLink">Server hinzufügen</a>
+        <a class="nav-link" [href]="addServerLink">Server hinzufügen</a>
       </li>
-      <li class="nav-item" *ngIf="isAuthenticated()" v-if="$auth.isLoggedIn()">
+      <li class="nav-item" *ngIf="isLoggedIn">
         <a class="nav-link" [routerLink]="['/', 'Login']" (click)="logout()">Abmelden</a>
       </li>
     </ul>
   </div>
-  <span class="navbar-text" v-if="$auth.isLoggedIn()">
+  <span class="navbar-text" *ngIf="isLoggedIn">
         Der Vollpfostn <span style="font-weight: bold; color: blue" [textContent]="userPayload?.username"></span> hots auf de Seitn gschofft!
   </span>
 </nav>

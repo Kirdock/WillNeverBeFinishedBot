@@ -1,10 +1,10 @@
 <div class="form-group">
     <label class="control-label">Server</label>
-    <select class="form-control col-md-5" [(ngModel)]="selectedServer">
+    <select class="form-control col-md-5" [(ngModel)]="selectedServer" (change)="selectedServerChanged()">
         <option *ngFor="let server of servers" [value]="server.id" [textContent]="server.name"></option>
     </select>
 </div>
-<table class="table text-break">
+<table class="table text-break" *ngIf="selectedServer">
     <thead>
         <tr>
             <th>Datum & Zeit</th>
@@ -16,11 +16,10 @@
     </thead>
     <tbody>
         <tr *ngFor="let log of logs">
-            <td [textContent]="log.timestamp | date:'medium'"></td>
-            <td [textContent]="log.serverName"></td>
-            <td [textContent]="log.fileName"></td>
+            <td [textContent]="log.time | date:'medium'"></td>
+            <td [textContent]="log.file?.fileName"></td>
             <td [textContent]="log.username"></td>
-            <td [textContent]="log.message"></td>
+            <td [textContent]="log.action"></td>
         </tr>
     </tbody>
 </table>

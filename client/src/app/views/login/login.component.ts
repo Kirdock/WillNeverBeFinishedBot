@@ -11,10 +11,11 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit, OnDestroy {
-  private destroyed$: Subject<void> = new Subject<void>();
+  private readonly destroyed$: Subject<void> = new Subject<void>();
+  private readonly location = window.location.protocol + '//' + window.location.host + '/Login';
 
   public get oauthLink(): string {
-    return `https://discord.com/api/oauth2/authorize?client_id=${environment.clientId}&redirect_uri=${this.getLocation()}&response_type=code&scope=identify`;
+    return this.dataService.oauthLink;
   }
 
   constructor(private route: ActivatedRoute, private dataService: DataService, private router: Router) { }
@@ -24,15 +25,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       takeUntil(this.destroyed$)
     ).subscribe(params => {
       if(params.code) {
-        this.dataService.login(params.code, this.getLocation()).subscribe(() => {
+        this.dataService.login(params.code, this.location).subscribe(() => {
           this.router.navigate(['/']);
         });
       }
     })
-  }
-
-  private getLocation(): string{
-    return this.router.url;
   }
 
   public ngOnDestroy(): void {

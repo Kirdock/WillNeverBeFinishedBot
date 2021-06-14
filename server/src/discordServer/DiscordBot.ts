@@ -368,7 +368,7 @@ export class DiscordBot {
 
     public async mapUsernames(array: any[], key: string) {
         for (const userObject of array) {
-            userObject.userName = (await this.getSingleUser(userObject[key]))?.username;
+            userObject.username = (await this.getSingleUser(userObject[key]))?.username;
         }
     }
 }

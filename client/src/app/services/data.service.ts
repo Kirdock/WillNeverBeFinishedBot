@@ -2,12 +2,16 @@ import { HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
 import { tap } from "rxjs/operators";
+import { environment } from "src/environments/environment";
+import { Log } from "../models/Log";
 import { PlaySoundRequest } from "../models/PlaySoundRequest";
 import { Server } from "../models/Server";
 import { ServersChannels } from "../models/ServersChannels";
+import { ServerSettings } from "../models/ServerSettings";
 import { ServersSounds } from "../models/ServersSounds";
 import { SoundMeta } from "../models/SoundMeta";
 import { Sounds } from "../models/Sounds";
+import { User } from "../models/User";
 import { ApiService } from "./api.service";
 import { AuthService } from "./auth.service";
 import { StorageService } from "./storage.service";
@@ -23,6 +27,18 @@ export class DataService {
 
     constructor(private apiService: ApiService, private storageService: StorageService, private authService: AuthService) {
         this.setHasAdminServers();
+    }
+
+    private get location(): string {
+        return  window.location.protocol + '//' + window.location.host;
+    }
+
+    public get oauthLink(): string {
+        return `https://discord.com/api/oauth2/authorize?client_id=${environment.clientId}&redirect_uri=${this.location}/Login&response_type=code&scope=identify`;
+    }
+
+    public get addServerLink(): string {
+        return `https://discord.com/api/oauth2/authorize?client_id=${environment.clientId}&permissions=3148800&redirect_uri=${this.location}&scope=bot`;
     }
 
     public get sounds(): Observable<ServersSounds> {
@@ -134,7 +150,23 @@ export class DataService {
         return this.apiService.stopPlaying(serverId);
     }
 
-    public setIntro(soundId: string, serverId: string): Observable<any> {
-        return this.apiService.setIntro(soundId, serverId);
+    public updateIntro(soundId: string | undefined, serverId: string, userId?: string): Observable<any> {
+        return this.apiService.updateIntro(soundId, serverId, userId);
+    }
+
+    public getServerSettings(serverId: string) {
+        return this.apiService.getServerSettings(serverId);
+    }
+
+    public updateServerSettings(serverSettings: ServerSettings): Observable<any> {
+        return this.apiService.updateServerSettings(serverSettings);
+    }
+
+    public getUserData(serverId: string): Observable<User[]> {
+        return this.apiService.fetchUsersData(serverId);
+    }
+
+    public getLogs(serverId: string, pageSize?: number, pageKey?: number, fromTime?: Date): Observable<Log[]> {
+        return this.apiService.getLogs(serverId, pageSize, pageKey, fromTime);
     }
 }

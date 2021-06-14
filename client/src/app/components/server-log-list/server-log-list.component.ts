@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject, timer } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { switchMap, takeUntil } from 'rxjs/operators';
+import { Log } from 'src/app/models/Log';
 import { Server } from 'src/app/models/Server';
-import { UserServerInformation } from 'src/app/models/UserServerInformation';
 import { DataService } from 'src/app/services/data.service';
 
 @Component({
@@ -11,40 +11,44 @@ import { DataService } from 'src/app/services/data.service';
   styleUrls: ['./server-log-list.component.scss']
 })
 export class ServerLogListComponent implements OnInit, OnDestroy {
-  public servers: UserServerInformation[] = [];
+  public servers: Server[] = [];
   public logs: Log[] = [];
   public readonly logInterval = 30 * 1000;
   public selectedServer: Server | undefined;
+  public readonly pageSize = 50;
+  public pageKey = 0;
   private readonly destroyed$: Subject<void> = new Subject<void>();
+  private readonly selectedServerChanged$: Subject<void> = new Subject<void>();
 
   constructor(private readonly dataService: DataService) { }
 
   public ngOnInit(): void {
-    this.logs = this.dataService.logs.pipe(
-      takeUntil(this.destroyed$)
-    ).subscribe(allLogs => {
-      if(this.selectedServer){
-        this.logs = allLogs[this.selectedServer.id];
-      }
-    })
-
     this.dataService.servers.pipe(
       takeUntil(this.destroyed$)
     ).subscribe(servers => {
       this.servers = servers;
       this.selectedServer = this.servers.find(()=> true);
       if(this.selectedServer) {
-        this.dataService.loadLogs(this.selectedServer.id);
+        this.dataService.getLogs(this.selectedServer.id, this.pageSize, this.pageKey).subscribe(logs => {
+          this.logs = logs;
+        });
       }
     });
 
     timer(this.logInterval, this.logInterval).pipe(
-      takeUntil(this.destroyed$)
+      switchMap(() => this.selectedServerChanged$),
+      takeUntil(this.destroyed$),
     ).subscribe(() => {
       if(this.selectedServer) {
-        this.destroyed$.loadLogs(this.selectedServer.id, new Date());
+        this.dataService.getLogs(this.selectedServer.id, undefined, undefined, new Date()).subscribe(logs => {
+          this.logs = logs;
+        });
       }
     });
+  }
+
+  public selectedServerChanged() {
+    this.selectedServerChanged$.next();
   }
 
   public ngOnDestroy(): void {

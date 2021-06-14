@@ -20,6 +20,14 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.storageService.payload;
   }
 
+  public get isLoggedIn() {
+    return this.authService.isAuthenticated();
+  }
+
+  public get addServerLink() {
+    return this.dataService.addServerLink;
+  }
+
   constructor(private readonly dataService: DataService, private readonly authService: AuthService, private storageService: StorageService) {}
 
   public ngOnInit(): void {
@@ -28,10 +36,6 @@ export class AppComponent implements OnInit, OnDestroy {
     timer(0, this._hasAdminServerInterval).pipe(takeUntil(this.destroyed$)).subscribe(() => {
       this.dataService.setHasAdminServers();
     });
-  }
-
-  public isAuthenticated(): boolean {
-    return this.authService.isAuthenticated();
   }
 
   public logout(): void {

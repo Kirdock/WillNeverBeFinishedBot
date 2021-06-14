@@ -20,7 +20,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/WillNeverBeFinishedBot",
+            "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -32,9 +32,9 @@
             ],
             "styles": [
               "src/styles.scss",
-              "~ngx-toastr/toastr.css",
+              "node_modules/ngx-toastr/toastr.css",
               "src/assets/bootstrap.min.css",
-              "~@fortawesome/fontawesome-free/css/all.min.css"
+              "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
             ],
             "scripts": []
           },
@@ -81,7 +81,10 @@
               "browserTarget": "WillNeverBeFinishedBot:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "port": 4599
+          }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",

@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Server } from 'src/app/models/Server';
 import { Sounds } from 'src/app/models/Sounds';
 import { User } from 'src/app/models/User';
-import { UserServerInformation } from 'src/app/models/UserServerInformation';
 import { DataService } from 'src/app/services/data.service';
 
 @Component({
@@ -10,14 +11,15 @@ import { DataService } from 'src/app/services/data.service';
   templateUrl: './user-intros.component.html',
   styleUrls: ['./user-intros.component.scss']
 })
-export class UserIntrosComponent implements OnInit {
-  public servers: UserServerInformation[] = [];
+export class UserIntrosComponent implements OnInit, OnDestroy {
+  public servers: Server[] = [];
   public selectedServer: Server | undefined;
   public searchText: string = '';
   public users: User[] = [];
   public cacheIntroBefore: string | undefined;
   public soundCategories: string[] = [];
   public sounds: Sounds | undefined;
+  private readonly destroyed$: Subject<void> = new Subject<void>();
 
   public get filteredUsers() {
     let users;
@@ -33,17 +35,32 @@ export class UserIntrosComponent implements OnInit {
 
   constructor(private readonly dataService: DataService) { }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
+    this.dataService.servers.pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(servers => {
+      this.servers = servers;
+      this.selectedServer = this.servers.find(()=> true);
+      if(this.selectedServer) {
+        this.fetchUserData();
+      }
+    });
   }
 
-  public updateIntro(userId: string, intro: string | undefined) {
-    this.dataService.updateIntro(userId, intro);
+  public updateIntro(userId: string, serverId: string, soundId: string | undefined) {
+    this.dataService.updateIntro(soundId, serverId, userId);
   }
 
   public fetchUserData() {
     if(this.selectedServer) {
-      this.dataService.loadUserData(this.selectedServer.id);
+      this.dataService.getUserData(this.selectedServer.id).subscribe(users => {
+        this.users = users;
+      });
     }
   }
 
+  public ngOnDestroy(): void {
+    this.destroyed$.next();
+    this.destroyed$.complete();
+  }
 }

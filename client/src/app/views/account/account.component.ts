@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Server } from 'src/app/models/Server';
 import { Sounds } from 'src/app/models/Sounds';
 import { User } from 'src/app/models/User';
-import { UserServerInformation } from 'src/app/models/UserServerInformation';
 
 @Component({
   selector: 'app-account',
@@ -10,7 +9,7 @@ import { UserServerInformation } from 'src/app/models/UserServerInformation';
   styleUrls: ['./account.component.scss']
 })
 export class AccountComponent implements OnInit {
-  public servers: UserServerInformation[] = [];
+  public servers: Server[] = [];
   public selectedServer: Server | undefined;
   public cacheIntroBefore: string | undefined;
   public soundCategories: string[] = [];

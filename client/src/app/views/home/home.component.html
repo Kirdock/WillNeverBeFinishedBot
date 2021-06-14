@@ -79,7 +79,7 @@
         <tbody>
             <tr *ngFor="let sound of filteredSounds(category.name)">
                 <td [textContent]="sound.fileName"></td>
-                <td [textContent]="sound.userName"></td>
+                <td [textContent]="sound.username"></td>
                 <td>
                   <a *ngIf="!audioControl.src" [routerLink]="" (click)="playFile(sound._id, audioControl)" title="Laden">
                     <i class="fas fa-file-export"></i>

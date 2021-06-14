@@ -2,29 +2,12 @@ import { Snowflake } from 'discord.js';
 import { ServerSettings } from '../models/ServerSettings';
 import { SoundMeta } from '../models/SoundMeta';
 import { UserToken } from '../models/UserToken';
-import { Db, DeleteWriteOpResultObject, InsertOneWriteOpResult, MongoClient, ObjectID, UpdateWriteOpResult } from 'mongodb';
+import { Db, DeleteWriteOpResultObject, FilterQuery, FindOneOptions, InsertOneWriteOpResult, MongoClient, ObjectID, UpdateWriteOpResult } from 'mongodb';
 import FileHelper from './fileHelper';
 import Logger from './logger';
 import { User } from '../models/User';
 import { ErrorTypes } from './ErrorTypes';
-// const users = 'users';
-// const sounds = 'sounds';
-// const logs = 'log';
-// const servers = 'servers';
-// const settings = 'settings';
-// const maxLogsReturned = 20;
-// const maxLogsStored = 100;
-// const maxLogsDeleted = 50;
-
-// setDefault(){
-//     let query = {};
-//     query[users] = [];
-//     query[sounds] = [];
-//     query[logs] = [];
-//     query[servers] = [];
-//     query[settings] = [];
-//     db.defaults(query).write();
-// }
+import { Log } from '../models/Log';
 
 export class DatabaseHelper {
     private client: MongoClient;
@@ -32,6 +15,7 @@ export class DatabaseHelper {
     private readonly userCollectionName: string = 'users';
     private readonly serverInfoCollectionName: string = 'servers';
     private readonly soundMetaCollectionName: string = 'sounds';
+    private readonly logCollectionName: string = 'logs';
 
     constructor(private logger: Logger, private fileHelper: FileHelper){
         this.client = new MongoClient(`mongodb://${process.env.DATABASE_USER}:${process.env.DATABASE_PASSWORD}@127.0.0.1:27017?retryWrites=true&writeConcern=majority`,
@@ -51,6 +35,10 @@ export class DatabaseHelper {
 
     private get serverInfoCollection() {
         return this.database.collection(this.serverInfoCollectionName);
+    }
+
+    private get logCollection() {
+        return this.database.collection(this.logCollectionName);
     }
 
     public async run(): Promise<void> {
@@ -101,9 +89,9 @@ export class DatabaseHelper {
     }
 
     async getSoundsMeta(servers: Snowflake[], fromTime?: string): Promise<SoundMeta[]>{
-        const query: any = {serverId: {$in: servers}};
+        const query: FilterQuery<SoundMeta> = {serverId: {$in: servers}};
         if(fromTime) {
-            query.fromTime = { $gte : fromTime };
+            query.time = { $gte: fromTime };
         }
         return this.soundMetaCollection.find(query).toArray();
     }
@@ -142,54 +130,44 @@ export class DatabaseHelper {
             }).toArray();
     }
 
-    async logPlaySound(user: any, serverId: Snowflake, serverName: string, meta: any){
-        // let query = {};
-        // query.username = user.username;
-        // query.message = 'Play Sound';
-        // query.server = {
-        //     id: serverId,
-        //     name: serverName
-        // };
-        // query.fileId = meta.id;
-        // query.fileName = meta.fileName;
-        // log(query);
+    private logSound(userId: Snowflake, meta: SoundMeta, message: string) {
+        return this.log(new Log(meta.serverId, userId, message, {fileName: meta.fileName, id: meta._id}));
     }
 
-    async log(query: any){
-        // query.timestamp = Date.now();
-        // let logData = this.getLogs();
-        // if(logData.length > maxLogsStored){
-        //     logData = logData.slice(logData.length-(maxLogsDeleted+1));
-        //     logData.push(query);
-        //     db.assign({log: logData}).write();
-        // }
-        // else{
-        //     db.get(logs).push(query).write();
-        // }
+    async logPlaySound(userId: Snowflake, meta: SoundMeta): Promise<InsertOneWriteOpResult<Log>>{
+        return this.logSound(userId, meta, 'Play Sound');
     }
 
-    async logSoundUpload(soundMeta: any, serverName: string){
-        this.log({username: soundMeta.user.name, message:'Sound Upload', fileName: soundMeta.fileName, fileId: soundMeta.id, server: {id: soundMeta.serverId, name: serverName}});
+    async logSoundUpload(soundMeta: SoundMeta): Promise<InsertOneWriteOpResult<Log>>{
+        return this.logSound(soundMeta.userId, soundMeta, 'Sound Upload');
     }
 
-    async logSoundDelete(soundMeta: any, serverName: string){
-        this.log({username: soundMeta.user.name, message:'Sound Delete', fileName: soundMeta.fileName, fileId: soundMeta.id, server: {id: soundMeta.serverId, name: serverName}});
+    async logSoundDelete(userId: Snowflake, soundMeta: SoundMeta): Promise<InsertOneWriteOpResult<Log>>{
+        return this.logSound(userId, soundMeta, 'Sound Delete');
     }
 
-    async getLogs(serverId: string, pageSize: number, pageKey: number){
-        // if(isNaN(pageSize) || isNaN(pageKey) || pageSize <= 0 || pageKey < 0) {
-        // }
+    async log(log: Log): Promise<InsertOneWriteOpResult<Log>>{
+        return this.logCollection.insertOne(log);
     }
 
-    async getLog(servers: ServerSettings[]){
-        // let logsData = this.getLogs();
-        
-        // if(servers){
-        //     logsData = logsData.filter(log => servers.some(server => server.id == log.server.id));
-        // }
-        
-        // return logsData.slice(logsData.length > maxLogsReturned ? (logsData.length - (maxLogsReturned+1)): 0).sort((a,b) => (b.timestamp - a.timestamp));
-        return [];
+    async getLogs(serverId: string, pageSize: number, pageKey: number, fromTime: string): Promise<Log[]>{
+        let logs: Log[] = [];
+        const findQuery: FilterQuery<Log> = {
+            serverId
+        };
+        const query: FindOneOptions<Log> = {};
+        if(pageSize && pageKey && pageSize > 0 && pageKey >= 0){
+            query.limit = pageSize;
+            query.skip = pageKey * pageSize;
+        }
+        if(fromTime) {
+            findQuery.time = { $gte: fromTime };
+        }
+        logs = await this.logCollection.find(
+            findQuery,
+            query
+            ).toArray();
+        return logs;
     }
 
     async getServerInfo(serverId: Snowflake): Promise<ServerSettings>{

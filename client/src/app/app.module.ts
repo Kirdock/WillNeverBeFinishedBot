@@ -11,7 +11,7 @@ import { LoginComponent } from './views/login/login.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpSuccessInterceptor } from './interceptors/http-success.interceptor';
 import { HttpDefaultInterceptor } from './interceptors/http-default.interceptor';
 import { HttpErrorInterceptor } from './interceptors/http-error.interceptor';
@@ -21,6 +21,7 @@ import { ServerSettingsComponent } from './components/server-settings/server-set
 
 @NgModule({
   declarations: [
+    AppComponent,
     LoginComponent,
     HomeComponent,
     AdminComponent,
@@ -31,6 +32,7 @@ import { ServerSettingsComponent } from './components/server-settings/server-set
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     AppRoutingModule,
     FormsModule,
     ToastrModule.forRoot(),

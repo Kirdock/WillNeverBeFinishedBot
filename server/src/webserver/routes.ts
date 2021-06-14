@@ -13,6 +13,7 @@ import { ErrorTypes } from '../services/ErrorTypes';
 import { SoundMeta } from '../models/SoundMeta';
 import { ObjectID } from 'mongodb';
 import { GuildMember } from 'discord.js';
+import { Log } from '../models/Log';
 
 export class Router {
   constructor(discordBot: DiscordBot, router: rs, fileHelper: FileHelper, databaseHelper: DatabaseHelper, private logger: Logger, authHelper: AuthHelper) {
@@ -41,11 +42,13 @@ export class Router {
         }
       });
 
-    router.route('/log/:serverId/:pageSize/:pageKey') // TO-DO: add parameter for serverId, pageSize and pageKey
+    router.route('/log/:serverId')
       .get(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
         if (await discordBot.isUserAdminInServer(result.id, req.params.serverId)) {
-          res.status(200).json(await databaseHelper.getLogs(req.params.serverId, +req.params.pageSize, +req.params.pageKey));
+          const logs: Log[] = await databaseHelper.getLogs(req.params.serverId, +(req.query.pageSize as string), +(req.query.pageKey as string), req.query.fromTime as string);
+          await discordBot.mapUsernames(logs, 'userId');
+          res.status(200).json(logs);
         }
         else {
           this.notAdmin(res);
@@ -59,25 +62,31 @@ export class Router {
         res.status(200).json(servers);
       });
 
-    router.route('/serverInfo')
+    router.route('/serverSettings')
       .post(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
-        if (discordBot.isSuperAdmin(result.id)) {
-          databaseHelper.udpateServerInfo(req.body.serverInfo)
+        const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.body.serverInfo.id);
+        if (valid) {
+          await databaseHelper.udpateServerInfo(req.body.serverInfo);
+          res.statusMessage = 'Einstöllungen sen aufm neiestn Stond';
           res.status(200).end();
         } else {
-          const guild = await discordBot.isUserAdminInServer(result.id, req.body.serverInfo.id);
-          if (guild) {
-            databaseHelper.udpateServerInfo(req.body.serverInfo);
-            res.statusMessage = 'Einstöllungen sen aufm neiestn Stond';
-            res.status(200).end();
-          }
-          else {
-            this.notAdmin(res);
-          }
+          this.notAdmin(res);
         }
       });
 
+    router.route('/serverSettings/:serverId')
+    .get(async (req, res) => {
+      const result: UserPayload = this.getPayload(req);
+      const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId)
+      if (valid) {
+        res.status(200).json(await databaseHelper.getServerInfo(req.params.serverId));
+      }
+      else {
+        this.notAdmin(res);
+      }
+    });
+      
     router.route('/stopPlaying/:serverId')
       .get(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
@@ -157,7 +166,7 @@ export class Router {
             if (req.body.soundId) {
               const meta = await databaseHelper.getSoundMeta(req.body.soundId);
               if (meta) {
-                databaseHelper.logPlaySound(result.id, guild.id, guild.name, meta);
+                databaseHelper.logPlaySound(result.id, meta);
                 const forcePlay = req.body.forcePlay ? await discordBot.isUserAdminInServer(result.id, req.body.serverId) : false;
 
                 await discordBot.playSoundCommand.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, forcePlay);
@@ -195,6 +204,7 @@ export class Router {
           await databaseHelper.removeSoundMeta(soundId);
           try {
             await fileHelper.deleteFile(filePath);
+            await databaseHelper.logSoundDelete(result.id, meta);
             res.statusMessage = 'Datei wurde eliminiert';
             res.status(200).end();
           }

@@ -2,10 +2,12 @@ import { HttpClient, HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { Channel } from "../models/Channel";
+import { Log } from "../models/Log";
 import { PlaySoundRequest } from "../models/PlaySoundRequest";
 import { Server } from "../models/Server";
+import { ServerSettings } from "../models/ServerSettings";
 import { SoundMeta } from "../models/SoundMeta";
-import { UserServerInformation } from "../models/UserServerInformation";
+import { User } from "../models/User";
 
 @Injectable({
     providedIn: 'root'
@@ -19,7 +21,7 @@ export class ApiService {
         return this.http.post<string>('login', {code, redirectUrl});
     }
 
-    public setIntro(soundId: string, serverId: string, userId?: string): Observable<any> {
+    public updateIntro(soundId: string | undefined, serverId: string, userId?: string): Observable<any> {
         return this.http.post<any>('setIntro', {soundId, userId, serverId});
     }
 
@@ -27,12 +29,12 @@ export class ApiService {
         return this.http.get(`sound/${soundId}`, {responseType: 'arraybuffer', observe: 'response'});
     }
 
-    public updateServerInfo(serverInfo: UserServerInformation): Observable<any> {
-        return this.http.post('serverInfo', {serverInfo});
+    public updateServerSettings(serverSettings: ServerSettings): Observable<any> {
+        return this.http.post('serverSettings', serverSettings);
     }
 
-    public fetchUsersData(serverId: string){
-        return this.http.get('users/'+serverId);
+    public fetchUsersData(serverId: string): Observable<User[]>{
+        return this.http.get<User[]>('users/'+serverId);
     }
 
     public fetchUserData(serverId: string){
@@ -43,8 +45,8 @@ export class ApiService {
         return this.http.get<Server[]>('servers');
     }
 
-    public fetchLogs(serverId: string){
-        return this.http.get(`log/${serverId}`);
+    public getServerSettings(serverId: string): Observable<ServerSettings> {
+        return this.http.get<ServerSettings>(`serverSettings/${serverId}`);
     }
 
     public playSound(data: PlaySoundRequest){
@@ -81,5 +83,19 @@ export class ApiService {
 
     public hasAdminServers(): Observable<boolean>{
         return this.http.get<boolean>('hasAdminServers');
+    }
+
+    public getLogs(serverId: string, pageSize?: number, pageKey?: number, fromTime?: Date): Observable<Log[]> {
+        const params: any = {};
+        if(pageSize) {
+            params.pageSize = pageSize;
+        }
+        if(pageKey) {
+            params.pageKey = pageKey;
+        }
+        if(fromTime) {
+            params.fromTime = fromTime.toISOString();
+        }
+        return this.http.get<Log[]>(`logs/${serverId}`, {params});
     }
 }
