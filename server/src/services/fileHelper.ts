@@ -1,91 +1,83 @@
-import { lstatSync, existsSync, readdirSync, promises as fs, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, promises as fs, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { basename, extname, join } from 'path';
 import Logger from './logger';
 
 
 export default class FileHelper {
-    public soundFolder: string;
+    public readonly rootDir: string = join(__dirname, '/../../../');
+    public readonly baseDir: string = join(this.rootDir, 'shared');
+    public readonly soundFolder: string = join(this.baseDir, 'sounds');
+    public readonly certFolder: string = join(this.baseDir, 'cert');
 
-    constructor(private logger: Logger){
+    constructor(private logger: Logger) {
         this.checkAndCreateFolderSystem();
-        this.soundFolder = join(__dirname+'/../assets/sounds');
     }
 
-    private isDirectory(source: string): boolean{
-        return lstatSync(source).isDirectory();
+    public existsFile(path: string): boolean {
+        return existsSync(path);
     }
 
-    private getDirectories(source: string): string[]{
-        return readdirSync(source).map(name => join(source, name)).filter(this.isDirectory);
-    }
-    
-    getDirectoriesOfSoundFolder(): string[]{
-        return this.getDirectories(this.soundFolder);
-    }
-
-    public existsFile(folder: string): boolean{
-        return existsSync(folder);
-    }
-
-    public async deleteFile(path: string): Promise<boolean>{
+    public async deleteFile(path: string): Promise<boolean> {
         let deleted = false;
-        if(existsSync(path)){
-            try{
+        if (existsSync(path)) {
+            try {
                 await fs.unlink(path);
                 deleted = true;
             }
-            catch(e){
-                this.logger.error(e,{path});
+            catch (e) {
+                this.logger.error(e, { path });
             }
         }
 
         return deleted;
     }
 
-    async deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean>{
+    async deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
         let status = false;
-        let files: Express.Multer.File[] = this.getFileNames(fileArray);
+        const files: Express.Multer.File[] = this.getFiles(fileArray);
 
-        for await (let file of files) {
-            this.deleteFile(file.path);
+        for await (const file of files) {
+            status &&= await this.deleteFile(file.path);
         }
         return status;
     }
 
-    public getFileNames(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Express.Multer.File[] {
+    public getFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Express.Multer.File[] {
         let files: Express.Multer.File[] = [];
-        if(fileArray instanceof File) {
+        if (fileArray instanceof File) {
             files = fileArray as Express.Multer.File[];
         } else {
             fileArray = fileArray as { [fieldname: string]: Express.Multer.File[]; }
-            for(let key in files) {
+            for (const key in files) {
                 files.push(...fileArray[key]);
             }
         }
         return files;
     }
 
-    checkAndCreateFolder(dir: string){
-        const folder = dir;
-        if(!existsSync(folder)){
+    private checkAndCreateFolder(folder: string): void {
+        if (!existsSync(folder)) {
             mkdirSync(folder);
         }
     }
 
-    private checkAndCreateFolderSystem(){
-        const files = ['/../assets', '/../config', '/../assets/sounds'];
-        files.forEach(folder =>{
-            this.checkAndCreateFolder(join(__dirname,folder));
-        })
+    private checkAndCreateFolderSystem() {
+        for (const folder of [this.baseDir, this.soundFolder]) {
+            this.checkAndCreateFolder(folder);
+        }
     }
 
-    getFileName(filePath: string){
+    public getFileName(filePath: string): string {
         return basename(filePath, extname(filePath));
     }
 
-    public checkAndCreateFile(filePath: string){
-        if(!existsSync(filePath)){
-            writeFileSync(filePath,'{}');
+    public checkAndCreateFile(filePath: string): void {
+        if (!existsSync(filePath)) {
+            writeFileSync(filePath, '{}');
         }
+    }
+
+    public readFile(filePath: string): Buffer {
+        return readFileSync(filePath);
     }
 }

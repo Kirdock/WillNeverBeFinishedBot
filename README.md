@@ -25,3 +25,6 @@ Environment Variables:
 - PREFIXES. "!,-,...". Prefixes for bot commands in chat. Default: !
 - SCOPE. "identify,...". Scopes of the bot. Default: identify
 - WEBTOKEN_SECRET. Secret to encode webtoken.
+
+
+Ports in defined in .env and .env-container must match!

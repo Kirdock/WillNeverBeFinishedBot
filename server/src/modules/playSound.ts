@@ -2,6 +2,7 @@ import { Message, Snowflake, StreamDispatcher, VoiceConnection, VoiceState } fro
 import ytdl from 'ytdl-core';
 import { Command } from './Command';
 import { ErrorTypes } from '../services/ErrorTypes';
+import { ObjectID } from 'bson';
 
 export class PlayCommand extends Command {
     protected commandText = 'play';
@@ -15,7 +16,7 @@ export class PlayCommand extends Command {
 
         const content = this.getContentWithoutCommand(message);
         const meta = await this.databaseHelper.getSoundMetaByName(content);
-        const path = meta.path;
+        const path = meta?.path;
         if (!path) {
             message.reply(this.fileNotFoundMessage);
             return;
@@ -30,11 +31,11 @@ export class PlayCommand extends Command {
             }
             catch (e) {
                 this.logger.error(e, { message: message.content });
-            };
+            }
         }
     }
 
-    async requestSound(path: string, serverId: string, channelId: string, volumeMultiplier: number, forcePlay: boolean) {
+    async requestSound(path: string, serverId: string, channelId: string, volumeMultiplier: number, forcePlay: boolean): Promise<void> {
         if (this.fileHelper.existsFile(path)) {
             this.playSound(serverId, channelId, path, volumeMultiplier, undefined, forcePlay);
         }
@@ -43,7 +44,7 @@ export class PlayCommand extends Command {
         }
     }
 
-    async playSound(serverId: Snowflake, channelId: string, file?: string, volumeMultiplier: number = 0.5, url?: string, forcePlay?: boolean) {
+    async playSound(serverId: Snowflake, channelId: string, file?: string, volumeMultiplier = 0.5, url?: string, forcePlay?: boolean): Promise<void> {
 
         if (PlayCommand.forcePlayLock.includes(serverId) && !forcePlay) {
             return;
@@ -88,7 +89,7 @@ export class PlayCommand extends Command {
         });
     }
 
-    async playIntro(voiceState: VoiceState, fallBackIntro: number) {
+    async playIntro(voiceState: VoiceState, fallBackIntro: ObjectID | undefined): Promise<void> {
         const newUserChannelId: Snowflake | undefined = voiceState.channel?.id;
         if (!newUserChannelId) return;
 
@@ -102,7 +103,7 @@ export class PlayCommand extends Command {
         }
     }
 
-    async stopPlaying(serverId: Snowflake, isAdmin: boolean) {
+    async stopPlaying(serverId: Snowflake, isAdmin: boolean): Promise<void> {
 
         if (!PlayCommand.forcePlayLock.includes(serverId) || isAdmin) {
             const connection = this.voiceHelper.getConnection(serverId);

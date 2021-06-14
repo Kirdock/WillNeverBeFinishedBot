@@ -21,7 +21,7 @@ COPY --from=client-build /app/client/node_modules ./client/node_modules
 # COPY server/package*.json ./server/
 # COPY client/package*.json ./client/
 # RUN npm install --production -p ./client\
-#     && npm install --production -p ./server
+#     && npm install --production -p ./server # but this needs additional tools like python which is not available in alpine
 
 EXPOSE 4599
 CMD [ "node", "./server/dist/index.js"]

@@ -1,6 +1,5 @@
-import { User } from "discord.js";
-import { UserObject } from "./UserObject";
+import { Snowflake } from "discord.js";
 
-export class UserPayload extends UserObject{
-    public isSuperAdmin: boolean = false;
+export class UserPayload {
+    constructor(public id: Snowflake, public username: string, public isSuperAdmin = false){}
 }

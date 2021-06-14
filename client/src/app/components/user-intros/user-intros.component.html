@@ -1,0 +1,39 @@
+<div class="form-group col-md-5">
+    <label class="control-label">Server</label>
+    <select class="form-control" [(ngModel)]="selectedServer" (change)="fetchUserData()">
+        <option *ngFor="let server of servers" [value]="server" [textContent]="server.name"></option>
+    </select>
+</div>
+<ng-container *ngIf="selectedServer && sounds">
+    <div class="form-group col-md-5">
+        <label class="control-label">Suche Benutzer</label>
+        <input class="form-control" [(ngModel)]="searchText">
+    </div>
+    <table class="table text-break">
+        <thead>
+            <tr>
+                <th>Benutzer ID</th>
+                <th>Benutzername</th>
+                <th>Intro</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let user of filteredUsers">
+                <td [textContent]="user.id"></td>
+                <td [textContent]="user.username"></td>
+                <td>
+                    <div class="input-group">
+                        <select class="form-control" [(ngModel)]="user.intros[selectedServer.id]" (change)="updateIntro(user.id, user.intros[selectedServer.id])" (focus)="cacheIntroBefore = user.intros[selectedServer.id]">
+                            <optgroup *ngFor="let category of soundCategories" [label]="category">
+                                <option *ngFor="let sound of sounds[category]" [value]="sound._id" [textContent]="sound.fileName"></option>
+                            </optgroup>
+                        </select>
+                        <a [routerLink]="" (click)="updateIntro(user.id, undefined)" (focus)="cacheIntroBefore = user.intros[selectedServer.id]" title="Intro zurücksetzen">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</ng-container>

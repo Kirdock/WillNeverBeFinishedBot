@@ -1,0 +1,66 @@
+<div class="form-horizontal">
+    <div class="form-group">
+        <label class="control-label">Server</label>
+        <select class="form-control col-md-5" [(ngModel)]="selectedServer">
+            <option *ngFor="let server of servers" [value]="server" [textContent]="server.name"></option>
+        </select>
+    </div>
+    <ng-container *ngIf="selectedServer && sounds">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="serverIntro" [(ngModel)]="selectedServer.playIntro" (change)="updateServerInfo()" >
+            <label class="form-check-label" for="serverIntro">
+                Server Intro
+            </label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="serverMinUser" [(ngModel)]="selectedServer.minUser" (change)="updateServerInfo()" >
+            <label class="form-check-label" for="serverMinUser">
+                Zumindest ein Benutzer im Channel, damit das Intro abgespielt wird
+            </label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="playIntroWhenUnmuted" [(ngModel)]="selectedServer.playIntroWhenUnmuted" (change)="updateServerInfo()" >
+            <label class="form-check-label" for="playIntroWhenUnmuted">
+                Intro abspielen, wenn jemand seine Stummschaltung aufhebt
+            </label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="leaveAfterPlay" [(ngModel)]="selectedServer.leaveChannelAfterPlay" (change)="updateServerInfo()" >
+            <label class="form-check-label" for="leaveAfterPlay">
+                Bot soll nach dem Abspielen den Kanal verlassen
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="control-label">Default Intro</label>
+            <div class="input-group">
+                <select class="form-control col-md-5" [(ngModel)]="selectedServer.defaultIntro" (change)="updateServerInfo()">
+                    <optgroup *ngFor="let category of soundCategories" [label]="category">
+                        <option *ngFor="let sound of sounds[category]" [value]="sound._id" [textContent]="sound.fileName"></option>
+                    </optgroup>
+                </select>
+                <a [routerLink]="" (click)="selectedServer.defaultIntro = ''; updateServerInfo()" title="Intro zurücksetzen">
+                    <i class="fas fa-undo"></i>
+                </a>
+            </div>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="serverOutro" [(ngModel)]="selectedServer.defaultOutro" (change)="updateServerInfo()" >
+            <label class="form-check-label" for="serverOutro">
+                Server Outro
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="control-label">Default Outro</label>
+            <div class="input-group">
+                <select class="form-control col-md-5" [(ngModel)]="selectedServer.defaultOutro" (change)="updateServerInfo()">
+                    <optgroup *ngFor="let category of soundCategories" [label]="category">
+                        <option *ngFor="let sound of sounds[category]" [value]="sound._id" [textContent]="sound.fileName"></option>
+                    </optgroup>
+                </select>
+                <a [routerLink]="" (click)="selectedServer.defaultOutro = ''; updateServerInfo()" title="Outro zurücksetzen">
+                    <i class="fas fa-undo"></i>
+                </a>
+            </div>
+        </div>
+    </ng-container>
+</div>

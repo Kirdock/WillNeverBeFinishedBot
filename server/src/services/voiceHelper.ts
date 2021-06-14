@@ -31,7 +31,7 @@ export default class VoiceHelper {
      * @param serverId 
      * @param clientId 
      * @returns Connection of joined voice channel
-     * @throws CHANNEL_JOIN_FAILED, CHANNEL_NOT_VOICE, SERVER_ID_NOT_FOUND, CHANNEL_ID_NOT_FOUND
+     * @throws Error
      */
     async joinVoiceChannelById(serverId: string, clientId: string): Promise<VoiceConnection> {
         const server = await this.discordBot.getServer(serverId);
@@ -72,7 +72,7 @@ export default class VoiceHelper {
         return connection;
     }
 
-    public hasConnection(serverId: string) {
+    public hasConnection(serverId: string): boolean {
         return this.discordBot.hasVoiceConnection(serverId);
     }
 
@@ -90,8 +90,8 @@ export default class VoiceHelper {
      * @param serverId 
      * @throws CONNECTION_NOT_FOUND
      */
-    public disconnectVoice(serverId: string) {
-        let connection = this.getConnection(serverId);
+    public disconnectVoice(serverId: string): void | never {
+        const connection = this.getConnection(serverId);
         if (connection) {
             connection.disconnect();
         }

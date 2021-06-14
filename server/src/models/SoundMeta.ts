@@ -1,8 +1,14 @@
-export class SoundMeta {
-    private time: Date;
+import { ObjectID } from "bson";
+import { Snowflake } from "discord.js";
 
-    constructor(public id: number, public path: string, public fileName: string, public category: string, public userId: string, public serverId: string) {
+export class SoundMeta {
+    public time: string;
+    public _id: ObjectID;
+    public userName?: string;
+
+    constructor(public path: string, public fileName: string, public category: string, public userId: Snowflake, public serverId: Snowflake) {
         // consider if only id or id and username should be saved
-        this.time = new Date();
+        this.time = new Date().toISOString();
+        this._id = new ObjectID();
     }
 }

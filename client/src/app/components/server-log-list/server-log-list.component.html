@@ -1,0 +1,26 @@
+<div class="form-group">
+    <label class="control-label">Server</label>
+    <select class="form-control col-md-5" [(ngModel)]="selectedServer">
+        <option *ngFor="let server of servers" [value]="server.id" [textContent]="server.name"></option>
+    </select>
+</div>
+<table class="table text-break">
+    <thead>
+        <tr>
+            <th>Datum & Zeit</th>
+            <th>Server</th>
+            <th>Dateiname</th>
+            <th>Benutzername</th>
+            <th>Aktion</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let log of logs">
+            <td [textContent]="log.timestamp | date:'medium'"></td>
+            <td [textContent]="log.serverName"></td>
+            <td [textContent]="log.fileName"></td>
+            <td [textContent]="log.username"></td>
+            <td [textContent]="log.message"></td>
+        </tr>
+    </tbody>
+</table>

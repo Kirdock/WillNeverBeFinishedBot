@@ -3,7 +3,7 @@ import { ConsoleTransportOptions } from "winston/lib/winston/transports";
 
 export default class Logger {
     private logger: lg;
-    constructor(){
+    constructor() {
         this.logger = createLogger({
             transports: [
                 new transports.Console({
@@ -19,18 +19,18 @@ export default class Logger {
         });
     }
 
-    debug(context: any, message: string){
-        this.logger.debug(message, {context});
+    public debug(context: any, message: string): void {
+        this.logger.debug(message, { context });
     }
-    info(context: any, message: string){
-        this.logger.info(message, {context});
+    public info(context: any, message: string): void {
+        this.logger.info(message, { context });
     }
-    warn(context: any, message: string){
-        this.logger.warn(message, {context});
+    public warn(context: any, message: string): void {
+        this.logger.warn(message, { context });
     }
 
-    error(context: Error | string, msg: any){
+    public error(context: Error | string, msg: any): void {
         const message = typeof context === 'string' ? context : context.stack;
-        this.logger.error(msg, {meta:{context: message}});
+        this.logger.error(msg, { meta: { context: message } });
     }
 }

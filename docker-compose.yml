@@ -1,0 +1,22 @@
+version: "3.9"
+services: 
+    server:
+        build:  .
+        ports:
+            - ${PORT}:${PORT}
+        env_file:
+            - .env-container
+        volumes:
+            - ./WillNeverBeFinishedBot:/app/shared
+        restart: always
+    database:
+        image: "mongo"
+        container_name: "mongo-db"
+        environment:
+            MONGO_INITDB_DATABASE: ${DATABASE_NAME}
+            MONGO_INITDB_ROOT_USERNAME: ${DATABASE_USER}
+            MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+        ports:
+            - 27017:27017
+            volumes:
+            - mongodb_data_container:/data/db

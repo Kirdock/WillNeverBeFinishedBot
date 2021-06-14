@@ -15,15 +15,19 @@ else if (!process.env.CLIENT_SECRET) {
 }
 
 setDefaultEnvironment();
+start();
 
-const logger: Logger = new Logger();
-const fileHelper: FileHelper = new FileHelper(logger);
-const databaseHelper: DatabaseHelper = new DatabaseHelper(logger, fileHelper);
-const discordBot: DiscordBot = new DiscordBot(databaseHelper, fileHelper, logger);
-const authHelper = new AuthHelper(logger, databaseHelper, discordBot);
-const router = express.Router();
-new Router(discordBot, router, fileHelper, databaseHelper, logger, authHelper);
-new WebServer(router, authHelper, fileHelper, logger);
+async function start() {
+    const logger: Logger = new Logger();
+    const fileHelper: FileHelper = new FileHelper(logger);
+    const databaseHelper: DatabaseHelper = new DatabaseHelper(logger, fileHelper);
+    await databaseHelper.run();
+    const discordBot: DiscordBot = new DiscordBot(databaseHelper, fileHelper, logger);
+    const authHelper = new AuthHelper(logger, databaseHelper, discordBot);
+    const router = express.Router();
+    new Router(discordBot, router, fileHelper, databaseHelper, logger, authHelper);
+    new WebServer(router, authHelper, fileHelper, logger);
+}
 
 
 function setDefaultEnvironment() {
@@ -31,5 +35,8 @@ function setDefaultEnvironment() {
     process.env.WEBTOKEN_SECRET ||= 'Q8{He@4et!5Prhr/Zy:s';
     process.env.SCOPE ||= 'identify';
     process.env.PREFIXES ||= '!';
-    process.env.OWNERS ??= '';
+    process.env.OWNERS ||= '';
+    process.env.DATABASE_NAME ||= 'myDatabase';
+    process.env.DATABASE_USER ||= 'root';
+    process.env.DATABASE_PASSWORD ||= 'Q8{He@4et!5Prhr/Zy:s';
 }

@@ -7,10 +7,14 @@ import { DiscordBot } from '../discordServer/DiscordBot';
 import { UserPayload } from '../models/UserPayload';
 import { Request } from 'express';
 import { UserToken } from '../models/UserToken';
+import { UserObject } from '../models/UserObject';
 
 export default class AuthHelper {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     private readonly secret: string = process.env.WEBTOKEN_SECRET!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     private readonly clientSecret: string = process.env.CLIENT_SECRET!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     private readonly scope: string = process.env.SCOPE!;
     constructor(private logger: Logger, private databaseHelper: DatabaseHelper, private discordBot: DiscordBot) { }
 
@@ -21,7 +25,6 @@ export default class AuthHelper {
      * @returns encoded token
      */
     async login(code: string, redirectUrl: string): Promise<string> {
-        let token: string;
         const formData = new FormData();
         formData.append('client_id', this.discordBot.id);
         formData.append('client_secret', this.clientSecret);
@@ -35,12 +38,11 @@ export default class AuthHelper {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         const userToken: UserToken = response.data;
-
         const user = await this.discordBot.fetchUserData(userToken);
-        const payload = user as UserPayload;
-        payload.isSuperAdmin = this.discordBot.isSuperAdmin(payload.id);
-        token = sign(payload, this.secret);
-        this.databaseHelper.addUser(payload, userToken);
+        await this.databaseHelper.updateUserToken(user.id, userToken);
+        const payload: UserPayload = new UserPayload(user.id, user.username, this.discordBot.isSuperAdmin(user.id));
+        const token = sign(payload, this.secret);
+        // this.databaseHelper.addUser(payload, userToken);
         return token;
     }
 
@@ -76,7 +78,9 @@ export default class AuthHelper {
                 req.body.payload = payload;
                 valid = true;
             }
-            catch { }
+            catch (e) {
+                this.logger.error(e, 'Auth failed');
+            }
         }
         return valid;
     }
@@ -92,15 +96,11 @@ export default class AuthHelper {
 
     // because of validation before token must be set
     private getToken(req: Request): string {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return req.headers.authorization!.split(' ')[1]; // strip 'Bearer'
     }
 
-    async tryGetToken(authToken: string) {
-        const decoded = this.getPayload(authToken);
-        return await this.databaseHelper.getUser(decoded.id);
-    }
-
-    async checkTokenExpired(payload: UserPayload, userToken: UserToken, request_url: string) {
+    async checkTokenExpired(payload: UserPayload, userToken: UserToken, request_url: string): Promise<void> {
         const timeBegin = userToken.time;
         const expire = userToken.expires_in;
         const timeNow = new Date().getTime();
