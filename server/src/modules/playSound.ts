@@ -53,7 +53,7 @@ export class PlayCommand extends Command {
         }
         const connection: VoiceConnection = this.voiceHelper.getConnection(serverId) ?? await this.voiceHelper.joinVoiceChannelById(serverId, channelId);
         let dispatcher: StreamDispatcher = connection.dispatcher;
-        const serverInfo = await this.databaseHelper.getServerInfo(serverId);
+        const serverInfo = await this.databaseHelper.getServerSettings(serverId);
         if (dispatcher) { //if bot is playing something at the moment, it interrupts and plays the other file
             dispatcher.destroy(new Error('playFile')); //Parameter = reason why dispatcher ended
         }

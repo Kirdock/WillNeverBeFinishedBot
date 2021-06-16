@@ -63,16 +63,21 @@ export class DatabaseHelper {
     }
 
     async setIntro(userId: Snowflake, soundId: ObjectID, serverId: Snowflake): Promise<UpdateWriteOpResult>{
-        const updateQuery: {[key: string]: ObjectID} = {};
-        updateQuery[serverId] = soundId;
-        return this.userCollection.updateOne({id: userId}, {$set: {intros: updateQuery}}, {upsert: true});
+        return this.userCollection.updateOne({id: userId}, {$set: {intros: {[serverId]: soundId}}}, {upsert: true});
     }
 
     async getIntro(userId: Snowflake, serverId: Snowflake):Promise<string | undefined> {
-        const projection: {[key: string]: number} = {};
-        projection[serverId] = 1;
-        projection.id = 1;
-        const user = await this.userCollection.findOne<User>({id: userId}, {projection})
+        const projection: FindOneOptions<User> =
+        {
+            projection: {
+                intros:{
+                    [serverId]: 1
+                },
+                _id: 0
+            }
+        };
+        
+        const user = await this.userCollection.findOne<User>({id: userId}, projection);
         return user?.intros?.[serverId];
     }
 
@@ -114,7 +119,9 @@ export class DatabaseHelper {
     }
 
     async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<User[]>{
-        return this.userCollection.find(
+        const usersWithoutInfo: User[] = [];
+        
+        const userInfos: User[] = await this.userCollection.find(
             {
                 id: 
                 {
@@ -129,6 +136,16 @@ export class DatabaseHelper {
                     id: 1
                 }
             }).toArray();
+
+        for(const userId of users) {
+            if(!userInfos.some(u => u.id === userId)){
+                const newUser = new User();
+                newUser.id = userId;
+                usersWithoutInfo.push(newUser);
+            }
+        }
+        userInfos.push(...usersWithoutInfo);
+        return userInfos;
     }
 
     private logSound(userId: Snowflake, meta: SoundMeta, message: string) {
@@ -171,11 +188,21 @@ export class DatabaseHelper {
         return logs;
     }
 
-    async getServerInfo(serverId: Snowflake): Promise<ServerSettings>{
-        return this.serverInfoCollection.findOne({id: serverId});
+    async getServerSettings(serverId: Snowflake): Promise<ServerSettings>{
+        let result: ServerSettings | null = await this.serverInfoCollection.findOne({id: serverId},
+            {
+                projection: {
+                    _id: 0
+                }
+            });
+        if(!result){
+            result = new ServerSettings();
+            result.id = serverId;
+        }
+        return result;
     }
 
-    async udpateServerInfo(serverInfo: ServerSettings): Promise<UpdateWriteOpResult>{
+    async udpateServerSettings(serverInfo: ServerSettings): Promise<UpdateWriteOpResult>{
         const {id, ...data} = serverInfo;
         return this.serverInfoCollection.updateOne({id}, {$set: {...data}}, {upsert: true});
     }

@@ -14,7 +14,7 @@ import { DataService } from 'src/app/services/data.service';
 export class ServerSettingsComponent implements OnInit, OnDestroy {
   public servers: Server[] = [];
   public serverSettings: ServerSettings = new ServerSettings();
-  public selectedServer: Server | undefined;
+  public selectedServerId?: string;
   public soundCategories: string[] = [];
   public sounds: Sounds | undefined;
   private readonly destroyed$: Subject<void> = new Subject<void>();
@@ -22,27 +22,34 @@ export class ServerSettingsComponent implements OnInit, OnDestroy {
   constructor(private readonly dataService: DataService) { }
 
   public ngOnInit(): void {
+    this.dataService.sounds
+    .pipe(takeUntil(this.destroyed$))
+    .subscribe(sounds => {
+      this.sounds = sounds;
+    });
+
     this.dataService.servers.pipe(
       takeUntil(this.destroyed$)
     ).subscribe(servers => {
       this.servers = servers;
-      if(!this.selectedServer) {
-        this.selectedServer = this.servers.find(() => true);
+      if(!this.selectedServerId || !this.servers.some(server => server.id === this.selectedServerId)) {
+        this.selectedServerId = this.servers.find(() => true)?.id;
         this.selectedServerChanged();
       }
     });
   }
 
   public selectedServerChanged() {
-    if(this.selectedServer) {
-      this.dataService.getServerSettings(this.selectedServer.id).subscribe(serverSettings => {
+    if(this.selectedServerId) {
+      this.dataService.getServerSettings(this.selectedServerId).subscribe(serverSettings => {
         this.serverSettings = serverSettings;
       });
+      this.dataService.loadSounds(this.selectedServerId);
     }
   }
 
   public updateServerInfo() {
-    this.dataService.updateServerSettings(this.serverSettings);
+    this.dataService.updateServerSettings(this.serverSettings).subscribe();
   }
 
   public ngOnDestroy(): void {

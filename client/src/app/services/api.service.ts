@@ -22,7 +22,7 @@ export class ApiService {
     }
 
     public updateIntro(soundId: string | undefined, serverId: string, userId?: string): Observable<any> {
-        return this.http.post<any>('setIntro', {soundId, userId, serverId});
+        return this.http.post<any>('userIntro', {soundId, userId, serverId});
     }
 
     public downloadSound(soundId: string): Observable<HttpResponse<Blob>>{
@@ -30,15 +30,15 @@ export class ApiService {
     }
 
     public updateServerSettings(serverSettings: ServerSettings): Observable<any> {
-        return this.http.post('serverSettings', serverSettings);
+        return this.http.post('serverSettings', {serverSettings});
     }
 
     public fetchUsersData(serverId: string): Observable<User[]>{
         return this.http.get<User[]>('users/'+serverId);
     }
 
-    public fetchUserData(serverId: string){
-        return this.http.get('user/'+serverId);
+    public getUserIntro(serverId: string): Observable<string>{
+        return this.http.get<string>('userIntro/'+serverId);
     }
 
     public getServers(): Observable<Server[]>{

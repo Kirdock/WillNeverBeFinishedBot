@@ -151,7 +151,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.soundCategories = Object.keys(sounds).map(category => {
       return {
         name: category,
-        show: !!this.soundCategories.find(cat => cat.name === category)?.show
+        show: this.soundCategories.find(cat => cat.name === category)?.show ?? true
       };
     });
     if(!this.selectedCategory || !this.soundCategories.some(category => category.name === this.selectedCategory)) {

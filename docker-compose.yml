@@ -7,7 +7,7 @@ services:
         env_file:
             - .env
         volumes:
-            - ./WillNeverBeFinishedBot:/app/bot/server/shared
+            - WillNeverBeFinishedBot:/app/bot/server/shared
         restart: always
     database:
         image: "mongo"
@@ -19,4 +19,7 @@ services:
         ports:
             - 27017:27017
         volumes:
-            - ./mongodb_data_volume:/data/db
+            - mongodb_data_volume:/data/db
+volumes:
+    mongodb_data_volume:
+    WillNeverBeFinishedBot:

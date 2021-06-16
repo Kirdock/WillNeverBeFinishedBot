@@ -13,11 +13,10 @@ import { DataService } from 'src/app/services/data.service';
 })
 export class UserIntrosComponent implements OnInit, OnDestroy {
   public servers: Server[] = [];
-  public selectedServer: Server | undefined;
+  public selectedServerId?: string;
   public searchText: string = '';
   public users: User[] = [];
   public cacheIntroBefore: string | undefined;
-  public soundCategories: string[] = [];
   public sounds: Sounds | undefined;
   private readonly destroyed$: Subject<void> = new Subject<void>();
 
@@ -36,13 +35,19 @@ export class UserIntrosComponent implements OnInit, OnDestroy {
   constructor(private readonly dataService: DataService) { }
 
   public ngOnInit(): void {
+    this.dataService.sounds
+    .pipe(takeUntil(this.destroyed$))
+    .subscribe(sounds => {
+      this.sounds = sounds;
+    });
+
     this.dataService.servers.pipe(
       takeUntil(this.destroyed$)
     ).subscribe(servers => {
       this.servers = servers;
-      this.selectedServer = this.servers.find(()=> true);
-      if(this.selectedServer) {
-        this.fetchUserData();
+      if(!this.selectedServerId || !this.servers.some(server => server.id === this.selectedServerId)) {
+        this.selectedServerId = this.servers.find(()=> true)?.id;
+        this.selectedServerChanged();
       }
     });
   }
@@ -51,11 +56,12 @@ export class UserIntrosComponent implements OnInit, OnDestroy {
     this.dataService.updateIntro(soundId, serverId, userId);
   }
 
-  public fetchUserData() {
-    if(this.selectedServer) {
-      this.dataService.getUserData(this.selectedServer.id).subscribe(users => {
+  public selectedServerChanged() {
+    if(this.selectedServerId) {
+      this.dataService.getUsersData(this.selectedServerId).subscribe(users => {
         this.users = users;
       });
+      this.dataService.loadSounds(this.selectedServerId);
     }
   }
 

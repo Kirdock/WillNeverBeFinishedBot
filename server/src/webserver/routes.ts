@@ -41,10 +41,10 @@ export class Router {
         }
       });
 
-    router.route('/log/:serverId')
+    router.route('/logs/:serverId')
       .get(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
-        if (await discordBot.isUserAdminInServer(result.id, req.params.serverId)) {
+        if (discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId)) {
           const logs: Log[] = await databaseHelper.getLogs(req.params.serverId, +(req.query.pageSize as string), +(req.query.pageKey as string), req.query.fromTime as string);
           await discordBot.mapUsernames(logs, 'userId');
           res.status(200).json(logs);
@@ -64,9 +64,9 @@ export class Router {
     router.route('/serverSettings')
       .post(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
-        const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.body.serverInfo.id);
+        const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.body.serverSettings.id);
         if (valid) {
-          await databaseHelper.udpateServerInfo(req.body.serverInfo);
+          await databaseHelper.udpateServerSettings(req.body.serverSettings);
           res.statusMessage = 'Einstöllungen sen aufm neiestn Stond';
           res.status(200).end();
         } else {
@@ -79,7 +79,7 @@ export class Router {
       const result: UserPayload = this.getPayload(req);
       const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId)
       if (valid) {
-        res.status(200).json(await databaseHelper.getServerInfo(req.params.serverId));
+        res.status(200).json(await databaseHelper.getServerSettings(req.params.serverId));
       }
       else {
         this.notAdmin(res);
@@ -158,8 +158,7 @@ export class Router {
             req.body.volume = 1;
           }
 
-          const guild = await discordBot.getServer(req.body.serverId);
-          const channelId = await discordBot.getChannelIdThroughUser(req.body.joinUser, req.body.serverId, req.body.channelId, guild, result.id);
+          const channelId = await discordBot.getChannelIdThroughUser(req.body.joinUser, req.body.serverId, req.body.channelId, result.id);
           if (channelId) {
             if (req.body.soundId) {
               const meta = await databaseHelper.getSoundMeta(req.body.soundId);
@@ -276,7 +275,7 @@ export class Router {
         });
       });
 
-    router.route('/setIntro')
+    router.route('/userIntro')
       .post(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
         const meta: SoundMeta | undefined = await databaseHelper.getSoundMeta(req.body.soundId);
@@ -302,11 +301,10 @@ export class Router {
         }
       });
 
-    router.route('/user/:serverId')
+    router.route('/userIntro/:serverId')
       .get(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
-        const intro = databaseHelper.getIntro(result.id, req.params.serverId);
-        await discordBot.mapUsernames([intro], 'id');
+        const intro = await databaseHelper.getIntro(result.id, req.params.serverId);
         res.status(200).json(intro);
       });
 
@@ -323,9 +321,8 @@ export class Router {
         let users: GuildMember[];
         if (discordBot.isSuperAdmin(result.id)) {
           users = await discordBot.getUsers(req.params.serverId);
-          
         } else {
-          users = await discordBot.getUsersWhereIsAdmin(result.id);
+          users = await discordBot.getUsersWhereIsAdmin(result.id, req.params.serverId);
         }
         const userInfo = await databaseHelper.getUsersInfo(users.map(user => user.id), req.params.serverId);
         await discordBot.mapUsernames(userInfo, 'id');

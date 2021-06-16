@@ -25,7 +25,6 @@ export class DataService {
     private _channels: BehaviorSubject<Channel[]> = new BehaviorSubject<Channel[]>([]);
 
     constructor(private apiService: ApiService, private storageService: StorageService, private authService: AuthService) {
-        this.setHasAdminServers();
     }
 
     private get location(): string {
@@ -45,7 +44,7 @@ export class DataService {
     }
 
     public get hasAdminServers(): Observable<boolean> {
-        return this._hasAdminServers.asObservable();
+        return this._hasAdminServers.asObservable().pipe(skip(1));
     }
 
     public get servers(): Observable<Server[]> {
@@ -157,8 +156,12 @@ export class DataService {
         return this.apiService.updateServerSettings(serverSettings);
     }
 
-    public getUserData(serverId: string): Observable<User[]> {
+    public getUsersData(serverId: string): Observable<User[]> {
         return this.apiService.fetchUsersData(serverId);
+    }
+
+    public getUserIntro(serverId: string): Observable<string> {
+        return this.apiService.getUserIntro(serverId);
     }
 
     public getLogs(serverId: string, pageSize?: number, pageKey?: number, fromTime?: Date): Observable<Log[]> {

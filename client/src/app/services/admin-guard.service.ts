@@ -7,11 +7,13 @@ import { DataService } from "./data.service";
     providedIn: 'root'
   })
 export class AdminGuardService implements CanActivate {
-
-    constructor(private readonly dataService: DataService) {}
+    private hasAdminServers$: Observable<boolean>;
+    constructor(private readonly dataService: DataService) {
+        this.hasAdminServers$ = this.dataService.hasAdminServers;
+    }
 
     canActivate(): Observable<boolean> {
-        return this.dataService.hasAdminServers;
+        return this.hasAdminServers$;
     }
 
 }

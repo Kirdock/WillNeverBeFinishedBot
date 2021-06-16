@@ -37,3 +37,22 @@ $WillNeverBeFinishedBot-theme: mat.define-light-theme((
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.pointer {
+  cursor: pointer;
+}
+
+/*Action icons*/
+a i {
+  font-size: 40px;
+  padding-right: 10px;
+}
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+  color: gray;
+}
+
+.mat-tab-label-content {
+  color: white;
+}

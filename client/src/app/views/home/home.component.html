@@ -12,15 +12,16 @@
             <div class="form-group">
                 <label class="control-label">Wähle eine Kategorie aus</label>
                 <div class="input-group">
-                    <label class="btn btn-primary col-md-2 finger">
+                    <label class="btn btn-primary col-md-2 pointer">
                         Auswahl der Datei(en) <input type="file" #inputFiles style="display:none" multiple accept="audio/*" (change)="submitFile(inputFiles.files); inputFiles.value = ''"/>
                     </label>
                     <input type="text"
-                            placeholder="Pick one"
-                            [(ngModel)]="selectedCategory"
-                            matInput
-                            [matAutocomplete]="auto">
-                    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+                        class="form-control"
+                        placeholder="Wöhl a Kategorie aus du Pliaz"
+                        [(ngModel)]="selectedCategory"
+                        matInput
+                        [matAutocomplete]="auto">
+                    <mat-autocomplete autoActiveFirstOption  #auto="matAutocomplete">
                         <mat-option *ngFor="let category of soundCategories" [value]="category.name" [textContent]="category.name"></mat-option>
                     </mat-autocomplete>
                 </div>
@@ -64,7 +65,7 @@
             </div>
         </div>
     </div>
-    <div *ngFor="let category of filteredSoundCategories" class="col-md-8" style="margin: 0 auto">
+    <div *ngFor="let category of filteredSoundCategories" style="margin: 0 auto; padding: 0 20px">
         <h2 class="control-label" [textContent]="category.name"></h2>
         <button type="button" class="btn btn-primary" (click)="category.show = !category.show" style="width: 40px; height: 40px" [textContent]="category.show ? '-' : '+'"></button>
         <div class="table_scroll">

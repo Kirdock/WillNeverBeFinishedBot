@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject, timer } from 'rxjs';
-import { switchMap, takeUntil } from 'rxjs/operators';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Log } from 'src/app/models/Log';
 import { Server } from 'src/app/models/Server';
 import { DataService } from 'src/app/services/data.service';
@@ -14,7 +14,7 @@ export class ServerLogListComponent implements OnInit, OnDestroy {
   public servers: Server[] = [];
   public logs: Log[] = [];
   public readonly logInterval = 30 * 1000;
-  public selectedServer: Server | undefined;
+  public selectedServerId?: string;
   public readonly pageSize = 50;
   public pageKey = 0;
   private readonly destroyed$: Subject<void> = new Subject<void>();
@@ -27,20 +27,24 @@ export class ServerLogListComponent implements OnInit, OnDestroy {
       takeUntil(this.destroyed$)
     ).subscribe(servers => {
       this.servers = servers;
-      this.selectedServer = this.servers.find(()=> true);
-      if(this.selectedServer) {
-        this.dataService.getLogs(this.selectedServer.id, this.pageSize, this.pageKey).subscribe(logs => {
-          this.logs = logs;
-        });
-      }
+      if(!this.selectedServerId || !this.servers.some(server => server.id === this.selectedServerId))
+        this.selectedServerId = this.servers.find(()=> true)?.id;
+        this.selectedServerChanged$.next();
     });
 
-    timer(this.logInterval, this.logInterval).pipe(
-      switchMap(() => this.selectedServerChanged$),
+    this.selectedServerChanged$.pipe(
+      tap(() => {
+        if(this.selectedServerId) {
+          this.dataService.getLogs(this.selectedServerId, this.pageSize, this.pageKey).subscribe(logs => {
+            this.logs = logs;
+          });
+        }
+      }),
+      switchMap( () => timer(this.logInterval, this.logInterval)),
       takeUntil(this.destroyed$),
     ).subscribe(() => {
-      if(this.selectedServer) {
-        this.dataService.getLogs(this.selectedServer.id, undefined, undefined, new Date()).subscribe(logs => {
+      if(this.selectedServerId) {
+        this.dataService.getLogs(this.selectedServerId, undefined, undefined, new Date()).subscribe(logs => {
           this.logs = logs;
         });
       }

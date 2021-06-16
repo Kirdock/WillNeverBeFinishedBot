@@ -12,7 +12,7 @@ import { StorageService } from './services/storage.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit, OnDestroy {
-  private readonly _hasAdminServerInterval = 30*60*1000;
+  private readonly _hasAdminServerInterval = 30 * 1000;
   private readonly destroyed$: Subject<void> = new Subject<void>();
   public hasAdminServers$?: Observable<boolean>;
   

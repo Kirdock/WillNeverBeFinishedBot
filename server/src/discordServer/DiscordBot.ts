@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GuildMemberManager, User } from 'discord.js';
+import { GuildMemberManager, Intents, User } from 'discord.js';
 import { Client, Collection, Guild, GuildMember, Message, Snowflake, VoiceConnection, VoiceState } from 'discord.js';
 import { ServerSettings } from '../models/ServerSettings';
 import { UserObject } from '../models/UserObject';
@@ -27,7 +27,14 @@ export class DiscordBot {
         this.prefixes = process.env.PREFIXES!.split(',');
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.superAdmins = process.env.OWNERS!.split(',').map(owner => owner.trim()).filter(owner => owner);
-        this.client = new Client();
+        this.client = new Client({
+            ws: {
+                intents: [
+                    Intents.NON_PRIVILEGED,
+                    'GUILD_MEMBERS',
+                ]
+            }
+        });
         this.setReady();
         this.setVoiceStateUpdate();
         this.setOnMessage();
@@ -79,7 +86,7 @@ export class DiscordBot {
 
     private setVoiceStateUpdate() {
         this.client.on('voiceStateUpdate', async (oldState: VoiceState, newState: VoiceState) => {
-            const serverInfo: ServerSettings = await this.databaseHelper.getServerInfo(newState.guild.id);
+            const serverInfo: ServerSettings = await this.databaseHelper.getServerSettings(newState.guild.id);
 
             if (!serverInfo) {
                 return;
@@ -203,8 +210,8 @@ export class DiscordBot {
     }
     public async getUserServers(userId: string): Promise<UserServerInformation[]> {
         const allServers: UserServerInformation[] = [];
-        for (const guild of this.client.guilds.cache) {
-            const server: UserServerInformation | undefined = await this.getUserServer(guild[1], userId);
+        for (const guild of this.client.guilds.cache.array()) {
+            const server: UserServerInformation | undefined = await this.getUserServer(await guild.fetch(), userId);
             if (server) {
                 allServers.push(server);
             }
@@ -228,8 +235,7 @@ export class DiscordBot {
         let server: UserServerInformation | undefined;
         const isOwner = this.isSuperAdmin(userId);
         if (member) {
-            // const serverInfo: ServerSettings | object = isAdmin ? this.databaseHelper.getServerInfo(guild.id) : {}
-            server = new UserServerInformation(guild.id, guild.name, guild.icon, member.permissions.has('ADMINISTRATOR'), member.permissions.bitfield);
+            server = new UserServerInformation(guild.id, guild.name, guild.icon, member.hasPermission('ADMINISTRATOR'), member.permissions.bitfield);
         }
         else if (isOwner) {
             server = new UserServerInformation(guild.id, guild.name, guild.icon, true, 0);
@@ -238,32 +244,21 @@ export class DiscordBot {
     }
 
     public async hasUserAdminServers(userId: string): Promise<boolean> {
-        const result = await this.getUserServers(userId);
-        return result.some(server => server.isAdmin);
-    }
-
-    public async getUsersWhereIsAdmin(userId: string): Promise<GuildMember[]> {
-        const servers = await this.getServersWhereAdmin(userId);
-        return (await Promise.all(
-            servers.map(guild => guild.members)
-                .reduce((a: GuildMember[], b: GuildMemberManager) => [...a, ...b.cache.values()], []) // return all members (select many)
-        )).sort((a, b) => a.displayName.localeCompare(b.displayName));
-    }
-
-    private async getServersWhereAdmin(userId: string): Promise<Collection<string, Guild>> {
-        let servers: Collection<string, Guild> = new Collection<string, Guild>();
-        if (this.isSuperAdmin(userId)) {
-            servers = this.client.guilds.cache;
-        }
-        else {
-            for await (const guild of this.client.guilds.cache) {
-                if (await this.isUserAdminInServer(userId, guild[1].id)) {
-                    const server = await this.getServer(guild[1].id);
-                    servers.set(server.id, server);
-                }
+        for (const guild of this.client.guilds.cache) {
+            if(await this.isUserAdminInServer(userId, guild[0])){
+                return true;
             }
         }
-        return servers;
+        return false;
+    }
+
+    public async getUsersWhereIsAdmin(userId: string, serverId: string): Promise<GuildMember[]> {
+        let users: GuildMember[] = [];
+        if(await this.isUserAdminInServer(userId, serverId)) {
+            users = await this.getUsers(serverId);
+        }
+        users.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        return users;
     }
 
     public async isUserAdminInServer(userId: string, serverId: string): Promise<boolean> {
@@ -300,7 +295,7 @@ export class DiscordBot {
 
     public async getVoiceChannelsOfServer(serverId: string): Promise<{ id: Snowflake, name: string }[]> {
         const guild = await this.getServer(serverId);
-        return guild?.channels.cache.filter(channel => channel.type === 'voice')
+        return guild?.channels.cache.array().filter(channel => channel.type === 'voice')
             .sort((channel1, channel2) => channel1.rawPosition - channel2.rawPosition)
             .map(item => {
                 return {
@@ -311,7 +306,7 @@ export class DiscordBot {
     }
 
     public async getUsers(serverId: string): Promise<GuildMember[]> {
-        const guild: Guild = await this.client.guilds.fetch(serverId);
+        const guild: Guild = await this.getServer(serverId);
         let users: GuildMember[] = [];
         if (guild) {
             users = (await guild.members.fetch()).array();
@@ -340,13 +335,8 @@ export class DiscordBot {
         if (!result) {
             const guild = this.client.guilds.cache.get(serverId);
             if (guild) {
-                try {
-                    const member = await this.getGuildMember(guild, userId);
-                    result = !!member;
-                }
-                catch {
-                    result = false;
-                }
+                const member = await this.getGuildMember(guild, userId);
+                result = !!member;
             }
         }
         return result;
@@ -361,12 +351,13 @@ export class DiscordBot {
      * @param userId 
      * @returns the channelId the bot will join
      */
-    public async getChannelIdThroughUser(joinToUser: boolean, serverId: string, channelId: string, guild: Guild, userId: Snowflake): Promise<string | null> {
+    public async getChannelIdThroughUser(joinToUser: boolean, serverId: string, channelId: string, userId: Snowflake): Promise<string | null> {
         let result: string | null = null;
         if (joinToUser) {
+            const guild: Guild = await this.getServer(serverId);
             if (guild) {
                 const member = await this.getGuildMember(guild, userId);
-                if (member && member.guild.id === serverId && member.voice?.channel) {
+                if (member?.voice?.channelID) {
                     result = member.voice.channelID;
                 }
             }
@@ -381,5 +372,6 @@ export class DiscordBot {
         for (const userObject of array) {
             userObject.username = (await this.getSingleUser(userObject[key]))?.username;
         }
+        array.sort((a,b) => a.username.localeCompare(b.username));
     }
 }

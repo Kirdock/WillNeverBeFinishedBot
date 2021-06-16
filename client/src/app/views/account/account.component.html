@@ -3,20 +3,20 @@
     <div class="input-group">
         <label class="control-label">Server</label>
         <div class="col-md-5">
-            <select class="form-control" [(ngModel)]="selectedServer" (change)="serverChanged()">
+            <select class="form-control" [(ngModel)]="selectedServerId" (change)="selectedServerChanged()">
                 <option *ngFor="let server of servers" [value]="server.id" [textContent]="server.name"></option>
             </select>
         </div>
-        <ng-container *ngIf="selectedServer && user">
+        <ng-container *ngIf="selectedServerId">
             <label class="control-label">Intro</label>
             <div class="col-md-5">
-                <select class="form-control" [(ngModel)]="user.intros[selectedServer.id]" (change)="updateIntro()" (focus)="cacheIntroBefore = user.intros[selectedServer.id]">
-                    <optgroup *ngFor="let category of soundCategories" [label]="category">
-                        <option *ngFor="let sound of sounds[category]" [value]="sound._id" [textContent]="sound.fileName"></option>
+                <select class="form-control" [(ngModel)]="userIntro" (change)="updateIntro(userIntro)" (focus)="cacheIntroBefore = userIntro">
+                    <optgroup *ngFor="let item of sounds | keyvalue" [label]="item.key">
+                        <option *ngFor="let sound of sounds[item.key]" [value]="sound._id" [textContent]="sound.fileName"></option>
                     </optgroup>
                 </select>
             </div>
-            <a [routerLink]="" (click)="updateIntro(true)" title="Intro zurücksetzen">
+            <a [routerLink]="" (click)="updateIntro()" title="Intro zurücksetzen">
                 <i class="fas fa-undo"></i>
             </a>
         </ng-container>
