@@ -1,9 +1,0 @@
-locations:
-nano ~/.gitconfig
-nano ~/.git-credentials
-
-
-store login credentials after first login:
-
-git config --global credential.helper store //saved but not encrypted
-git config --global credential.helper cache  //temporary (in memory; has a timeout); not stored to disk
