@@ -5,7 +5,7 @@ import { ErrorTypes } from '../services/ErrorTypes';
 
 export class PlayCommand extends Command {
     protected commandText = 'play';
-    private static forcePlayLock: Snowflake[] = [];
+    public static forcePlayLock: Snowflake[] = [];
     private readonly fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
 
     async doWork(message: Message): Promise<void> {

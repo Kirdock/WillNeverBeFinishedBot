@@ -5,6 +5,7 @@ import { ServerSettings } from '../models/ServerSettings';
 import { UserObject } from '../models/UserObject';
 import { UserServerInformation } from '../models/UserServerInformation';
 import { PlayCommand } from '../modules/playSound';
+import { QuestionCommand } from '../modules/question';
 import { DatabaseHelper } from '../services/databaseHelper';
 import FileHelper from '../services/fileHelper';
 import Logger from '../services/logger';
@@ -16,6 +17,7 @@ export class DiscordBot {
     public playSoundCommand: PlayCommand;
     private superAdmins: string[];
     private prefixes: string[];
+    private questionCommand: QuestionCommand;
 
     public get id(): string {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -41,6 +43,7 @@ export class DiscordBot {
         this.client.login(process.env.TOKEN);
         this.voiceHelper = new VoiceHelper(this, logger);
         this.playSoundCommand = new PlayCommand(logger, this.voiceHelper, databaseHelper, this.fileHelper);
+        this.questionCommand = new QuestionCommand(logger, this.voiceHelper, this.databaseHelper, this.fileHelper);
     }
 
     private setReady() {
@@ -136,76 +139,79 @@ export class DiscordBot {
     }
 
     private setOnMessage() {
-        this.client.on('message', (message: Message) => {
+        this.client.on('message', async (message: Message) => {
             // Will be changed because of slash-commmands
 
 
-            // let content = undefined;
-            // let prefixFound = false;
-            // const messageContent = message.content.toLocaleLowerCase().trim();
-            // for(let i = 0; i < prefixes.length; i++){
-            //     if(messageContent.startsWith(prefixes[i]))
-            //     {
-            //         content = message.content.substring(prefixes[i].length);
-            //         prefixFound = true;
-            //         break;
-            //     }
-            // }
+            let content = undefined;
+            let prefixFound = false;
+            const messageContent = message.content.toLocaleLowerCase().trim();
+            for(let i = 0; i < this.prefixes.length; i++){
+                if(messageContent.startsWith(this.prefixes[i]))
+                {
+                    content = message.content.substring(this.prefixes[i].length);
+                    prefixFound = true;
+                    break;
+                }
+            }
 
-            // if(!prefixFound && messageContent.startsWith(`<@${Config.clientId}>`)){
-            //     content = message.content.substring(Config.clientId.length+3);
-            // }
-            // if(content){
-
-            //     content = content.trim();
-            //     if(this.playSoundCommand.isCommand(content))
-            //     {
-            //         this.playSoundCommand.doWork(message, content);
-            //     }
-            //     else{
-            //         content = content.toLocaleLowerCase();
-            //         if(listCommand.isCommand(content)){
-            //             message.reply('https://kirdock.synology.me:4599/');
-            //         }
-            //         else if(questionCommand.isCommand(content))
-            //         {
-            //             questionCommand.doWork(content, message);
-            //         }
-            //         else if(content === 'ping'){
-            //             message.reply('pong');
-            //         }
-            //         else if(content === 'leave'){
-            //             const forceLock = this.databaseHelper.getForceLock(message.guild.id);
-            //             if(forceLock){
-            //                 clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(guild=>{
-            //                     if(guild){
-            //                         this.voiceHelper.disconnectVoice(message.guild.id);
-            //                     }
-            //                 });
-            //             }
-            //             else{
-            //                 this.voiceHelper.disconnectVoice(message.guild.id);
-            //             }
-
-            //         }
-            //         else if(content === 'stop'){
-            //             clientHelper.isUserAdminInServer(message.author.id,message.guild.id).then(guild=>{
-            //                 this.playSoundCommand.stopPlaying(message.guild.id, !!guild);
-            //             }).catch(()=>{
-            //                 this.playSoundCommand.stopPlaying(message.guild.id);
-            //             })
-            //         }
-            //         else if(content === 'join'){
-            //             this.voiceHelper.joinVoiceChannel(message);
-            //         }
-            //         else if(content === 'flip'){
-            //             message.reply(Math.floor(Math.random()*2) == 0 ? 'Kopf' : 'Zahl');
-            //         }
-            //         else{
-            //             message.reply('Red Deitsch mit mir! I hob kan Plan wos du von mir wüllst!');
-            //         }
-            //     }
-            // }
+            if(!prefixFound && messageContent.startsWith(`<@${this.id}>`)){
+                content = message.content.substring(this.id.length+3);
+            }
+            if(content){
+                content = content.trim();
+                if(this.playSoundCommand.isCommand(content))
+                {
+                    this.playSoundCommand.doWork(message);
+                }
+                else{
+                    content = content.toLocaleLowerCase();
+                    if(content.startsWith('list')){
+                        message.reply('https://kirdock.synology.me:4599/');
+                    }
+                    else if(this.questionCommand.isCommand(content))
+                    {
+                        this.questionCommand.doWork(message);
+                    }
+                    else if(content === 'ping'){
+                        message.reply('pong');
+                    }
+                    else if(content === 'leave'){
+                        if(message.guild) {
+                            const forceLock = PlayCommand.forcePlayLock.includes(message.guild.id);
+                            if(forceLock){
+                                if(await this.isUserAdminInServer(message.author.id,message.guild.id)){
+                                    this.voiceHelper.disconnectVoice(message.guild.id);
+                                };
+                            }
+                            else{
+                                this.voiceHelper.disconnectVoice(message.guild.id);
+                            }
+                        }
+                    }
+                    else if(content === 'stop'){
+                        if(message.guild){
+                            this.playSoundCommand.stopPlaying(message.guild.id, this.isSuperAdmin(message.author.id));
+                        }
+                    }
+                    else if(content === 'join'){
+                        this.voiceHelper.joinVoiceChannel(message);
+                    }
+                    else if(content === 'flip'){
+                        message.reply(Math.floor(Math.random()*2) == 0 ? 'Kopf' : 'Zahl');
+                    }
+                    else if (content.startsWith('pick')){
+                        const elements = content.substring(4).split(',').map(item => item.trim()).filter(item => item.length !== 0);
+                        if(elements.length !== 0) {
+                            const index = Math.floor(Math.random()*elements.length-1);
+                            message.reply(elements[index]);
+                        }
+                    }
+                    else{
+                        message.reply('Red Deitsch mit mir! I hob kan Plan wos du von mir wüllst!');
+                    }
+                }
+            }
         });
     }
     public async getUserServers(userId: string): Promise<UserServerInformation[]> {
