@@ -101,3 +101,5 @@ dist/
 
 # created folders by server
 shared/
+WillNeverBeFinishedBot/
+mongodb_data_volume

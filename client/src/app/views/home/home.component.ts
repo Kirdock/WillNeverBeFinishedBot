@@ -2,7 +2,7 @@ import { HttpHeaders } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { Subject, timer } from 'rxjs';
-import { switchMap, takeUntil } from 'rxjs/operators';
+import { switchMap, take, takeUntil } from 'rxjs/operators';
 import { Category } from 'src/app/models/Category';
 import { Channel } from 'src/app/models/Channel';
 import { HomeSettings } from 'src/app/models/HomeSettings';
@@ -33,6 +33,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public soundPollingInterval = 30 * 1000;
   private destroyed$: Subject<void> = new Subject<void>();
   private serverChanged$: Subject<void> = new Subject<void>();
+  public loading: boolean = true;
 
   public get isOwner(): boolean {
     return this.authService.isOwner();
@@ -45,6 +46,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public set selectedServerId(serverId: string | undefined) {
     this.settings.selectedServerId = serverId;
     this.saveSettings();
+    this.serverChanged$.next();
   }
 
   public get joinUser(): boolean {
@@ -61,7 +63,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   public set selectedChannelId(channelId: string | undefined) {
-    this.settings.selectedServerId = channelId;
+    this.settings.selectedChannelId = channelId;
     this.saveSettings();
   }
 
@@ -93,8 +95,18 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.maxVolume = 1000;
     }
 
+    this.serverChanged$
+      .pipe(
+        takeUntil(this.destroyed$)
+      ).subscribe(_ => {
+        this.selectedChannelId = undefined;
+        if(this.selectedServerId) {
+          this.fetchChannels();
+          this.dataService.loadSounds(this.selectedServerId);
+        }
+      })
+
     timer(this.soundPollingInterval, this.soundPollingInterval).pipe(
-      switchMap(() => this.serverChanged$),
       takeUntil(this.destroyed$),
     ).subscribe(() => {
       if(this.selectedServerId) {
@@ -105,35 +117,30 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.dataService.sounds.pipe(
       takeUntil(this.destroyed$)
     ).subscribe(newSounds => {
-      if(this.selectedServerId) {
-        this.sounds = newSounds[this.selectedServerId];
-        this.updateSoundCategories(this.sounds);
-      }
+      this.sounds = newSounds;
+      this.updateSoundCategories(this.sounds);
     });
 
     this.dataService.servers.pipe(
       takeUntil(this.destroyed$)
     ).subscribe(servers => {
       this.servers = servers;
-      this.fetchChannels();
-      if(this.selectedServerId) {
-        if(!this.servers.some(server => server.id === this.selectedServerId)){
-          this.selectedServerId = undefined;
-        }
-        else if(!this.sounds) {
-          this.dataService.loadSounds(this.selectedServerId);
-        }
+      if(!this.selectedServerId || !this.servers.some(server => server.id === this.selectedServerId)) {
+        this.selectedServerId = this.servers.find(_ => true)?.id;
       }
+      else if(!this.sounds) {
+        this.dataService.loadSounds(this.selectedServerId);
+      }
+      this.loading = false;
+      this.fetchChannels();
     });
 
     this.dataService.channels.pipe(
       takeUntil(this.destroyed$)
     ).subscribe(channels => {
-      if(this.selectedServerId){
-        this.channels = channels[this.selectedServerId] ?? [];
-        if(this.selectedChannelId && !this.channels.some(channel => channel.id === this.selectedChannelId)) {
-          this.selectedChannelId = undefined;
-        }
+      this.channels = channels;
+      if(!this.selectedChannelId || !this.channels.some(channel => channel.id === this.selectedChannelId)) {
+        this.selectedChannelId = channels.find(_ => true)?.id;
       }
     })
 
@@ -147,15 +154,13 @@ export class HomeComponent implements OnInit, OnDestroy {
         show: !!this.soundCategories.find(cat => cat.name === category)?.show
       };
     });
+    if(!this.selectedCategory || !this.soundCategories.some(category => category.name === this.selectedCategory)) {
+      this.selectedCategory = this.soundCategories.find(_ => true)?.name;
+    }
   }
 
   public isAdmin(): boolean {
     return this.servers.find(server => server.id === this.selectedServerId)?.isAdmin ?? false;
-  }
-
-  public selectedServerChanged(): void {
-    this.serverChanged$.next();
-    this.fetchChannels();
   }
 
   public fetchChannels(): void {
@@ -197,7 +202,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.joinUser,
           this.youtubeUrl
         );
-      this.dataService.playSound(request);
+      this.dataService.playSound(request).subscribe();
     }
   }
 
@@ -233,8 +238,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private downloadFile(data: ArrayBuffer | string, fileName: string) {
-    const url: string = data instanceof ArrayBuffer ? window.URL.createObjectURL(data) : data;
+  private downloadFile(data: Blob | string, fileName: string) {
+    const url: string = data instanceof Blob ? window.URL.createObjectURL(data) : data;
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', fileName);

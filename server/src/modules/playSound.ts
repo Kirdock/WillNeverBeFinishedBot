@@ -2,11 +2,10 @@ import { Message, Snowflake, StreamDispatcher, VoiceConnection, VoiceState } fro
 import ytdl from 'ytdl-core';
 import { Command } from './Command';
 import { ErrorTypes } from '../services/ErrorTypes';
-import { ObjectID } from 'bson';
 
 export class PlayCommand extends Command {
     protected commandText = 'play';
-    private static forcePlayLock: Snowflake[];
+    private static forcePlayLock: Snowflake[] = [];
     private readonly fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
 
     async doWork(message: Message): Promise<void> {
@@ -89,7 +88,7 @@ export class PlayCommand extends Command {
         });
     }
 
-    async playIntro(voiceState: VoiceState, fallBackIntro: ObjectID | undefined): Promise<void> {
+    async playIntro(voiceState: VoiceState, fallBackIntro: string | undefined): Promise<void> {
         const newUserChannelId: Snowflake | undefined = voiceState.channel?.id;
         if (!newUserChannelId) return;
 

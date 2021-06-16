@@ -5,25 +5,27 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
-      <li class="nav-item active">
-        <a class="nav-link" [routerLink]="['/']">Startseite</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" [routerLink]="['Account']" *ngIf="isLoggedIn">Account</a>
-      </li>
-      <li class="nav-item" *ngIf="hasAdminServers$ | async">
-        <a class="nav-link" [routerLink]="['Admin']">Admin</a>
-      </li>
-      <li class="nav-item">
+      <ng-container *ngIf="isLoggedIn">
+        <li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <a class="nav-link" [routerLink]="['/']">Startseite</a>
+        </li>
+        <li class="nav-item" routerLinkActive="active">
+          <a class="nav-link" [routerLink]="['Account']">Account</a>
+        </li>
+        <li class="nav-item" routerLinkActive="active" *ngIf="hasAdminServers$ | async">
+          <a class="nav-link" [routerLink]="['Admin']">Admin</a>
+        </li>
+      </ng-container>
+      <li class="nav-item" routerLinkActive="active">
         <a class="nav-link" [href]="addServerLink">Server hinzufügen</a>
       </li>
-      <li class="nav-item" *ngIf="isLoggedIn">
-        <a class="nav-link" [routerLink]="['/', 'Login']" (click)="logout()">Abmelden</a>
+      <li class="nav-item" routerLinkActive="active" *ngIf="isLoggedIn">
+        <a class="nav-link" [routerLink]="['/', 'Login']" (click)="logout()" [textContent]="">Abmelden</a>
       </li>
     </ul>
   </div>
   <span class="navbar-text" *ngIf="isLoggedIn">
-        Der Vollpfostn <span style="font-weight: bold; color: blue" [textContent]="userPayload?.username"></span> hots auf de Seitn gschofft!
+    Der Vollpfostn <span style="font-weight: bold; color: blue" [textContent]="userPayload?.username"></span> hots auf de Seitn gschofft!
   </span>
 </nav>
 <router-outlet></router-outlet>

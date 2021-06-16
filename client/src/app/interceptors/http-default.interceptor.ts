@@ -16,7 +16,6 @@ export class HttpDefaultInterceptor implements HttpInterceptor {
         const authReq = request.clone({
             url: `${this.baseUrl}/${request.url}`,
             headers: request.headers
-                .set('Content-Type', request.headers.get('Content-Type') ?? 'application/json')
                 .set('Authorization', `Bearer ${this.storageService.token}`)
             });
         return next.handle(authReq);

@@ -1,5 +1,4 @@
 import { verify, sign } from 'jsonwebtoken';
-import FormData from 'form-data';
 import axios from 'axios';
 import Logger from './logger';
 import { DatabaseHelper } from './databaseHelper';
@@ -7,9 +6,8 @@ import { DiscordBot } from '../discordServer/DiscordBot';
 import { UserPayload } from '../models/UserPayload';
 import { Request } from 'express';
 import { UserToken } from '../models/UserToken';
-import { UserObject } from '../models/UserObject';
 
-export default class AuthHelper {
+export class AuthHelper {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     private readonly secret: string = process.env.WEBTOKEN_SECRET!;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -24,31 +22,28 @@ export default class AuthHelper {
      * @param redirectUrl Url 
      * @returns encoded token
      */
-    async login(code: string, redirectUrl: string): Promise<string> {
-        const formData = new FormData();
+    async login(code: string, req: Request): Promise<string> {
+        const formData = new URLSearchParams();
         formData.append('client_id', this.discordBot.id);
         formData.append('client_secret', this.clientSecret);
         formData.append('grant_type', 'authorization_code');
-        formData.append('redirect_uri', redirectUrl);
+        formData.append('redirect_uri', this.buildRedirectUri(req));
         formData.append('scope', this.scope);
         formData.append('code', code);
-
-        const response = await axios.post('https://discord.com/api/oauth2/token', {
-            data: formData,
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        
+        const response = await axios.post('https://discord.com/api/oauth2/token', formData,
+            {headers: {'content-type': 'application/x-www-form-urlencoded'}}
+        );
         const userToken: UserToken = response.data;
         const user = await this.discordBot.fetchUserData(userToken);
         await this.databaseHelper.updateUserToken(user.id, userToken);
         const payload: UserPayload = new UserPayload(user.id, user.username, this.discordBot.isSuperAdmin(user.id));
-        const token = sign(payload, this.secret);
-        // this.databaseHelper.addUser(payload, userToken);
+        const token = sign(JSON.stringify(payload), this.secret);
         return token;
     }
 
     async refreshToken(refresh_token: string, scope: string, request_url: string): Promise<UserToken> {
-        const formData = new FormData();
-
+        const formData = new URLSearchParams();
         formData.append('client_id', this.discordBot.id);
         formData.append('client_secret', this.clientSecret);
         formData.append('grant_type', 'refresh_token');
@@ -56,10 +51,9 @@ export default class AuthHelper {
         formData.append('scope', scope);
         formData.append('refresh_token', refresh_token);
 
-        const { data } = await axios.get('https://discord.com/api/oauth2/token', {
-            data: formData,
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        const { data } = await axios.post('https://discord.com/api/oauth2/token', formData,
+            {headers: {'content-type': 'application/x-www-form-urlencoded'}}
+        );
         return data;
     }
 
@@ -74,7 +68,7 @@ export default class AuthHelper {
             try {
                 const payload = this.getPayload(req);
                 const userToken = await this.databaseHelper.getUserToken(payload.id);
-                await this.checkTokenExpired(payload, userToken, `${req.headers.referer}Login`);
+                await this.checkTokenExpired(payload, userToken, this.buildRedirectUri(req));
                 req.body.payload = payload;
                 valid = true;
             }
@@ -83,6 +77,10 @@ export default class AuthHelper {
             }
         }
         return valid;
+    }
+
+    private buildRedirectUri(req: Request): string {
+        return req.protocol + '://' + req.get('host') + '/Login';
     }
 
     /**

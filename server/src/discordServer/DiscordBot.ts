@@ -203,7 +203,7 @@ export class DiscordBot {
     }
     public async getUserServers(userId: string): Promise<UserServerInformation[]> {
         const allServers: UserServerInformation[] = [];
-        for await (const guild of this.client.guilds.cache) {
+        for (const guild of this.client.guilds.cache) {
             const server: UserServerInformation | undefined = await this.getUserServer(guild[1], userId);
             if (server) {
                 allServers.push(server);
@@ -212,8 +212,19 @@ export class DiscordBot {
         return allServers;
     }
 
+    private async getGuildMember(guild: Guild, userId: string): Promise<GuildMember | null> {
+        let member: GuildMember | null;
+        try {
+            member = await guild.members.fetch(userId);
+        }
+        catch {
+            member = null;
+        }
+        return member;
+    }
+
     private async getUserServer(guild: Guild, userId: string): Promise<UserServerInformation | undefined> {
-        const member = await guild.members.fetch(userId);
+        const member = await this.getGuildMember(guild, userId);
         let server: UserServerInformation | undefined;
         const isOwner = this.isSuperAdmin(userId);
         if (member) {
@@ -259,8 +270,8 @@ export class DiscordBot {
         let status: boolean;
         try {
             const guild = await this.client.guilds.fetch(serverId);
-            const member = await guild.members.fetch(userId);
-            status = member.permissions.has('ADMINISTRATOR');
+            const member = await this.getGuildMember(guild, userId);
+            status = member?.permissions.has('ADMINISTRATOR') ?? false;
         }
         catch {
             status = false;
@@ -330,7 +341,7 @@ export class DiscordBot {
             const guild = this.client.guilds.cache.get(serverId);
             if (guild) {
                 try {
-                    const member = await guild.members.fetch(userId);
+                    const member = await this.getGuildMember(guild, userId);
                     result = !!member;
                 }
                 catch {
@@ -354,8 +365,8 @@ export class DiscordBot {
         let result: string | null = null;
         if (joinToUser) {
             if (guild) {
-                const member = await guild.members.fetch(userId);
-                if (member.guild.id === serverId && member.voice?.channel) {
+                const member = await this.getGuildMember(guild, userId);
+                if (member && member.guild.id === serverId && member.voice?.channel) {
                     result = member.voice.channelID;
                 }
             }

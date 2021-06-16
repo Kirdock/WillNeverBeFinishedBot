@@ -4,9 +4,9 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "start": "env-cmd --file ../.env-container nodemon",
+    "start": "env-cmd --file ../.env nodemon",
     "startCompile": "npm run build & npm run devCompile",
-    "devCompile": "env-cmd --file ../.env-container nodemon ./dist/index.js",
+    "devCompile": "env-cmd --file ../.env nodemon ./dist/index.js",
     "build": "tsc --project ./tsconfig.json"
   },
   "repository": {
@@ -26,7 +26,6 @@
     "discord.js": "^12.5.3",
     "express": "^4.17.1",
     "ffmpeg": "0.0.4",
-    "form-data": "^2.5.1",
     "fs": "0.0.1-security",
     "https": "^1.0.0",
     "jsonwebtoken": "^8.5.1",

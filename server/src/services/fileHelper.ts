@@ -5,7 +5,7 @@ import Logger from './logger';
 
 export default class FileHelper {
     public readonly rootDir: string = join(__dirname, '/../../../');
-    public readonly baseDir: string = join(this.rootDir, 'shared');
+    public readonly baseDir: string = join(this.rootDir, 'server', 'shared');
     public readonly soundFolder: string = join(this.baseDir, 'sounds');
     public readonly certFolder: string = join(this.baseDir, 'cert');
 
@@ -44,11 +44,11 @@ export default class FileHelper {
 
     public getFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Express.Multer.File[] {
         let files: Express.Multer.File[] = [];
-        if (fileArray instanceof File) {
+        if (fileArray instanceof Array) {
             files = fileArray as Express.Multer.File[];
         } else {
             fileArray = fileArray as { [fieldname: string]: Express.Multer.File[]; }
-            for (const key in files) {
+            for (const key in fileArray) {
                 files.push(...fileArray[key]);
             }
         }

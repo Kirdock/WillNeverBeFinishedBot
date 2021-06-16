@@ -83,7 +83,7 @@
           },
           "defaultConfiguration": "development",
           "options": {
-            "port": 4599
+            "port": 5000
           }
         },
         "extract-i18n": {

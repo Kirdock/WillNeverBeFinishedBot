@@ -1,6 +1,6 @@
 import express from "express";
 import { DiscordBot } from "./discordServer/DiscordBot";
-import AuthHelper from "./services/authHelper";
+import { AuthHelper } from "./services/authHelper";
 import { DatabaseHelper } from "./services/databaseHelper";
 import FileHelper from "./services/fileHelper";
 import Logger from "./services/logger";
@@ -19,14 +19,20 @@ start();
 
 async function start() {
     const logger: Logger = new Logger();
-    const fileHelper: FileHelper = new FileHelper(logger);
-    const databaseHelper: DatabaseHelper = new DatabaseHelper(logger, fileHelper);
-    await databaseHelper.run();
-    const discordBot: DiscordBot = new DiscordBot(databaseHelper, fileHelper, logger);
-    const authHelper = new AuthHelper(logger, databaseHelper, discordBot);
-    const router = express.Router();
-    new Router(discordBot, router, fileHelper, databaseHelper, logger, authHelper);
-    new WebServer(router, authHelper, fileHelper, logger);
+    try{
+        const fileHelper: FileHelper = new FileHelper(logger);
+        const databaseHelper = new DatabaseHelper(logger, fileHelper);
+        await databaseHelper.run();
+        const discordBot: DiscordBot = new DiscordBot(databaseHelper, fileHelper, logger);
+        const authHelper = new AuthHelper(logger, databaseHelper, discordBot);
+        const router = express.Router();
+        new Router(discordBot, router, fileHelper, databaseHelper, logger, authHelper);
+        new WebServer(router, authHelper, fileHelper, logger);
+    }
+    catch(e) {
+        logger.error(e, 'Server start');
+        process.exit(1);
+    }
 }
 
 

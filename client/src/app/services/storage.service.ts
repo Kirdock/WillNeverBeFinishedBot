@@ -24,7 +24,7 @@ export class StorageService {
 
     public set token(token: string) {
         this._token = token;
-        this.storage.setItem(this.tokenName, JSON.stringify(token));
+        this.storage.setItem(this.tokenName, token);
     }
 
     public get settings(): HomeSettings {

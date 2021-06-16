@@ -35,7 +35,9 @@ import { ServerSettingsComponent } from './components/server-settings/server-set
     HttpClientModule,
     AppRoutingModule,
     FormsModule,
-    ToastrModule.forRoot(),
+    ToastrModule.forRoot({
+      timeOut: 5000
+    }),
     BrowserAnimationsModule,
     MatTabsModule,
     MatAutocompleteModule

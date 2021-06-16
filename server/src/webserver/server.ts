@@ -1,13 +1,15 @@
 import express, { NextFunction } from 'express';
 import history from 'connect-history-api-fallback';
 import https from 'https';
-import AuthHelper from '../services/authHelper';
+import { AuthHelper } from '../services/authHelper';
 import FileHelper from '../services/fileHelper';
 import Logger from '../services/logger';
 import { Request, Response } from 'express';
 import { join } from 'path';
 
 export class WebServer {
+    private readonly baseUrl = '/api';
+
     constructor(router: express.Router, private authHelper: AuthHelper, private fileHelper: FileHelper, private logger: Logger) {
         const port: number = +process.env.PORT!;
         const app = express();
@@ -18,8 +20,8 @@ export class WebServer {
         app.use(staticFileMiddleware);
         app.use(history());
         app.use(staticFileMiddleware);
-        app.use(this.authentication);
-        app.use('/api', router);
+        app.use((req, res, next) => this.authentication(req, res, next));
+        app.use(this.baseUrl, router);
 
         if (!this.fileHelper.existsFile(join(this.fileHelper.certFolder, 'privkey.pem'))) {
             console.log('start local');
@@ -41,7 +43,7 @@ export class WebServer {
 
         // intercept OPTIONS method
         if ('OPTIONS' === req.method) {
-            res.send(200);
+            res.sendStatus(200);
         }
         else {
             next();
@@ -49,7 +51,7 @@ export class WebServer {
     }
 
     private async authentication(req: Request, res: Response, next: NextFunction) {
-        if (req.url === '/Login') {
+        if (req.url === `${this.baseUrl}/login`) {
             next();
         } else {
             if (!req.headers.authorization) {
@@ -59,15 +61,7 @@ export class WebServer {
                 next();
             }
             else {
-                if (req.files) {
-                    try {
-                        await this.fileHelper.deleteFiles(req.files);
-                    }
-                    catch (error) {
-                        this.logger.error(error, 'DeleteFiles');
-                    }
-                }
-                res.send(401);
+                res.sendStatus(401);
             }
         }
     }

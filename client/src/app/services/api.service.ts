@@ -17,16 +17,16 @@ export class ApiService {
     constructor(private http: HttpClient) {
     }
 
-    public login(code: string, redirectUrl: string): Observable<string> {
-        return this.http.post<string>('login', {code, redirectUrl});
+    public login(code: string): Observable<string> {
+        return this.http.post('login', {code}, {responseType: 'text'});
     }
 
     public updateIntro(soundId: string | undefined, serverId: string, userId?: string): Observable<any> {
         return this.http.post<any>('setIntro', {soundId, userId, serverId});
     }
 
-    public downloadSound(soundId: string): Observable<HttpResponse<ArrayBuffer>>{
-        return this.http.get(`sound/${soundId}`, {responseType: 'arraybuffer', observe: 'response'});
+    public downloadSound(soundId: string): Observable<HttpResponse<Blob>>{
+        return this.http.get(`sound/${soundId}`, {responseType: 'blob', observe: 'response'});
     }
 
     public updateServerSettings(serverSettings: ServerSettings): Observable<any> {
@@ -49,7 +49,7 @@ export class ApiService {
         return this.http.get<ServerSettings>(`serverSettings/${serverId}`);
     }
 
-    public playSound(data: PlaySoundRequest){
+    public playSound(data: PlaySoundRequest): Observable<any>{
         return this.http.post('playSound', data);
     }
 

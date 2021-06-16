@@ -8,6 +8,6 @@ export class ServerSettings {
     public minUser: boolean = false;
     public playIntroWhenUnmuted: boolean = false;
     public leaveChannelAfterPlay: boolean = false;
-    public defaultIntro?: ObjectID;
-    public defaultOutro?: ObjectID;
+    public defaultIntro?: string;
+    public defaultOutro?: string;
 }

@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs/internal/Subject';
 import { takeUntil } from 'rxjs/operators';
 import { DataService } from 'src/app/services/data.service';
-import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-login-view',
@@ -12,7 +11,6 @@ import { environment } from 'src/environments/environment';
 })
 export class LoginComponent implements OnInit, OnDestroy {
   private readonly destroyed$: Subject<void> = new Subject<void>();
-  private readonly location = window.location.protocol + '//' + window.location.host + '/Login';
 
   public get oauthLink(): string {
     return this.dataService.oauthLink;
@@ -25,7 +23,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       takeUntil(this.destroyed$)
     ).subscribe(params => {
       if(params.code) {
-        this.dataService.login(params.code, this.location).subscribe(() => {
+        this.dataService.login(params.code).subscribe(() => {
           this.router.navigate(['/']);
         });
       }

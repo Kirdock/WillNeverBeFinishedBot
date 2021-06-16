@@ -17,7 +17,7 @@ export class HttpSuccessInterceptor implements HttpInterceptor {
     return next.handle(request)
       .pipe(
         tap(response => {
-          if(response instanceof HttpResponse && response.statusText) {
+          if(response instanceof HttpResponse && response.statusText !== 'OK') {
             this.toast.success(response.statusText, ToastTitles.SUCCESS);
           }
         })

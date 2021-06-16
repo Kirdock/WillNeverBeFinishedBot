@@ -6,12 +6,11 @@ import { Router as rs } from 'express';
 import Logger from '../services/logger';
 import { DiscordBot } from '../discordServer/DiscordBot';
 import { DatabaseHelper } from '../services/databaseHelper';
-import AuthHelper from '../services/authHelper';
+import { AuthHelper } from '../services/authHelper';
 import { UserPayload } from '../models/UserPayload';
 import { Request, Response } from 'express';
 import { ErrorTypes } from '../services/ErrorTypes';
 import { SoundMeta } from '../models/SoundMeta';
-import { ObjectID } from 'mongodb';
 import { GuildMember } from 'discord.js';
 import { Log } from '../models/Log';
 
@@ -32,13 +31,13 @@ export class Router {
     router.route('/login')
       .post(async (req, res) => {
         try {
-          const authToken = await authHelper.login(req.body.code, req.body.redirectUrl);
-          res.status(200).json(authToken);
+          const authToken = await authHelper.login(req.body.code, req);
+          res.status(200).send(authToken);
         }
         catch (error) {
           this.logger.error(error, 'Login');
           res.statusMessage = ErrorTypes.LOGIN_FAILED;
-          res.status(401).end();
+          res.status(400).end();
         }
       });
 
@@ -118,8 +117,7 @@ export class Router {
     router.route('/sound/:soundId')
       .get(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
-        const soundId = new ObjectID(req.params.soundId);
-        const meta: SoundMeta | undefined = await databaseHelper.getSoundMeta(soundId);
+        const meta: SoundMeta | undefined = await databaseHelper.getSoundMeta(req.params.soundId);
         
         if (meta && await discordBot.isUserInServer(result.id, meta.serverId)) {
           res.status(200).download(meta.path, meta.fileName + path.extname(meta.path));
@@ -197,11 +195,10 @@ export class Router {
     router.route('/deleteSound/:id')
       .delete(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
-        const soundId = new ObjectID(req.params.id);
-        const meta = await databaseHelper.getSoundMeta(soundId);
+        const meta = await databaseHelper.getSoundMeta(req.params.id);
         if (meta && (meta.userId === result.id || discordBot.isSuperAdmin(result.id))) {
           const filePath = meta.path;
-          await databaseHelper.removeSoundMeta(soundId);
+          await databaseHelper.removeSoundMeta(req.params.id);
           try {
             await fileHelper.deleteFile(filePath);
             await databaseHelper.logSoundDelete(result.id, meta);
@@ -245,23 +242,38 @@ export class Router {
       });
 
     router.route('/uploadFile')
-      .post(upload.array('files'), async (req, res) => {
+      .post(async (req, res) => {
         const result: UserPayload = this.getPayload(req);
-        const status = await discordBot.isUserInServer(result.id, req.body.serverId);
-        if (status) {
-          const newSoundMetas = await databaseHelper.addSoundsMeta(req.files, result.id, req.body.category, req.body.serverId);
-          res.statusMessage = 'Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:';
-          res.status(200).json(newSoundMetas);
-        } else {
-          try {
-            await fileHelper.deleteFiles(req.files);
-            this.notAdmin(res);
+        upload.array('files')(req, res, async (error: any) => {
+          if(error) {
+            if (req.files) {
+              try {
+                  await fileHelper.deleteFiles(req.files);
+              }
+              catch (error) {
+                  this.logger.error(error, 'DeleteFiles');
+              }
+            }
+            res.sendStatus(401);
           }
-          catch (error) {
-            this.logger.error(error, `DeleteFiles not possible.\nFiles: ${fileHelper.getFiles(req.files).join('\n')}`);
-            this.notInServer(res, result.id, req.body.serverId);
+          else {
+            const status = await discordBot.isUserInServer(result.id, req.body.serverId);
+            if (status) {
+              const newSoundMetas = await databaseHelper.addSoundsMeta(req.files, result.id, req.body.category, req.body.serverId);
+              res.statusMessage = 'Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:';
+              res.status(200).json(newSoundMetas);
+            } else {
+              try {
+                await fileHelper.deleteFiles(req.files);
+                this.notAdmin(res);
+              }
+              catch (error) {
+                this.logger.error(error, `DeleteFiles not possible.\nFiles: ${fileHelper.getFiles(req.files).join('\n')}`);
+                this.notInServer(res, result.id, req.body.serverId);
+              }
+            }
           }
-        }
+        });
       });
 
     router.route('/setIntro')

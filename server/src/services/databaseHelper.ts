@@ -10,6 +10,7 @@ import { ErrorTypes } from './ErrorTypes';
 import { Log } from '../models/Log';
 
 export class DatabaseHelper {
+    //@ts-ignore
     private client: MongoClient;
     private database!: Db;
     private readonly userCollectionName: string = 'users';
@@ -18,7 +19,7 @@ export class DatabaseHelper {
     private readonly logCollectionName: string = 'logs';
 
     constructor(private logger: Logger, private fileHelper: FileHelper){
-        this.client = new MongoClient(`mongodb://${process.env.DATABASE_USER}:${process.env.DATABASE_PASSWORD}@127.0.0.1:27017?retryWrites=true&writeConcern=majority`,
+        this.client = new MongoClient(`mongodb://${process.env.DATABASE_USER}:${process.env.DATABASE_PASSWORD}@mongodb:27017?retryWrites=true&writeConcern=majority`,
         {
             useNewUrlParser: true,
             useUnifiedTopology: true,
@@ -48,7 +49,7 @@ export class DatabaseHelper {
     }
 
     public async getUserToken(userId: string): Promise<UserToken> {
-        const user = await this.userCollection.findOne<User>({id: userId},{fields: {token: 1}});
+        const user = await this.userCollection.findOne<User>({id: userId},{projection: {token: 1}});
         if(!user?.token) {
             throw ErrorTypes.TOKEN_NOT_FOUND;
         }
@@ -58,26 +59,26 @@ export class DatabaseHelper {
 
     public async updateUserToken(userId: Snowflake, info: UserToken): Promise<UpdateWriteOpResult>{
         info.time = new Date().getTime();
-        return this.userCollection.updateOne({id: userId}, {token: info}, {upsert: true});
+        return this.userCollection.updateOne({id: userId}, {$set: {token: info}}, {upsert: true});
     }
 
     async setIntro(userId: Snowflake, soundId: ObjectID, serverId: Snowflake): Promise<UpdateWriteOpResult>{
         const updateQuery: {[key: string]: ObjectID} = {};
         updateQuery[serverId] = soundId;
-        return this.userCollection.updateOne({id: userId}, {intros: updateQuery}, {upsert: true});
+        return this.userCollection.updateOne({id: userId}, {$set: {intros: updateQuery}}, {upsert: true});
     }
 
-    async getIntro(userId: Snowflake, serverId: Snowflake):Promise<ObjectID| undefined> {
+    async getIntro(userId: Snowflake, serverId: Snowflake):Promise<string | undefined> {
         const projection: {[key: string]: number} = {};
         projection[serverId] = 1;
         projection.id = 1;
-        const user = await this.userCollection.findOne<User>({id: userId}, {fields: projection})
+        const user = await this.userCollection.findOne<User>({id: userId}, {projection})
         return user?.intros?.[serverId];
     }
 
     async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<SoundMeta[]>{
         const preparedFiles: Express.Multer.File[] = this.fileHelper.getFiles(files);
-        const soundsMeta: SoundMeta[] = preparedFiles.map(file => new SoundMeta(file.path, file.filename, category, userId, serverId));
+        const soundsMeta: SoundMeta[] = preparedFiles.map(file => new SoundMeta(file.path, this.fileHelper.getFileName(file.originalname), category, userId, serverId));
         await this.soundMetaCollection.insertMany(soundsMeta);
         return soundsMeta;
     }
@@ -96,8 +97,8 @@ export class DatabaseHelper {
         return this.soundMetaCollection.find(query).toArray();
     }
 
-    async getSoundMeta(id: ObjectID): Promise<SoundMeta | undefined>{
-        return this.soundMetaCollection.findOne({_id: id});
+    async getSoundMeta(id: string): Promise<SoundMeta | undefined>{
+        return this.soundMetaCollection.findOne({_id: new ObjectID(id)});
     }
 
     async getSoundMetaByName(fileName: string): Promise<SoundMeta | undefined>{
@@ -108,8 +109,8 @@ export class DatabaseHelper {
         return (await this.soundMetaCollection.distinct('category')).sort((a,b) => a.localeCompare(b));
     }
 
-    async removeSoundMeta(id: ObjectID): Promise<DeleteWriteOpResultObject>{
-        return this.soundMetaCollection.deleteOne({_id: id});
+    async removeSoundMeta(id: string): Promise<DeleteWriteOpResultObject>{
+        return this.soundMetaCollection.deleteOne({_id: new ObjectID(id)});
     }
 
     async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<User[]>{
@@ -122,7 +123,7 @@ export class DatabaseHelper {
                 intros: serverId
             },
             {
-                fields:
+                projection:
                 {
                     intros: 1,
                     id: 1
@@ -176,6 +177,6 @@ export class DatabaseHelper {
 
     async udpateServerInfo(serverInfo: ServerSettings): Promise<UpdateWriteOpResult>{
         const {id, ...data} = serverInfo;
-        return this.serverInfoCollection.updateOne({id}, data, {upsert: true});
+        return this.serverInfoCollection.updateOne({id}, {$set: {...data}}, {upsert: true});
     }
 }
