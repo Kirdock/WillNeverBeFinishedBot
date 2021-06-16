@@ -1,6 +1,6 @@
 # What does this Bot do?
-The purpose of this Bot is, to serve as a sound board. In addition to this, the bot has it's own web interface (done with Vue.js), where you can login via Discord OAuth2.
-Most of the features are realized on the website and not as commands. Up to now the bot needs a lot of refactoring and the json-database I currently have, should be changed because it is very limited (good luck trying to play a file via command with name, when you can't search case-insensitive in this database).
+The purpose of this Bot is, to serve as a sound board. In addition to this, the bot has it's own web interface (done with Angular), where you can login via Discord OAuth2.
+Most of the features are implemented on the website and not as commands.
 
 ## Features:
 - Upload and play sounds files (it should support all common audio-formats).
