@@ -18,15 +18,16 @@ Most of the features are implemented on the website and not as commands.
 
 # Configuration
 Environment Variables (.env file in root):
-- TOKEN (required). Token for Discord bot.
-- CLIENT_SECRET (required). Secret for Webtoken.
-- PORT. Port for webserver. Default: 4599.
-- OWNERS. "id1,id2,...". Super admins separated by ",".
-- PREFIXES. "!,-,...". Prefixes for bot commands in chat separated by ",". Default: !.
-- SCOPE. "identify,...". Scopes of the bot. Default: identify.
-- WEBTOKEN_SECRET. Secret to encode webtoken.
-- DATABASE_NAME. Main database name for mongodb.
-- DATABASE_USER. Username for mongodb.
-- DATABASE_PASSWORD. Password for mongodb.
+- TOKEN (required): Token for Discord bot.
+- CLIENT_SECRET (required): Secret for Webtoken.
+- PORT: Port for webserver. Default: 4599.
+- OWNERS: "id1,id2,...". Super admins separated by ",".
+- PREFIXES: "!,-,...". Prefixes for bot commands in chat separated by ",". Default: !.
+- SCOPE: "identify,...". Scopes of the bot. Default: identify.
+- WEBTOKEN_SECRET: Secret to encode webtoken.
+- DATABASE_NAME: Main database name for mongodb.
+- DATABASE_USER: Username for mongodb.
+- DATABASE_PASSWORD: Password for mongodb.
+- HOST: URL for the website. Only used for `list` command (reply url).
 
 Port is defined in .env and in Dockerfile (EXPOSE). These two must match.

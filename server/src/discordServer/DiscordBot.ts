@@ -18,6 +18,7 @@ export class DiscordBot {
     private superAdmins: string[];
     private prefixes: string[];
     private questionCommand: QuestionCommand;
+    private readonly hostUrl: string;
 
     public get id(): string {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -27,6 +28,7 @@ export class DiscordBot {
     constructor(private databaseHelper: DatabaseHelper, private fileHelper: FileHelper, private logger: Logger) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.prefixes = process.env.PREFIXES!.split(',');
+        this.hostUrl = process.env.HOST!;
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.superAdmins = process.env.OWNERS!.split(',').map(owner => owner.trim()).filter(owner => owner);
         this.client = new Client({
@@ -167,7 +169,7 @@ export class DiscordBot {
                 else{
                     content = content.toLocaleLowerCase();
                     if(content.startsWith('list')){
-                        message.reply('https://kirdock.synology.me:4599/');
+                        message.reply(this.hostUrl);
                     }
                     else if(this.questionCommand.isCommand(content))
                     {

@@ -45,4 +45,5 @@ function setDefaultEnvironment() {
     process.env.DATABASE_NAME ||= 'myDatabase';
     process.env.DATABASE_USER ||= 'root';
     process.env.DATABASE_PASSWORD ||= 'Q8{He@4et!5Prhr/Zy:s';
+    process.env.HOST ||= `http://localhost:${process.env.PORT}`
 }
