@@ -1,9 +1,9 @@
 import { existsSync, promises as fs, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { basename, extname, join } from 'path';
-import Logger from './logger';
+import { Logger } from './logger';
 
 
-export default class FileHelper {
+export class FileHelper {
     public readonly rootDir: string = join(__dirname, '/../../../');
     public readonly baseDir: string = join(this.rootDir, 'server', 'shared');
     public readonly soundFolder: string = join(this.baseDir, 'sounds');

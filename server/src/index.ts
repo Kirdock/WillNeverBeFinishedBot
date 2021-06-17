@@ -2,8 +2,8 @@ import express from "express";
 import { DiscordBot } from "./discordServer/DiscordBot";
 import { AuthHelper } from "./services/authHelper";
 import { DatabaseHelper } from "./services/databaseHelper";
-import FileHelper from "./services/fileHelper";
-import Logger from "./services/logger";
+import { FileHelper } from "./services/fileHelper";
+import { Logger } from "./services/logger";
 import { Router } from "./webserver/routes";
 import { WebServer } from "./webserver/server";
 

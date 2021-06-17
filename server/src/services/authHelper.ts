@@ -1,10 +1,10 @@
 import { verify, sign } from 'jsonwebtoken';
 import axios from 'axios';
-import Logger from './logger';
+import { Logger } from './logger';
 import { DatabaseHelper } from './databaseHelper';
 import { DiscordBot } from '../discordServer/DiscordBot';
 import { UserPayload } from '../models/UserPayload';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { UserToken } from '../models/UserToken';
 
 export class AuthHelper {
@@ -62,14 +62,15 @@ export class AuthHelper {
      * @param req 
      * @returns status if webtoken is valid
      */
-    async auth(req: Request): Promise<boolean> {
+    async auth(req: Request, res: Response): Promise<boolean> {
         let valid = false;
         if (req.headers.authorization) {
             try {
                 const payload = this.getPayload(req);
                 const userToken = await this.databaseHelper.getUserToken(payload.id);
                 await this.checkTokenExpired(payload, userToken, this.buildRedirectUri(req));
-                req.body.payload = payload;
+                // @ts-ignore
+                res.locals.payload = payload;
                 valid = true;
             }
             catch (e) {

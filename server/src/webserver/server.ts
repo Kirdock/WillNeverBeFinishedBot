@@ -2,8 +2,8 @@ import express, { NextFunction } from 'express';
 import history from 'connect-history-api-fallback';
 import https from 'https';
 import { AuthHelper } from '../services/authHelper';
-import FileHelper from '../services/fileHelper';
-import Logger from '../services/logger';
+import { FileHelper } from '../services/fileHelper';
+import { Logger } from '../services/logger';
 import { Request, Response } from 'express';
 import { join } from 'path';
 
@@ -56,13 +56,21 @@ export class WebServer {
         } else {
             if (!req.headers.authorization) {
                 res.redirect('/Login');
+                this.checkFiles(req);
             }
-            else if (await this.authHelper.auth(req)) {
+            else if (await this.authHelper.auth(req, res)) {
                 next();
             }
             else {
                 res.sendStatus(401);
+                this.checkFiles(req);
             }
+        }
+    }
+
+    private async checkFiles(req: Request) {
+        if(req.files?.length > 0) {
+            this.fileHelper.deleteFiles(req.files);
         }
     }
 }

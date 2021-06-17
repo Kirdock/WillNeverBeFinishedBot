@@ -1,15 +1,15 @@
 import axios from 'axios';
-import { GuildMemberManager, Intents, User } from 'discord.js';
-import { Client, Collection, Guild, GuildMember, Message, Snowflake, VoiceConnection, VoiceState } from 'discord.js';
+import { Intents, User } from 'discord.js';
+import { Client, Guild, GuildMember, Message, Snowflake, VoiceConnection, VoiceState } from 'discord.js';
 import { ServerSettings } from '../models/ServerSettings';
 import { UserObject } from '../models/UserObject';
 import { UserServerInformation } from '../models/UserServerInformation';
 import { PlayCommand } from '../modules/playSound';
 import { QuestionCommand } from '../modules/question';
 import { DatabaseHelper } from '../services/databaseHelper';
-import FileHelper from '../services/fileHelper';
-import Logger from '../services/logger';
-import VoiceHelper from '../services/voiceHelper';
+import { FileHelper } from '../services/fileHelper';
+import { Logger } from '../services/logger';
+import { VoiceHelper } from '../services/voiceHelper';
 
 export class DiscordBot {
     private client: Client;

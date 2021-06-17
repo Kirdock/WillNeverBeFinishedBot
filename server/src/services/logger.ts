@@ -1,7 +1,7 @@
 import { createLogger, transports, Logger as lg } from "winston";
 import { ConsoleTransportOptions } from "winston/lib/winston/transports";
 
-export default class Logger {
+export class Logger {
     private logger: lg;
     constructor() {
         this.logger = createLogger({

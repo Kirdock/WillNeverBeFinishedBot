@@ -1,9 +1,9 @@
 import { Message, VoiceChannel, VoiceConnection } from "discord.js";
 import { DiscordBot } from "../discordServer/DiscordBot";
 import { ErrorTypes } from "./ErrorTypes";
-import Logger from "./logger";
+import { Logger } from "./logger";
 
-export default class VoiceHelper {
+export class VoiceHelper {
 
     constructor(private discordBot: DiscordBot, private logger: Logger) {
 
