@@ -1,19 +1,12 @@
-<ng-container *ngIf="servers.length !== 0, else noServers">
+<ng-container *ngIf="selectedServer$ | async as server, else noServers">
     <div class="container" style="margin-top:50px">
         <div id="fetch" class="form-horizontal" >
-            <h1 class="control-label">Server</h1>
-            <div class="input-group">
-                <select class="form-control" [(ngModel)]="selectedServerId">
-                    <option *ngFor="let server of servers" [value]="server.id" [textContent]="server.name"></option>
-                </select>
-            </div>
-
             <h1>Sounds hochladen</h1>
             <div class="form-group">
                 <label class="control-label">Wähle eine Kategorie aus</label>
                 <div class="input-group">
                     <label class="btn btn-primary col-md-2 pointer">
-                        Auswahl der Datei(en) <input type="file" #inputFiles style="display:none" multiple accept="audio/*" (change)="submitFile(inputFiles.files); inputFiles.value = ''"/>
+                        Auswahl der Datei(en) <input type="file" #inputFiles style="display:none" multiple accept="audio/*" (change)="submitFile(inputFiles.files, server.id); inputFiles.value = ''"/>
                     </label>
                     <input type="text"
                         class="form-control"
@@ -49,11 +42,11 @@
                 <label class="control-label">Youtube URL</label>
                 <div class="input-group">
                     <input class="form-control col-md-10" [(ngModel)]="youtubeUrl">
-                    <button type="button" class="btn btn-primary col-md-2" (click)="playSound()">Abspielen</button>
+                    <button type="button" class="btn btn-primary col-md-2" (click)="playSound(server.id)">Abspielen</button>
                 </div>
             </div>
             <div class="form-group">
-                <button type="button" class="btn btn-primary" (click)="stopPlaying()">Abspielen stoppen</button>
+                <button type="button" class="btn btn-primary" (click)="stopPlaying(server.id)">Abspielen stoppen</button>
             </div>
             <div class="form-group">
                 <label class="control-label">Suche</label>
@@ -65,54 +58,56 @@
             </div>
         </div>
     </div>
-    <div *ngFor="let category of filteredSoundCategories" style="margin: 0 auto; padding: 0 20px">
-        <h2 class="control-label" [textContent]="category.name"></h2>
-        <button type="button" class="btn btn-primary" (click)="category.show = !category.show" style="width: 40px; height: 40px" [textContent]="category.show ? '-' : '+'"></button>
-        <div class="table_scroll">
-            <table class="table text-break" *ngIf="category.show">
-                <thead>
-                    <tr>
-                        <th style="min-width: 300px">Name</th>
-                        <th style="min-width: 300px">Benutzer</th>
-                        <th style="min-width: 380px">Abspielen</th>
-                        <th style="min-width: 270px">Aktion</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let sound of filteredSounds(category.name)">
-                        <td [textContent]="sound.fileName"></td>
-                        <td [textContent]="sound.username"></td>
-                        <td>
-                        <a *ngIf="!audioControl.src" [routerLink]="" (click)="playFile(sound._id, audioControl)" title="Laden">
-                            <i class="fas fa-file-export"></i>
-                        </a>
-                        <audio controls #audioControl></audio>
-                        </td>
-                        <td>
-                        <a [routerLink]="" *ngIf="isAdmin || isOwner" (click)="playSound(sound._id, true)" title="Abspielen ohne Unterbrechung">
-                            <i class="fa fa-play"></i>
-                        </a>
-                        <a [routerLink]="" (click)="playSound(sound._id, false)" title="Abspielen">
-                            <i class="far fa-play-circle"></i>
-                        </a>
-                        <a [routerLink]="" (click)="downloadSound(sound._id, audioControl)" title="Herunterladen">
-                            <i class="fas fa-download"></i>
-                        </a>
-                        <a [routerLink]="" (click)="setIntro(sound._id)" title="Als Intro festlegen">
-                            <i class="fas fa-save"></i>
-                        </a>
-                        <a [routerLink]="" (click)="deleteSound(sound._id, category.name)" title="Löschen" [class.disabled]="!(userId === sound.userId || isAdmin || isOwner)">
-                            <i class="fas fa-trash-alt"></i>
-                        </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <ng-container *ngIf="sounds$ |async as allSounds">
+        <div *ngFor="let category of filteredSoundCategories(allSounds)" style="margin: 0 auto; padding: 0 20px">
+            <h2 class="control-label" [textContent]="category.name"></h2>
+            <button type="button" class="btn btn-primary" (click)="category.show = !category.show" style="width: 40px; height: 40px" [textContent]="category.show ? '-' : '+'"></button>
+            <div class="table_scroll" *ngIf="allSounds[category.name] as sounds">
+                <table class="table text-break" *ngIf="category.show">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 300px">Name</th>
+                            <th style="min-width: 300px">Benutzer</th>
+                            <th style="min-width: 380px">Abspielen</th>
+                            <th style="min-width: 270px">Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let sound of filteredSounds(sounds)">
+                            <td [textContent]="sound.fileName"></td>
+                            <td [textContent]="sound.username"></td>
+                            <td>
+                            <a *ngIf="!sound.fileInfo" [routerLink]="" (click)="playFile(sound, audioControl)" title="Laden">
+                                <i class="fas fa-file-export"></i>
+                            </a>
+                            <audio controls [title]="sound.fileInfo?.fullName" #audioControl>
+                                <source [src]="saveUrl(sound.fileInfo?.src)">
+                            </audio>
+                            </td>
+                            <td>
+                            <a [routerLink]="" *ngIf="server.isAdmin || isOwner" (click)="playSound(server.id, sounds, sound._id, true)" title="Abspielen ohne Unterbrechung">
+                                <i class="fa fa-play"></i>
+                            </a>
+                            <a [routerLink]="" (click)="playSound(server.id, sounds, sound._id, false)" title="Abspielen">
+                                <i class="far fa-play-circle"></i>
+                            </a>
+                            <a [routerLink]="" (click)="downloadSound(sound)" title="Herunterladen">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <a [routerLink]="" (click)="setIntro(server.id, sound._id)" title="Als Intro festlegen">
+                                <i class="fas fa-save"></i>
+                            </a>
+                            <a [routerLink]="" (click)="deleteSound(sound._id, sounds)" title="Löschen" [class.disabled]="!(userId === sound.userId || server.isAdmin || isOwner)">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    </ng-container>
 </ng-container>
 <ng-template #noServers>
-    <ng-container *ngIf="loading; then isLoading else empty"></ng-container>
-    <ng-template #isLoading>Loading...</ng-template>
-    <ng-template #empty>Du bist auf kan Server, wo da Bot a drauf is</ng-template>
+    Wenn du kan Server auswöhlst, weat do a nix ongezagt
 </ng-template>

@@ -10,7 +10,6 @@ import { ErrorTypes } from './ErrorTypes';
 import { Log } from '../models/Log';
 
 export class DatabaseHelper {
-    //@ts-ignore
     private client: MongoClient;
     private database!: Db;
     private readonly userCollectionName: string = 'users';
@@ -49,7 +48,7 @@ export class DatabaseHelper {
     }
 
     public async getUserToken(userId: string): Promise<UserToken> {
-        const user = await this.userCollection.findOne<User>({id: userId},{projection: {token: 1}});
+        const user = await this.userCollection.findOne<User>({id: userId},{projection: {token: 1, _id: 0}});
         if(!user?.token) {
             throw ErrorTypes.TOKEN_NOT_FOUND;
         }
@@ -83,6 +82,7 @@ export class DatabaseHelper {
 
     async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<SoundMeta[]>{
         const preparedFiles: Express.Multer.File[] = this.fileHelper.getFiles(files);
+        await this.fileHelper.normalizeFiles(preparedFiles);
         const soundsMeta: SoundMeta[] = preparedFiles.map(file => new SoundMeta(file.path, this.fileHelper.getFileName(file.originalname), category, userId, serverId));
         await this.soundMetaCollection.insertMany(soundsMeta);
         return soundsMeta;
@@ -94,11 +94,11 @@ export class DatabaseHelper {
         return this.soundMetaCollection.insertOne(soundMeta);
     }
 
-    async getSoundsMeta(servers: Snowflake[], fromTime?: string): Promise<SoundMeta[]>{
-        const query: FilterQuery<SoundMeta> = {serverId: {$in: servers}};
-        if(fromTime) {
-            query.time = { $gte: fromTime };
-        }
+    async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<SoundMeta[]>{
+        const query: FilterQuery<SoundMeta> = {
+            serverId: {$in: servers},
+            ...(fromTime && { time: { $gte: fromTime }})
+        };
         return this.soundMetaCollection.find(query).toArray();
     }
 
@@ -120,20 +120,20 @@ export class DatabaseHelper {
 
     async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<User[]>{
         const usersWithoutInfo: User[] = [];
-        
         const userInfos: User[] = await this.userCollection.find(
             {
                 id: 
                 {
                     $in: users
                 },
-                intros: serverId
+                [`intros.${serverId}`]: {$exists: true}
             },
             {
                 projection:
                 {
                     intros: 1,
-                    id: 1
+                    id: 1,
+                    _id: 0
                 }
             }).toArray();
 
@@ -168,28 +168,28 @@ export class DatabaseHelper {
         return this.logCollection.insertOne(log);
     }
 
-    async getLogs(serverId: string, pageSize: number, pageKey: number, fromTime: string): Promise<Log[]>{
-        let logs: Log[] = [];
+    async getLogs(serverId: string, pageSize: number, pageKey: number, fromTime: number): Promise<Log[]>{
         const findQuery: FilterQuery<Log> = {
             serverId
         };
-        const query: FindOneOptions<Log> = {};
-        if(pageSize && pageKey && pageSize > 0 && pageKey >= 0){
-            query.limit = pageSize;
-            query.skip = pageKey * pageSize;
-        }
-        if(fromTime) {
-            findQuery.time = { $gte: fromTime };
-        }
-        logs = await this.logCollection.find(
+        const query: FindOneOptions<Log> = {
+            ...(pageSize && pageKey && pageSize > 0 && pageKey >= 0 &&
+                {
+                    limit: pageSize,
+                    skip: pageKey * pageSize
+                }
+            ),
+            ...(fromTime && {time: { $gte: fromTime }})
+        };
+        
+        return await this.logCollection.find<Log>(
             findQuery,
             query
             ).toArray();
-        return logs;
     }
 
     async getServerSettings(serverId: Snowflake): Promise<ServerSettings>{
-        let result: ServerSettings | null = await this.serverInfoCollection.findOne({id: serverId},
+        let result: ServerSettings | null = await this.serverInfoCollection.findOne<ServerSettings>({id: serverId},
             {
                 projection: {
                     _id: 0

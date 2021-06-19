@@ -31,9 +31,9 @@
               "src/assets"
             ],
             "styles": [
+              "src/assets/bootstrap.min.css",
               "src/styles.scss",
               "node_modules/ngx-toastr/toastr.css",
-              "src/assets/bootstrap.min.css",
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
             ],
             "scripts": []

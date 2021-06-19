@@ -7,7 +7,7 @@ import { Logger } from "./services/logger";
 import { Router } from "./webserver/routes";
 import { WebServer } from "./webserver/server";
 
-if (!process.env.TOKEN) {
+if (!process.env.CLIENT_TOKEN) {
     throw Error('Client token not provided!');
 }
 else if (!process.env.CLIENT_SECRET) {

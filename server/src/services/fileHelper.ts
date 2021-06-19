@@ -1,16 +1,29 @@
 import { existsSync, promises as fs, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { basename, extname, join } from 'path';
 import { Logger } from './logger';
-
+import ffmpeg from 'fluent-ffmpeg';
 
 export class FileHelper {
     public readonly rootDir: string = join(__dirname, '/../../../');
     public readonly baseDir: string = join(this.rootDir, 'server', 'shared');
     public readonly soundFolder: string = join(this.baseDir, 'sounds');
     public readonly certFolder: string = join(this.baseDir, 'cert');
+    private readonly workFolder: string = join(this.soundFolder, 'work');
 
     constructor(private logger: Logger) {
         this.checkAndCreateFolderSystem();
+    }
+
+    private checkAndCreateFolderSystem() {
+        for (const folder of [this.baseDir, this.soundFolder, this.workFolder]) {
+            this.checkAndCreateFolder(folder);
+        }
+    }
+
+    private checkAndCreateFolder(folder: string): void {
+        if (!existsSync(folder)) {
+            mkdirSync(folder);
+        }
     }
 
     public existsFile(path: string): boolean {
@@ -55,18 +68,6 @@ export class FileHelper {
         return files;
     }
 
-    private checkAndCreateFolder(folder: string): void {
-        if (!existsSync(folder)) {
-            mkdirSync(folder);
-        }
-    }
-
-    private checkAndCreateFolderSystem() {
-        for (const folder of [this.baseDir, this.soundFolder]) {
-            this.checkAndCreateFolder(folder);
-        }
-    }
-
     public getFileName(filePath: string): string {
         return basename(filePath, extname(filePath));
     }
@@ -79,5 +80,29 @@ export class FileHelper {
 
     public readFile(filePath: string): Buffer {
         return readFileSync(filePath);
+    }
+
+    public async normalizeFiles(files: Express.Multer.File[]): Promise<void> {
+        for(const file of files) {
+            await new Promise(resolve => {
+                const newPath = join(this.workFolder, this.getFileName(file.filename)+'.mp3');
+                ffmpeg(file.path)
+                    .audioFilter('loudnorm')
+                    .on('error', (e) => {
+                        this.logger.error(e, 'Normalize files');
+                        resolve(e);
+                    })
+                    .on('end', async () => {
+                        try{
+                            await fs.rename(newPath, file.path);
+                        }
+                        catch {
+                            await this.deleteFile(newPath);
+                        }
+                        resolve(true);
+                    })
+                    .save(newPath);
+            });
+        }
     }
 }

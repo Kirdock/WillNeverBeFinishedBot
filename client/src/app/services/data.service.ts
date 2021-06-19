@@ -1,7 +1,7 @@
 import { HttpResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable } from "rxjs";
-import { skip, tap } from "rxjs/operators";
+import { filter, map, skip, skipWhile, tap } from "rxjs/operators";
 import { environment } from "src/environments/environment";
 import { Channel } from "../models/Channel";
 import { Log } from "../models/Log";
@@ -19,16 +19,18 @@ import { StorageService } from "./storage.service";
     providedIn: 'root'
 })
 export class DataService {
-    private _hasAdminServers: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private _hasAdminServers: BehaviorSubject<boolean | undefined> = new BehaviorSubject<boolean | undefined>(undefined);
     private _sounds: BehaviorSubject<Sounds> = new BehaviorSubject<Sounds>({});
     private _servers: BehaviorSubject<Server[]> = new BehaviorSubject<Server[]>([]);
     private _channels: BehaviorSubject<Channel[]> = new BehaviorSubject<Channel[]>([]);
+    private _selectedServer: BehaviorSubject<Server | undefined> = new BehaviorSubject<Server | undefined>(undefined);
+    private _soundFetchTime: Date = new Date();
 
     constructor(private apiService: ApiService, private storageService: StorageService, private authService: AuthService) {
     }
 
     private get location(): string {
-        return  window.location.protocol + '//' + window.location.host;
+        return  `${window.location.protocol}//${window.location.host}`;
     }
 
     public get oauthLink(): string {
@@ -39,20 +41,28 @@ export class DataService {
         return `https://discord.com/api/oauth2/authorize?client_id=${environment.clientId}&permissions=3148800&redirect_uri=${this.location}&scope=bot`;
     }
 
+    public get selectedServer(): Observable<Server | undefined> {
+        return this._selectedServer.asObservable();
+    }
+
+    public setSelectedServer(server: Server | undefined): void {
+        this._selectedServer.next(server);
+    }
+
     public get sounds(): Observable<Sounds> {
-        return this._sounds.asObservable().pipe(skip(1));
+        return this._sounds.asObservable();
     }
 
     public get hasAdminServers(): Observable<boolean> {
-        return this._hasAdminServers.asObservable().pipe(skip(1));
+        return this._hasAdminServers.asObservable().pipe(filter((val: boolean | undefined): val is boolean => val !== undefined));
     }
 
     public get servers(): Observable<Server[]> {
-        return this._servers.asObservable().pipe(skip(1));
+        return this._servers.asObservable();
     }
 
     public get channels(): Observable<Channel[]> {
-        return this._channels.asObservable().pipe(skip(1));
+        return this._channels.asObservable();
     }
 
     public login(code: string): Observable<string> {
@@ -87,14 +97,8 @@ export class DataService {
             formData.append(`files`, files[i]);
         }
         return this.apiService.uploadFile(formData).pipe(
-            tap(newSoundMetas => {
-                const sounds = this._sounds.getValue();
-                if(!sounds[category]) {
-                    sounds[category] = [];
-                }
-                sounds[category].push(...newSoundMetas);
-                sounds[category].sort((a,b) => a.fileName.localeCompare(b.fileName));
-                this._sounds.next(sounds);
+            tap(() => {
+                this.loadSounds(serverId, true);
             })
         );
     }
@@ -103,33 +107,43 @@ export class DataService {
         return this.apiService.playSound(data);
     }
 
-    public loadSounds(serverId: string, fromTime?: Date) {
-        this.apiService.getSounds(serverId, fromTime).subscribe(newSounds => {
-            const sounds = newSounds.reduce((result: Sounds, sound: SoundMeta) => {
-                if(!result[sound.category]) {
-                    result[sound.category] = [];
-                }
-                result[sound.category].push(sound);
+    public loadSounds(serverId: string, time = false) {
+        let fromTime: Date | undefined = undefined;
+        if(time) {
+            fromTime = this._soundFetchTime;
+        }
+        this._soundFetchTime = new Date();
+        this.apiService.getSounds(serverId, fromTime)
+        .pipe(
+            map(newSoundsMetas => newSoundsMetas.map(meta => SoundMeta.fromJSON(meta)))
+        ).subscribe(newSounds => {
+            if(!fromTime || newSounds.length !== 0) {
+                const sounds = newSounds.reduce((result: Sounds, sound: SoundMeta) => {
+                    if(!result[sound.category]) {
+                        result[sound.category] = [];
+                    }
+                    result[sound.category].push(sound);
 
-                return result;
-            }, fromTime ? this._sounds.getValue() : {});
-            for(const category in sounds) {
-                sounds[category].sort((soundA, soundB) => soundA.fileName.localeCompare(soundB.fileName));
+                    return result;
+                }, fromTime ? this._sounds.getValue() : {});
+                for(const category in sounds) {
+                    sounds[category].sort((soundA, soundB) => soundA.fileName.localeCompare(soundB.fileName));
+                }
+                this._sounds.next(sounds);
             }
-            this._sounds.next(sounds);
-        })
+        });
     }
 
     public loadServers() {
         this.apiService.getServers().subscribe(newServers => {
             this._servers.next(newServers);
-        })
+        });
     }
 
     public loadChannels(serverId: string) {
         this.apiService.getChannels(serverId).subscribe(newChannels => {
             this._channels.next(newChannels);
-        })
+        });
     }
 
     public deleteSound(soundId: string): Observable<any> {

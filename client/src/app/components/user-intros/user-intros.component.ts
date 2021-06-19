@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Component } from '@angular/core';
+import { Observable, of, Subject } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 import { Server } from 'src/app/models/Server';
 import { Sounds } from 'src/app/models/Sounds';
 import { User } from 'src/app/models/User';
@@ -11,62 +11,41 @@ import { DataService } from 'src/app/services/data.service';
   templateUrl: './user-intros.component.html',
   styleUrls: ['./user-intros.component.scss']
 })
-export class UserIntrosComponent implements OnInit, OnDestroy {
-  public servers: Server[] = [];
-  public selectedServerId?: string;
+export class UserIntrosComponent {
   public searchText: string = '';
-  public users: User[] = [];
-  public cacheIntroBefore: string | undefined;
-  public sounds: Sounds | undefined;
+  public readonly users$: Observable<User[]>;
+  public cacheIntroBefore?: string;
+  public readonly sounds$: Observable<Sounds | undefined>;
   private readonly destroyed$: Subject<void> = new Subject<void>();
+  public readonly selectedServer$: Observable<Server | undefined>;
 
-  public get filteredUsers() {
+  public getFilteredUsers(allUsers: User[]) {
     let users;
     if(this.searchText.length > 0){
       const re = new RegExp(this.searchText,'i');
-      users = this.users.filter(user => user.username && re.test(user.username));
+      users = allUsers.filter(user => user.username && re.test(user.username));
     }
     else{
-      users = this.users;
+      users = allUsers;
     }
     return users;
   }
 
-  constructor(private readonly dataService: DataService) { }
+  constructor(private readonly dataService: DataService) {
+    this.sounds$ = this.dataService.sounds;
+    this.selectedServer$ = this.dataService.selectedServer;
+    this.users$ = this.selectedServer$
+    .pipe(
+      takeUntil(this.destroyed$),
+      switchMap(selectedServer => selectedServer ? this.dataService.getUsersData(selectedServer.id) : of([]))
+    );
+  }
 
-  public ngOnInit(): void {
-    this.dataService.sounds
-    .pipe(takeUntil(this.destroyed$))
-    .subscribe(sounds => {
-      this.sounds = sounds;
+  public updateIntro(user: User, serverId: string, soundId: string | undefined) {
+    this.dataService.updateIntro(soundId, serverId, user.id).subscribe(() => {
+      user.intros[serverId] = soundId;
+    }, () => {
+      user.intros[serverId] = this.cacheIntroBefore;
     });
-
-    this.dataService.servers.pipe(
-      takeUntil(this.destroyed$)
-    ).subscribe(servers => {
-      this.servers = servers;
-      if(!this.selectedServerId || !this.servers.some(server => server.id === this.selectedServerId)) {
-        this.selectedServerId = this.servers.find(()=> true)?.id;
-        this.selectedServerChanged();
-      }
-    });
-  }
-
-  public updateIntro(userId: string, serverId: string, soundId: string | undefined) {
-    this.dataService.updateIntro(soundId, serverId, userId);
-  }
-
-  public selectedServerChanged() {
-    if(this.selectedServerId) {
-      this.dataService.getUsersData(this.selectedServerId).subscribe(users => {
-        this.users = users;
-      });
-      this.dataService.loadSounds(this.selectedServerId);
-    }
-  }
-
-  public ngOnDestroy(): void {
-    this.destroyed$.next();
-    this.destroyed$.complete();
   }
 }

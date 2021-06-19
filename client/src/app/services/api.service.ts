@@ -34,11 +34,11 @@ export class ApiService {
     }
 
     public fetchUsersData(serverId: string): Observable<User[]>{
-        return this.http.get<User[]>('users/'+serverId);
+        return this.http.get<User[]>(`users/${serverId}`);
     }
 
     public getUserIntro(serverId: string): Observable<string>{
-        return this.http.get<string>('userIntro/'+serverId);
+        return this.http.get<string>(`userIntro/${serverId}`);
     }
 
     public getServers(): Observable<Server[]>{
@@ -61,15 +61,14 @@ export class ApiService {
         return this.http.get<string[]>('soundCategories');
     }
 
-    public uploadFile(formData: FormData): Observable<SoundMeta[]>{
-        return this.http.post<SoundMeta[]>('uploadFile', formData); //{headers: {'Content-Type': undefined}}
+    public uploadFile(formData: FormData): Observable<any>{
+        return this.http.post('uploadFile', formData); //{headers: {'Content-Type': undefined}}
     }
 
     public getSounds(serverId: string, fromTime?: Date): Observable<SoundMeta[]> {
-        const params: any = {};
-        if(fromTime) {
-            params.fromTime = fromTime.toISOString();
-        }
+        const params = {
+            ...(fromTime && {fromTime: fromTime.getTime()})
+        };
         return this.http.get<SoundMeta[]>(`sounds/${serverId}`, {params})
     }
 
@@ -86,16 +85,11 @@ export class ApiService {
     }
 
     public getLogs(serverId: string, pageSize?: number, pageKey?: number, fromTime?: Date): Observable<Log[]> {
-        const params: any = {};
-        if(pageSize) {
-            params.pageSize = pageSize;
-        }
-        if(pageKey) {
-            params.pageKey = pageKey;
-        }
-        if(fromTime) {
-            params.fromTime = fromTime.toISOString();
-        }
+        const params = {
+            ...(pageSize && {pageSize}),
+            ...(pageKey && {pageKey}),
+            ...(fromTime && {fromTime: fromTime.getTime()}),
+        };
         return this.http.get<Log[]>(`logs/${serverId}`, {params});
     }
 }

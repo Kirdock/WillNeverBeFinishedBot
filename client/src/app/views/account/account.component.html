@@ -1,27 +1,26 @@
 <h1 style="margin-bottom:50px">Cunt Panel</h1>
-<div class="form-horizontal" *ngIf="sounds, else notFound">
-    <div class="input-group">
-        <label class="control-label">Server</label>
-        <div class="col-md-5">
-            <select class="form-control" [(ngModel)]="selectedServerId" (change)="selectedServerChanged()">
-                <option *ngFor="let server of servers" [value]="server.id" [textContent]="server.name"></option>
-            </select>
-        </div>
-        <ng-container *ngIf="selectedServerId">
-            <label class="control-label">Intro</label>
-            <div class="col-md-5">
-                <select class="form-control" [(ngModel)]="userIntro" (change)="updateIntro(userIntro)" (focus)="cacheIntroBefore = userIntro">
-                    <optgroup *ngFor="let item of sounds | keyvalue" [label]="item.key">
-                        <option *ngFor="let sound of sounds[item.key]" [value]="sound._id" [textContent]="sound.fileName"></option>
-                    </optgroup>
-                </select>
+<ng-container *ngIf="selectedServer$ | async as selectedServer, else noServers">
+    <ng-container *ngIf="sounds$ | async as sounds, else noSounds">
+        <div class="form-horizontal">
+            <div class="input-group">
+                <label class="control-label">Intro</label>
+                <div class="col-md-5">
+                    <select class="form-control" [(ngModel)]="userIntro" (change)="updateIntro(selectedServer.id, userIntro)" (focus)="cacheIntroBefore = userIntro">
+                        <optgroup *ngFor="let item of sounds | keyvalue" [label]="item.key">
+                            <option *ngFor="let sound of sounds[item.key]" [value]="sound._id" [textContent]="sound.fileName"></option>
+                        </optgroup>
+                    </select>
+                </div>
+                <a [routerLink]="" (click)="updateIntro(selectedServer.id)" (focus)="cacheIntroBefore = userIntro" title="Intro zurücksetzen">
+                    <i class="fas fa-undo"></i>
+                </a>
             </div>
-            <a [routerLink]="" (click)="updateIntro()" title="Intro zurücksetzen">
-                <i class="fas fa-undo"></i>
-            </a>
-        </ng-container>
-    </div>
-</div>
-<ng-template #notFound>
-    Dei Server hot kane Sounds du Volltrottl. Wie soll i do a Intro setzn?
+        </div>
+    </ng-container>
+</ng-container>
+<ng-template #noServers>
+    Wöhl an Server aus du Trottl!
+</ng-template>
+<ng-template #noSounds>
+    Du host kane Sounds!
 </ng-template>

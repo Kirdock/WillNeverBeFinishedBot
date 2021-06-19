@@ -1,5 +1,5 @@
 import multer from 'multer';
-import path from 'path';
+import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { FileHelper } from '../services/fileHelper';
 import { Router as rs } from 'express';
@@ -8,7 +8,7 @@ import { DiscordBot } from '../discordServer/DiscordBot';
 import { DatabaseHelper } from '../services/databaseHelper';
 import { AuthHelper } from '../services/authHelper';
 import { UserPayload } from '../models/UserPayload';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ErrorTypes } from '../services/ErrorTypes';
 import { SoundMeta } from '../models/SoundMeta';
 import { GuildMember } from 'discord.js';
@@ -22,7 +22,7 @@ export class Router {
         cb(null, fileHelper.soundFolder)
       },
       filename: (_req, file, cb) => {
-        cb(null, uuidv4() + path.extname(file.originalname))
+        cb(null, `${uuidv4()}${extname(file.originalname)}`)
       }
     });
     const upload = multer({ storage });
@@ -45,7 +45,7 @@ export class Router {
       .get(async (req, res) => {
         const result: UserPayload = this.getPayload(res);
         if (discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId)) {
-          const logs: Log[] = await databaseHelper.getLogs(req.params.serverId, +(req.query.pageSize as string), +(req.query.pageKey as string), req.query.fromTime as string);
+          const logs: Log[] = await databaseHelper.getLogs(req.params.serverId, +(req.query.pageSize as string), +(req.query.pageKey as string), +(req.query.fromTime as string));
           await discordBot.mapUsernames(logs, 'userId');
           res.status(200).json(logs);
         }
@@ -107,20 +107,13 @@ export class Router {
         }
       });
 
-    router.route('/sounds')
-      .get(async (req, res) => {
-        const result: UserPayload = this.getPayload(res);
-        const servers = await discordBot.getUserServers(result.id);
-        res.status(200).json(databaseHelper.getSoundsMeta(servers.map(server => server.id)));
-      });
-
     router.route('/sound/:soundId')
       .get(async (req, res) => {
         const result: UserPayload = this.getPayload(res);
         const meta: SoundMeta | undefined = await databaseHelper.getSoundMeta(req.params.soundId);
         
         if (meta && await discordBot.isUserInServer(result.id, meta.serverId)) {
-          res.status(200).download(meta.path, meta.fileName + path.extname(meta.path));
+          res.status(200).download(meta.path, meta.fileName + extname(meta.path));
         }
         else {
           res.statusMessage = ErrorTypes.SOUND_NOT_FOUND;
@@ -133,10 +126,14 @@ export class Router {
         const result: UserPayload = this.getPayload(res);
         const status = await discordBot.isUserInServer(result.id, req.params.serverId);
         if (status) {
-          const soundMetas = await databaseHelper.getSoundsMeta([req.params.serverId], req.query.fromTime as string);
+          const soundMetas = await databaseHelper.getSoundsMeta([req.params.serverId], +(req.query.fromTime as string));
           try{
             await discordBot.mapUsernames(soundMetas, 'userId');
-            res.status(200).json(soundMetas);
+            const result = soundMetas.map(meta => {
+              const {path, ...data} = meta;
+              return data;
+            });
+            res.status(200).json(result);
           }
           catch (error) {
             this.logger.error(error, 'Fetching user failed');
@@ -183,7 +180,7 @@ export class Router {
           }
           else {
             res.statusMessage = ErrorTypes.USER_NOT_IN_VOICE_CHANNEL;
-            res.status(404).end();
+            res.status(400).end();
           }
         }
         else {
@@ -245,9 +242,14 @@ export class Router {
         const result: UserPayload = this.getPayload(res);
         const status = await discordBot.isUserInServer(result.id, req.body.serverId);
           if (status) {
-            const newSoundMetas = await databaseHelper.addSoundsMeta(req.files, result.id, req.body.category, req.body.serverId);
-            res.statusMessage = 'Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:';
-            res.status(200).json(newSoundMetas);
+            try{
+              await databaseHelper.addSoundsMeta(req.files, result.id, req.body.category, req.body.serverId);
+              res.statusMessage = 'Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:';
+              res.status(200).end();
+            }
+            catch(e) {
+              this.logger.error(e, 'addSoundMeta');
+            }
           } else {
             try {
               await fileHelper.deleteFiles(req.files);
@@ -328,7 +330,6 @@ export class Router {
   }
 
   private getPayload(res: Response): UserPayload {
-    // @ts-ignore
     return res.locals.payload;
   }
 }

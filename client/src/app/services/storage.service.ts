@@ -7,18 +7,14 @@ import { UserPayload } from "../models/UserPayload";
 })
 export class StorageService {
     private _token: string = '';
+    private _settings?: HomeSettings;
     private readonly storage = window.localStorage;
     private readonly tokenName = 'OiToken';
     private readonly homeSettingsName = 'Settings';
     private userPayload?: UserPayload;
     
     public get token(): string {
-        if (!this._token) {
-            const token = this.storage.getItem(this.tokenName);
-            if(token){
-                this._token = token;
-            }
-        }
+        this._token ||= this.storage.getItem(this.tokenName) || '';
         return this._token;
     }
 
@@ -28,15 +24,16 @@ export class StorageService {
     }
 
     public get settings(): HomeSettings {
-        const settings = this.storage.getItem(this.homeSettingsName);
-        let result;
-        if(settings){
-            result = HomeSettings.fromJSON(JSON.parse(settings));
+        if(!this._settings) {
+            const settings = this.storage.getItem(this.homeSettingsName);
+            if(settings){
+                this._settings = HomeSettings.fromJSON(JSON.parse(settings));
+            }
+            else {
+                this._settings = new HomeSettings();
+            }
         }
-        else {
-            result = new HomeSettings();
-        }
-        return result;
+        return this._settings!;
     }
 
     public set settings(settings: HomeSettings) {
@@ -52,26 +49,13 @@ export class StorageService {
 
     public get payload(): UserPayload | undefined {
         if (!this.userPayload && this.token) {
-            let payload = this.token.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/');
-            if(payload) {
-                switch (payload.length % 4) {
-                    case 0:
-                        break;
-                    case 1:
-                        payload += "===";
-                        break;
-                    case 2:
-                        payload += "==";
-                        break;
-                    case 3:
-                        payload += "=";
-                        break;
-                }
-                try {
-                    this.userPayload = JSON.parse(atob(payload)) as UserPayload;
-                }
-                catch {}
+            try {
+                const base64Url = this.token.split('.')[1];
+                const base64 = base64Url?.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                this.userPayload = JSON.parse(jsonPayload) as UserPayload;
             }
+            catch {}
         }
         return this.userPayload;
     }

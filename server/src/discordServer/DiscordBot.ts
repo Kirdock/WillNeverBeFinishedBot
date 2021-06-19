@@ -42,7 +42,7 @@ export class DiscordBot {
         this.setReady();
         this.setVoiceStateUpdate();
         this.setOnMessage();
-        this.client.login(process.env.TOKEN);
+        this.client.login(process.env.CLIENT_TOKEN);
         this.voiceHelper = new VoiceHelper(this, logger);
         this.playSoundCommand = new PlayCommand(logger, this.voiceHelper, databaseHelper, this.fileHelper);
         this.questionCommand = new QuestionCommand(logger, this.voiceHelper, this.databaseHelper, this.fileHelper);

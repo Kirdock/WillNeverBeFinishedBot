@@ -18,8 +18,8 @@ Most of the features are implemented on the website and not as commands.
 
 # Configuration
 Environment Variables (.env file in root):
-- TOKEN (required): Token for Discord bot.
-- CLIENT_SECRET (required): Secret for Webtoken.
+- CLIENT_TOKEN (required): Token for Discord bot.
+- CLIENT_SECRET (required): Secret for Discord bot.
 - PORT: Port for webserver. Default: 4599.
 - OWNERS: "id1,id2,...". Super admins separated by ",".
 - PREFIXES: "!,-,...". Prefixes for bot commands in chat separated by ",". Default: !.

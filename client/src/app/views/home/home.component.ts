@@ -1,8 +1,9 @@
-import { HttpHeaders } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
-import { Subject, timer } from 'rxjs';
-import { switchMap, take, takeUntil } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 import { Category } from 'src/app/models/Category';
 import { Channel } from 'src/app/models/Channel';
 import { HomeSettings } from 'src/app/models/HomeSettings';
@@ -21,32 +22,19 @@ import { StorageService } from 'src/app/services/storage.service';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  public servers: Server[] = [];
-  public sounds: Sounds | undefined;
+  public readonly sounds$: Observable<Sounds | undefined>;
+  public readonly selectedServer$: Observable<Server | undefined>;
   public channels: Channel[] = [];
   public soundCategories: Category[] = [];
   public selectedCategory?: string;
-  public maxVolume = 1;
   public youtubeUrl = '';
   public searchText = '';
   public settings: HomeSettings = new HomeSettings();
   public soundPollingInterval = 30 * 1000;
   private destroyed$: Subject<void> = new Subject<void>();
-  private serverChanged$: Subject<void> = new Subject<void>();
-  public loading: boolean = true;
 
   public get isOwner(): boolean {
     return this.authService.isOwner();
-  }
-
-  public get selectedServerId(): string | undefined {
-    return this.settings.selectedServerId;
-  }
-
-  public set selectedServerId(serverId: string | undefined) {
-    this.settings.selectedServerId = serverId;
-    this.saveSettings();
-    this.serverChanged$.next();
   }
 
   public get joinUser(): boolean {
@@ -80,59 +68,37 @@ export class HomeComponent implements OnInit, OnDestroy {
     return this.storageService.payload?.id;
   }
 
-  public get filteredSoundCategories(): Category[] {
+  public get maxVolume(): number {
+    return this.isOwner ? 1000 : 1;
+  }
+
+  public filteredSoundCategories(sounds: Sounds): Category[] {
     return this.soundCategories.filter(category =>{
-      return this.filteredSounds(category.name).length > 0;
+      return this.filteredSounds(sounds[category.name]).length !== 0;
     });
   }
 
-  constructor(private readonly authService: AuthService, private readonly storageService: StorageService, private readonly dataService: DataService, private readonly toast: ToastrService) { }
+  constructor(private readonly authService: AuthService, private readonly storageService: StorageService, private readonly dataService: DataService, private readonly toast: ToastrService, private domSanitizer: DomSanitizer) {
+    this.selectedServer$ = this.dataService.selectedServer;
+    this.sounds$ = this.dataService.sounds;
+  }
 
   public ngOnInit(): void {
     this.loadSettings();
 
-    if(this.isOwner) {
-      this.maxVolume = 1000;
-    }
-
-    this.serverChanged$
+    this.selectedServer$
       .pipe(
-        takeUntil(this.destroyed$)
-      ).subscribe(_ => {
+        takeUntil(this.destroyed$),
+        filter((server?: Server): server is Server => !!server)
+      ).subscribe((server) => {
         this.selectedChannelId = undefined;
-        if(this.selectedServerId) {
-          this.fetchChannels();
-          this.dataService.loadSounds(this.selectedServerId);
-        }
-      })
+        this.fetchChannels(server.id);
+      });
 
-    timer(this.soundPollingInterval, this.soundPollingInterval).pipe(
-      takeUntil(this.destroyed$),
-    ).subscribe(() => {
-      if(this.selectedServerId) {
-        this.dataService.loadSounds(this.selectedServerId, new Date());
-      }
-    });
-
-    this.dataService.sounds.pipe(
+    this.sounds$.pipe(
       takeUntil(this.destroyed$)
     ).subscribe(newSounds => {
-      this.sounds = newSounds;
-      this.updateSoundCategories(this.sounds);
-    });
-
-    this.dataService.servers.pipe(
-      takeUntil(this.destroyed$)
-    ).subscribe(servers => {
-      this.servers = servers;
-      if(!this.selectedServerId || !this.servers.some(server => server.id === this.selectedServerId)) {
-        this.selectedServerId = this.servers.find(_ => true)?.id;
-      }
-      else if(!this.sounds) {
-        this.dataService.loadSounds(this.selectedServerId);
-      }
-      this.loading = false;
-      this.fetchChannels();
+      this.updateSoundCategories(newSounds);
     });
 
     this.dataService.channels.pipe(
@@ -142,31 +108,23 @@ export class HomeComponent implements OnInit, OnDestroy {
       if(!this.selectedChannelId || !this.channels.some(channel => channel.id === this.selectedChannelId)) {
         this.selectedChannelId = channels.find(_ => true)?.id;
       }
-    })
-
-    this.dataService.loadServers();
+    });
   }
 
-  private updateSoundCategories(sounds: Sounds): void {
-    this.soundCategories = Object.keys(sounds).map(category => {
+  private updateSoundCategories(sounds: Sounds | undefined): void {
+    this.soundCategories = sounds ? Object.keys(sounds).map(category => {
       return {
         name: category,
         show: this.soundCategories.find(cat => cat.name === category)?.show ?? true
       };
-    });
+    }) : [];
     if(!this.selectedCategory || !this.soundCategories.some(category => category.name === this.selectedCategory)) {
       this.selectedCategory = this.soundCategories.find(_ => true)?.name;
     }
   }
 
-  public isAdmin(): boolean {
-    return this.servers.find(server => server.id === this.selectedServerId)?.isAdmin ?? false;
-  }
-
-  public fetchChannels(): void {
-    if(this.selectedServerId) {
-      this.dataService.loadChannels(this.selectedServerId);
-    }
+  public fetchChannels(serverId: string): void {
+    this.dataService.loadChannels(serverId);
   }
 
   public loadSettings(): void {
@@ -177,9 +135,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.storageService.settings = this.settings;
   }
 
-  public submitFile(files: FileList | null): void {
-    if(files && this.selectedCategory && this.selectedServerId) {
-      this.dataService.submitFile(files, this.selectedCategory, this.selectedServerId).subscribe(() => {
+  public submitFile(files: FileList | null, serverId: string): void {
+    if(files && this.selectedCategory) {
+      this.dataService.submitFile(files, this.selectedCategory, serverId).subscribe(() => {
         //maybe show a loading-spinner
       });
     }
@@ -191,45 +149,52 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  public playSound(soundId?: string, forcePlay = false): void {
-    if(this.selectedServerId && this.selectedChannelId && (soundId || this.youtubeUrl)) {
+  public playSound(serverId: string, sounds?: SoundMeta[], soundId?: string, forcePlay = false): void {
+    if(this.selectedChannelId && (soundId || this.youtubeUrl)) {
       const request = new PlaySoundRequest(
           soundId,
           forcePlay,
-          this.selectedServerId,
+          serverId,
           this.selectedChannelId,
           this.volume,
           this.joinUser,
           this.youtubeUrl
         );
-      this.dataService.playSound(request).subscribe();
+      this.dataService.playSound(request).subscribe(()=>{}, (error: HttpErrorResponse) => {
+        if(error.status === 404 && sounds && soundId) {
+          const index = sounds.findIndex(sound => sound._id === soundId);
+          if(index >= 0) {
+            sounds.splice(index, 1);
+          }
+        }
+      });
     }
   }
 
-  public playFile(soundId: string, audioElement: HTMLAudioElement): void {
-    if(!audioElement.src){
-      this.dataService.downloadSound(soundId).subscribe(response =>{
+  public playFile(sound: SoundMeta, audioElement: HTMLAudioElement): void {
+    if(!sound.fileInfo){
+      this.dataService.downloadSound(sound._id).subscribe(response =>{
         try{
-          audioElement.pause();
-          audioElement.src = URL.createObjectURL(response.body);
-          audioElement.title = this.getFileNameOutOfHeader(response.headers);
+          sound.setFileInfo(response);
+          audioElement.load();
           audioElement.play();
         }
-        catch{
+        catch {
           this.toast.error(`Konn de Datei nit obspüln\nFormat weat onscheinend nit unterstützt`, ToastTitles.ERROR);
         }
       });
     }
   }
 
-  public downloadSound(soundId: string, audioElement: HTMLAudioElement): void {
-    if(audioElement.src) {
-      this.downloadFile(audioElement.src, audioElement.title);
+  public downloadSound(sound: SoundMeta): void {
+    if(sound.fileInfo) {
+      this.downloadFile(sound);
     }
     else {
-      this.dataService.downloadSound(soundId).subscribe(response => {
+      this.dataService.downloadSound(sound._id).subscribe(response => {
         if(response.body) {
-          this.downloadFile(response.body, this.getFileNameOutOfHeader(response.headers));
+          sound.setFileInfo(response);
+          this.downloadFile(sound);
         }
         else {
           this.toast.error('Konnst du ma bitte sogn, warum i jetz nix hinta kriag hob?', ToastTitles.ERROR);
@@ -238,68 +203,46 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private downloadFile(data: Blob | string, fileName: string) {
-    const url: string = data instanceof Blob ? window.URL.createObjectURL(data) : data;
+  public saveUrl(src: string | undefined): SafeUrl | undefined {
+    return src ? this.domSanitizer.bypassSecurityTrustUrl(src) : undefined;
+  }
+
+  private downloadFile(sound: SoundMeta): void {
     const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', fileName);
+    link.href = sound.fileInfo!.src;
+    link.setAttribute('download', sound.fileInfo!.fullName!);
     document.body.appendChild(link);
     link.click();
+    link.remove();
   }
 
-  private getFileNameOutOfHeader(headers: HttpHeaders){
-    let fileName = '';
-    const disposition = headers.get('content-disposition');
-    if (disposition?.includes('attachment')) {
-        const reg = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-        const matches = reg.exec(disposition);
-        if (matches?.[1]) { 
-          fileName = matches[1].replace(/['"]/g, '');
-        }
-    }
-    return fileName;
+  public stopPlaying(serverId: string): void {
+      this.dataService.stopPlaying(serverId).subscribe();
   }
 
-  public stopPlaying(): void {
-    if(this.selectedServerId) {
-      this.dataService.stopPlaying(this.selectedServerId).subscribe(() => {
-      });
-    }
+  public setIntro(serverId: string, soundId: string): void {
+    this.dataService.updateIntro(soundId, serverId).subscribe();
   }
 
-  public setIntro(soundId: string) {
-    if(this.selectedServerId) {
-      this.dataService.updateIntro(soundId, this.selectedServerId).subscribe(() => {
-      });
-    }
-  }
-
-  public deleteSound(soundId: string, category: string): void {
+  public deleteSound(soundId: string, soundMeta: SoundMeta[]): void {
     this.dataService.deleteSound(soundId).subscribe(() => {
-      if(this.sounds)  {
-        const index = this.sounds[category]?.findIndex(sound => sound._id === soundId);
-        if(index >= 0) {
-          this.sounds[category].splice(index, 1);
-        }
+      const index = soundMeta.findIndex(sound => sound._id === soundId);
+      if(index >= 0) {
+        soundMeta.splice(index, 1);
       }
     });
   }
 
-  public filteredSounds(category: string): SoundMeta[]{
-    let sounds: SoundMeta[];
-    if(this.sounds) {
-      if(this.searchText.length > 0){
-        const re = new RegExp(this.searchText,'i');
-        sounds = this.sounds[category].filter(sound => re.test(sound.fileName) || (sound.username && re.test(sound.username)));
-      }
-      else{
-        sounds = this.sounds[category];
-      }
+  public filteredSounds(sounds: SoundMeta[]): SoundMeta[] {
+    let filteredSounds: SoundMeta[];
+    if(this.searchText.length > 0){
+      const re = new RegExp(this.searchText,'i');
+      filteredSounds = sounds.filter(sound => re.test(sound.fileName) || (sound.username && re.test(sound.username)));
     }
-    else {
-      sounds = [];
+    else{
+      filteredSounds = sounds;
     }
-    return sounds;
+    return filteredSounds;
   }
 
   public ngOnDestroy(): void {

@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Component } from '@angular/core';
+import { Observable } from 'rxjs';
+import { filter, switchMap } from 'rxjs/operators';
 import { Server } from 'src/app/models/Server';
 import { ServerSettings } from 'src/app/models/ServerSettings';
 import { Sounds } from 'src/app/models/Sounds';
@@ -11,50 +11,22 @@ import { DataService } from 'src/app/services/data.service';
   templateUrl: './server-settings.component.html',
   styleUrls: ['./server-settings.component.scss']
 })
-export class ServerSettingsComponent implements OnInit, OnDestroy {
-  public servers: Server[] = [];
-  public serverSettings: ServerSettings = new ServerSettings();
-  public selectedServerId?: string;
-  public soundCategories: string[] = [];
-  public sounds: Sounds | undefined;
-  private readonly destroyed$: Subject<void> = new Subject<void>();
+export class ServerSettingsComponent {
+  public readonly serverSettings$: Observable<ServerSettings>;
+  public readonly sounds$: Observable<Sounds | undefined>;
+  public readonly selectedServer$: Observable<Server | undefined>;
   
-  constructor(private readonly dataService: DataService) { }
-
-  public ngOnInit(): void {
-    this.dataService.sounds
-    .pipe(takeUntil(this.destroyed$))
-    .subscribe(sounds => {
-      this.sounds = sounds;
-    });
-
-    this.dataService.servers.pipe(
-      takeUntil(this.destroyed$)
-    ).subscribe(servers => {
-      this.servers = servers;
-      if(!this.selectedServerId || !this.servers.some(server => server.id === this.selectedServerId)) {
-        this.selectedServerId = this.servers.find(() => true)?.id;
-        this.selectedServerChanged();
-      }
-    });
+  constructor(private readonly dataService: DataService) {
+    this.sounds$ = this.dataService.sounds;
+    this.selectedServer$ = this.dataService.selectedServer;
+    this.serverSettings$ = this.selectedServer$
+      .pipe(
+        filter((selectedServer?: Server): selectedServer is Server => !!selectedServer),
+        switchMap(selectedServer => this.dataService.getServerSettings(selectedServer.id))
+      );
   }
 
-  public selectedServerChanged() {
-    if(this.selectedServerId) {
-      this.dataService.getServerSettings(this.selectedServerId).subscribe(serverSettings => {
-        this.serverSettings = serverSettings;
-      });
-      this.dataService.loadSounds(this.selectedServerId);
-    }
+  public updateServerInfo(serverSettings: ServerSettings) {
+    this.dataService.updateServerSettings(serverSettings).subscribe();
   }
-
-  public updateServerInfo() {
-    this.dataService.updateServerSettings(this.serverSettings).subscribe();
-  }
-
-  public ngOnDestroy(): void {
-    this.destroyed$.next();
-    this.destroyed$.complete();
-  }
-
 }

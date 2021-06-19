@@ -53,12 +53,13 @@ export class WebServer {
     private async authentication(req: Request, res: Response, next: NextFunction) {
         if (req.url === `${this.baseUrl}/login`) {
             next();
-        } else {
+        }
+        else {
             if (!req.headers.authorization) {
                 res.redirect('/Login');
                 this.checkFiles(req);
             }
-            else if (await this.authHelper.auth(req, res)) {
+            else if (await this.authHelper.auth(req.headers.authorization.split(' ')[1], req, res)) {
                 next();
             }
             else {

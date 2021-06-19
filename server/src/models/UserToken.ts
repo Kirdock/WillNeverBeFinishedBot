@@ -4,6 +4,5 @@ export class UserToken {
     public expires_in!: number;
     public refresh_token!: string;
     public scope!: string;
-
     public time: number = new Date().getTime();
 }

@@ -62,41 +62,31 @@ export class AuthHelper {
      * @param req 
      * @returns status if webtoken is valid
      */
-    async auth(req: Request, res: Response): Promise<boolean> {
-        let valid = false;
-        if (req.headers.authorization) {
-            try {
-                const payload = this.getPayload(req);
-                const userToken = await this.databaseHelper.getUserToken(payload.id);
-                await this.checkTokenExpired(payload, userToken, this.buildRedirectUri(req));
-                // @ts-ignore
-                res.locals.payload = payload;
-                valid = true;
-            }
-            catch (e) {
-                this.logger.error(e, 'Auth failed');
-            }
+    async auth(authToken: string, req: Request, res: Response): Promise<boolean> {
+        try {
+            const payload = this.getPayload(authToken);
+            const userToken = await this.databaseHelper.getUserToken(payload.id);
+            await this.checkTokenExpired(payload, userToken, this.buildRedirectUri(req));
+            res.locals.payload = payload;
         }
-        return valid;
+        catch (e) {
+            this.logger.error(e, 'Auth failed');
+        }
+        return !!res.locals.payload;
     }
 
     private buildRedirectUri(req: Request): string {
-        return req.protocol + '://' + req.get('host') + '/Login';
+        return `${req.protocol}://${req.get('host')}/Login`;
     }
 
     /**
      * 
      * @param authToken 
-     * @returns Payload or throws an exception if proviced token is invalid
+     * @throws exception if token is invalid
+     * @returns Payload (decoded Token)
      */
-    private getPayload(authToken: string | Request): UserPayload {
-        return verify((typeof authToken === 'string' ? authToken : this.getToken(authToken as Request)) ?? '', this.secret) as UserPayload;
-    }
-
-    // because of validation before token must be set
-    private getToken(req: Request): string {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return req.headers.authorization!.split(' ')[1]; // strip 'Bearer'
+    private getPayload(authToken: string): UserPayload {
+        return verify(authToken, this.secret) as UserPayload;
     }
 
     async checkTokenExpired(payload: UserPayload, userToken: UserToken, request_url: string): Promise<void> {
