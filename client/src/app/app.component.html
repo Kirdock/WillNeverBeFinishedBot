@@ -10,7 +10,7 @@
           <li class="nav-item" *ngIf="servers$ | async as servers">
             <button class="dropdown-toggle" mat-button [matMenuTriggerFor]="menu" [textContent]="selectedServer?.name || 'Wöhl an Server aus'"></button>
             <mat-menu #menu="matMenu">
-              <button mat-menu-item *ngFor="let server of getFilteredServers(servers, selectedServer)" [textContent]="server.name" (click)="selectedServerChanged(server)" ></button>
+              <button mat-menu-item *ngFor="let server of getFilteredServers(servers, selectedServer)" [textContent]="server.name" (click)="selectedServer = server" ></button>
             </mat-menu>
           </li>
           <li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">

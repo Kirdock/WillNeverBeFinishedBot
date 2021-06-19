@@ -48,17 +48,24 @@ export class DatabaseHelper {
     }
 
     public async getUserToken(userId: string): Promise<UserToken> {
-        const user = await this.userCollection.findOne<User>({id: userId},{projection: {token: 1, _id: 0}});
+        const user = await this.userCollection.findOne<User>({id: userId},{projection: {token: 1, id: 1, _id: 1}});
         if(!user?.token) {
             throw ErrorTypes.TOKEN_NOT_FOUND;
         }
 
-        return user.token;
+        return {...user.token, userId: user.id, _id: user._id};
     }
 
-    public async updateUserToken(userId: Snowflake, info: UserToken): Promise<UpdateWriteOpResult>{
+    public async updateUserToken(userId: Snowflake, info: UserToken): Promise<ObjectID>{
         info.time = new Date().getTime();
-        return this.userCollection.updateOne({id: userId}, {$set: {token: info}}, {upsert: true});
+        return (await this.userCollection.findOneAndUpdate({id: userId}, {$set: {token: info}},
+            {
+                upsert: true,
+                projection: {
+                    _id: 1
+                }
+            }
+        )).value._id;
     }
 
     async setIntro(userId: Snowflake, soundId: ObjectID, serverId: Snowflake): Promise<UpdateWriteOpResult>{
@@ -139,8 +146,7 @@ export class DatabaseHelper {
 
         for(const userId of users) {
             if(!userInfos.some(u => u.id === userId)){
-                const newUser = new User();
-                newUser.id = userId;
+                const newUser = new User(userId);
                 usersWithoutInfo.push(newUser);
             }
         }

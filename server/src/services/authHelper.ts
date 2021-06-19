@@ -36,8 +36,8 @@ export class AuthHelper {
         );
         const userToken: UserToken = response.data;
         const user = await this.discordBot.fetchUserData(userToken);
-        await this.databaseHelper.updateUserToken(user.id, userToken);
-        const payload: UserPayload = new UserPayload(user.id, user.username, this.discordBot.isSuperAdmin(user.id));
+        const _id = await this.databaseHelper.updateUserToken(user.id, userToken);
+        const payload: UserPayload = new UserPayload(_id.toHexString(), user.id, user.username, this.discordBot.isSuperAdmin(user.id));
         const token = sign(JSON.stringify(payload), this.secret);
         return token;
     }
@@ -66,8 +66,10 @@ export class AuthHelper {
         try {
             const payload = this.getPayload(authToken);
             const userToken = await this.databaseHelper.getUserToken(payload.id);
-            await this.checkTokenExpired(payload, userToken, this.buildRedirectUri(req));
-            res.locals.payload = payload;
+            if(userToken._id.toHexString() === payload._id && payload.id === userToken.userId) {
+                await this.checkTokenExpired(payload, userToken, this.buildRedirectUri(req));
+                res.locals.payload = payload;
+            }
         }
         catch (e) {
             this.logger.error(e, 'Auth failed');

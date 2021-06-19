@@ -36,9 +36,11 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public set selectedServer(server: Server | undefined) {
-    this._selectedServer = server;
-    this.storageService.settings.selectedServerId = server?.id;
-    this.dataService.setSelectedServer(server);
+    if(server?.id !== this._selectedServer?.id) {
+      this._selectedServer = server;
+      this.storageService.settings.selectedServerId = server?.id;
+      this.dataService.setSelectedServer(server);
+    }
   }
 
   constructor(private readonly dataService: DataService, private readonly authService: AuthService, private storageService: StorageService) {
@@ -47,51 +49,38 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
-    this.update();
-    if (this.storageService.settings.selectedServerId) { // load settings
-      this.servers$
-        .pipe(
-          takeUntil(this.destroyed$),
-          skipWhile(servers => servers.length === 0),
-          take(1),
-        ).subscribe(servers => {
-          this.selectedServerChanged(servers.find(server => server.id === this.storageService.settings.selectedServerId) || servers.find(() => true));
-        });
-    }
+    this.servers$
+      .pipe(
+        takeUntil(this.destroyed$),
+        skipWhile(servers => servers.length === 0),
+      ).subscribe(servers => {
+        this.selectedServer = servers.find(server => server.id === this.storageService.settings.selectedServerId) || servers.find(() => true);
+      });
     this.dataService.selectedServer
       .pipe(
         takeUntil(this.destroyed$),
         filter((server?: Server): server is Server => !!server),
         map(server => server.id),
+        skipWhile(()=> !this.isLoggedIn),
         tap(serverId => this.dataService.loadSounds(serverId)),
         switchMap(serverId => timer(this._updateInterval, this._updateInterval).pipe(map((()=> serverId)))),
+        skipWhile(()=> !this.isLoggedIn),
         takeUntil(this.destroyed$)
       ).subscribe(serverId => {
-        if(this.isLoggedIn) {
-          this.dataService.loadSounds(serverId, true);
-        }
+        this.dataService.loadSounds(serverId, true);
       });
 
-    timer(this._updateInterval, this._updateInterval)
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe(() => {
-        this.update();
+    timer(0, this._updateInterval)
+      .pipe(
+        takeUntil(this.destroyed$),
+        skipWhile(()=> !this.isLoggedIn),
+      ).subscribe(() => {
+        this.dataService.update();
     });
   }
 
   public getFilteredServers(servers: Server[], selectedServer: Server | undefined): Server[] {
     return selectedServer ? servers.filter(server => server.id !== selectedServer.id) : servers;
-  }
-
-  private update(): void {
-    if(this.isLoggedIn) {
-      this.dataService.loadServers();
-      this.dataService.setHasAdminServers();
-    }
-  }
-
-  public selectedServerChanged(server: Server | undefined) {
-    this.selectedServer = server;
   }
 
   public logout(): void {

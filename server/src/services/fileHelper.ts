@@ -85,7 +85,8 @@ export class FileHelper {
     public async normalizeFiles(files: Express.Multer.File[]): Promise<void> {
         for(const file of files) {
             await new Promise(resolve => {
-                const newPath = join(this.workFolder, this.getFileName(file.filename)+'.mp3');
+                const newFileName = this.getFileName(file.filename)+'.mp3';
+                const tempPath = join(this.workFolder, newFileName);
                 ffmpeg(file.path)
                     .audioFilter('loudnorm')
                     .on('error', (e) => {
@@ -94,14 +95,17 @@ export class FileHelper {
                     })
                     .on('end', async () => {
                         try{
-                            await fs.rename(newPath, file.path);
+                            const newPath = join(file.destination, newFileName);
+                            await fs.unlink(file.path);
+                            await fs.rename(tempPath, newPath);
+                            file.path = newPath;
                         }
                         catch {
-                            await this.deleteFile(newPath);
+                            await this.deleteFile(tempPath);
                         }
                         resolve(true);
                     })
-                    .save(newPath);
+                    .save(tempPath);
             });
         }
     }

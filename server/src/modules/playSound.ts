@@ -67,12 +67,11 @@ export class PlayCommand extends Command {
             dispatcher = connection.play(file);
         }
 
-        dispatcher.on('finish', (reason: string) => {
-            const index = PlayCommand.forcePlayLock.indexOf(serverId);
-            if (index !== -1) {
-                PlayCommand.forcePlayLock.splice(index, 1);
+        dispatcher.on('finish', (streamTime: string) => {
+            if(forcePlay) {
+                this.removeLock(serverId);
             }
-            if (serverInfo.leaveChannelAfterPlay && (reason === 'stream' || !reason)) { //atm reason is empty when file is finished
+            if (serverInfo.leaveChannelAfterPlay && (streamTime === 'stream' || !streamTime)) {
                 this.voiceHelper.disconnectVoice(serverId);
             }
         });
@@ -80,12 +79,22 @@ export class PlayCommand extends Command {
         dispatcher.on('error', (e: Error) => {
             if (e.message !== 'playFile') {
                 this.logger.error(e, 'PlaySound');
+                if(forcePlay) {
+                    this.removeLock(serverId);
+                }
             }
         });
 
         dispatcher.on('start', () => {
             dispatcher.setVolume(volumeMultiplier);
         });
+    }
+
+    private removeLock(serverId: string): void {
+        const index = PlayCommand.forcePlayLock.indexOf(serverId);
+        if (index !== -1) {
+            PlayCommand.forcePlayLock.splice(index, 1);
+        }
     }
 
     async playIntro(voiceState: VoiceState, fallBackIntro: string | undefined): Promise<void> {

@@ -70,6 +70,7 @@ export class DataService {
         .pipe(
             tap(token => {
                 this.storageService.token = token;
+                this.update();
             })
         );
     }
@@ -79,13 +80,11 @@ export class DataService {
     }
 
     public setHasAdminServers(): void {
-        if(this.authService.isAuthenticated()) {
-            this.apiService.hasAdminServers().subscribe(status => {
-                if(this._hasAdminServers.getValue() !== status) {
-                    this._hasAdminServers.next(status);
-                }
-            });
-        }
+        this.apiService.hasAdminServers().subscribe(status => {
+            if(this._hasAdminServers.getValue() !== status) {
+                this._hasAdminServers.next(status);
+            }
+        });
     }
 
     public submitFile(files: FileList, category: string, serverId: string): Observable<SoundMeta[]> {
@@ -180,5 +179,10 @@ export class DataService {
 
     public getLogs(serverId: string, pageSize?: number, pageKey?: number, fromTime?: Date): Observable<Log[]> {
         return this.apiService.getLogs(serverId, pageSize, pageKey, fromTime);
+    }
+
+    public update(): void {
+        this.loadServers();
+        this.setHasAdminServers();
     }
 }

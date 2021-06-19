@@ -1,4 +1,8 @@
+import { ObjectID } from "mongodb";
+
 export class UserToken {
+    public _id!: ObjectID;
+    public userId!: string;
     public access_token!: string;
     public token_type!: string;
     public expires_in!: number;
