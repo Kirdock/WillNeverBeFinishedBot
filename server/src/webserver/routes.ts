@@ -239,25 +239,27 @@ export class Router {
 
     router.route('/uploadFile')
       .post(upload.array('files'), async (req, res) =>  {
-        const result: UserPayload = this.getPayload(res);
-        const status = await discordBot.isUserInServer(result.id, req.body.serverId);
-          if (status) {
-            try{
-              await databaseHelper.addSoundsMeta(req.files, result.id, req.body.category, req.body.serverId);
-              res.statusMessage = 'Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:';
-              res.status(200).end();
-            }
-            catch(e) {
-              this.logger.error(e, 'addSoundMeta');
-            }
-          } else {
-            try {
-              await fileHelper.deleteFiles(req.files);
-              this.notAdmin(res);
-            }
-            catch (error) {
-              this.logger.error(error, `DeleteFiles not possible.\nFiles: ${fileHelper.getFiles(req.files).join('\n')}`);
-              this.notInServer(res, result.id, req.body.serverId);
+        if(req.files) {
+          const result: UserPayload = this.getPayload(res);
+          const status = await discordBot.isUserInServer(result.id, req.body.serverId);
+            if (status) {
+              try{
+                await databaseHelper.addSoundsMeta(req.files, result.id, req.body.category, req.body.serverId);
+                res.statusMessage = 'Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:';
+                res.status(200).end();
+              }
+              catch(e) {
+                this.logger.error(e, 'addSoundMeta');
+              }
+            } else {
+              try {
+                await fileHelper.deleteFiles(req.files);
+                this.notAdmin(res);
+              }
+              catch (error) {
+                this.logger.error(error, `DeleteFiles not possible.\nFiles: ${fileHelper.getFiles(req.files).join('\n')}`);
+                this.notInServer(res, result.id, req.body.serverId);
+              }
             }
           }
         });

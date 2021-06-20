@@ -70,7 +70,7 @@ export class WebServer {
     }
 
     private async checkFiles(req: Request) {
-        if(req.files?.length > 0) {
+        if(req.files?.length) {
             this.fileHelper.deleteFiles(req.files);
         }
     }

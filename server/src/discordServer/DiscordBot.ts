@@ -209,6 +209,35 @@ export class DiscordBot {
                             message.reply(elements[index]);
                         }
                     }
+                    else if (content.startsWith('bubble')) {
+                        const items = content.substring(6).split('x');
+                        const numbers: number[] = [];
+                        for(const item of items) {
+                            const it: string = item.trim();
+                            if(it) {
+                                const n: number = +it;
+                                if(!isNaN(n)) {
+                                    numbers.push(n);
+                                }
+                            }
+                        }
+
+                        if(numbers.length >= 2) {
+                            const text: string = `||pop||`;
+                            const max: number = ((text.length * numbers[0] + 1) * numbers[1] + message.author.id.length + 3 + 1) > 2000 ? 15 : 250;
+                            const a: number = Math.min(numbers[0], max);
+                            const b: number = Math.min(numbers[1], max);
+                            const stringBuilder: string[] = [];
+
+                            for(let i = 0; i < b; ++i) {
+                                stringBuilder.push('\n');
+                                for(let y = 0; y < a; ++y) {
+                                    stringBuilder.push(text);
+                                }
+                            }
+                            message.reply(stringBuilder.join(''));
+                        }
+                    }
                     else{
                         message.reply('Red Deitsch mit mir! I hob kan Plan wos du von mir wüllst!');
                     }
