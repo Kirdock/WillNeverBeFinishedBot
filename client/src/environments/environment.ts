@@ -5,7 +5,8 @@
 import { environmentGlobal } from "./envirionment.global";
 
 export const environment = Object.assign(environmentGlobal, {
-  production: false
+  production: false,
+  baseUrl: 'http://localhost:4599/api'
 });
 
 /*

@@ -45,6 +45,7 @@ export class DatabaseHelper {
         await this.client.connect();
         this.database = this.client.db(process.env.DATABASE_NAME);
         await this.soundMetaCollection.createIndex({'category': 1});
+        await this.userCollection.createIndex({'id': 1});
     }
 
     public async getUserToken(userId: string): Promise<UserToken> {
@@ -104,7 +105,7 @@ export class DatabaseHelper {
     async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<SoundMeta[]>{
         const query: FilterQuery<SoundMeta> = {
             serverId: {$in: servers},
-            ...(fromTime && { time: { $gte: fromTime }})
+            ...(fromTime && { time: { $gt: fromTime }})
         };
         return this.soundMetaCollection.find(query).toArray();
     }
@@ -202,8 +203,7 @@ export class DatabaseHelper {
                 }
             });
         if(!result){
-            result = new ServerSettings();
-            result.id = serverId;
+            result = new ServerSettings(serverId);
         }
         return result;
     }

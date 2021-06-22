@@ -1,5 +1,4 @@
 import { Snowflake } from "discord.js";
-import { ObjectID } from "mongodb";
 
 export class ServerSettings {
     public id: Snowflake = '';
@@ -10,4 +9,8 @@ export class ServerSettings {
     public leaveChannelAfterPlay: boolean = false;
     public defaultIntro?: string;
     public defaultOutro?: string;
+
+    constructor(serverId: Snowflake) {
+        this.id = serverId;
+    }
 }

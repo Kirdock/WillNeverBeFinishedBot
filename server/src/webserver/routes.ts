@@ -31,7 +31,7 @@ export class Router {
     router.route('/login')
       .post(async (req, res) => {
         try {
-          const authToken = await authHelper.login(req.body.code, req);
+          const authToken = await authHelper.login(req.body.code);
           res.status(200).send(authToken);
         }
         catch (error) {

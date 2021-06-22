@@ -30,7 +30,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public youtubeUrl = '';
   public searchText = '';
   public settings: HomeSettings = new HomeSettings();
-  public soundPollingInterval = 30 * 1000;
+  public soundPollingInterval = 30_000;
   private destroyed$: Subject<void> = new Subject<void>();
 
   public get isOwner(): boolean {

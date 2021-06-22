@@ -13,7 +13,7 @@ import { StorageService } from './services/storage.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit, OnDestroy {
-  private readonly _updateInterval = 30 * 1000;
+  private readonly _updateInterval = 30_000;
   private readonly destroyed$: Subject<void> = new Subject<void>();
   public readonly hasAdminServers$: Observable<boolean>;
   public readonly servers$: Observable<Server[]>;

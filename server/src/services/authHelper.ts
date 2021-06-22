@@ -14,6 +14,8 @@ export class AuthHelper {
     private readonly clientSecret: string = process.env.CLIENT_SECRET!;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     private readonly scope: string = process.env.SCOPE!;
+    private readonly redirectUrl: string = new URL('/Login', process.env.HOST).toString();
+
     constructor(private logger: Logger, private databaseHelper: DatabaseHelper, private discordBot: DiscordBot) { }
 
     /**
@@ -22,12 +24,12 @@ export class AuthHelper {
      * @param redirectUrl Url 
      * @returns encoded token
      */
-    async login(code: string, req: Request): Promise<string> {
+    async login(code: string): Promise<string> {
         const formData = new URLSearchParams();
         formData.append('client_id', this.discordBot.id);
         formData.append('client_secret', this.clientSecret);
         formData.append('grant_type', 'authorization_code');
-        formData.append('redirect_uri', this.buildRedirectUri(req));
+        formData.append('redirect_uri', this.redirectUrl);
         formData.append('scope', this.scope);
         formData.append('code', code);
         
@@ -42,12 +44,12 @@ export class AuthHelper {
         return token;
     }
 
-    async refreshToken(refresh_token: string, scope: string, request_url: string): Promise<UserToken> {
+    private async refreshToken(refresh_token: string, scope: string): Promise<UserToken> {
         const formData = new URLSearchParams();
         formData.append('client_id', this.discordBot.id);
         formData.append('client_secret', this.clientSecret);
         formData.append('grant_type', 'refresh_token');
-        formData.append('redirect_uri', request_url);
+        formData.append('redirect_uri', this.redirectUrl);
         formData.append('scope', scope);
         formData.append('refresh_token', refresh_token);
 
@@ -62,12 +64,15 @@ export class AuthHelper {
      * @param req 
      * @returns status if webtoken is valid
      */
-    async auth(authToken: string, req: Request, res: Response): Promise<boolean> {
+    async auth(authToken: string | undefined, res: Response): Promise<boolean> {
+        if(!authToken) {
+            return false;
+        }
         try {
             const payload = this.getPayload(authToken);
             const userToken = await this.databaseHelper.getUserToken(payload.id);
             if(userToken._id.toHexString() === payload._id && payload.id === userToken.userId) {
-                await this.checkTokenExpired(payload, userToken, this.buildRedirectUri(req));
+                await this.checkTokenExpired(payload, userToken);
                 res.locals.payload = payload;
             }
         }
@@ -75,10 +80,6 @@ export class AuthHelper {
             this.logger.error(e, 'Auth failed');
         }
         return !!res.locals.payload;
-    }
-
-    private buildRedirectUri(req: Request): string {
-        return `${req.protocol}://${req.get('host')}/Login`;
     }
 
     /**
@@ -91,7 +92,7 @@ export class AuthHelper {
         return verify(authToken, this.secret) as UserPayload;
     }
 
-    async checkTokenExpired(payload: UserPayload, userToken: UserToken, request_url: string): Promise<void> {
+    private async checkTokenExpired(payload: UserPayload, userToken: UserToken): Promise<void> {
         const timeBegin = userToken.time;
         const expire = userToken.expires_in;
         const timeNow = new Date().getTime();
@@ -100,7 +101,7 @@ export class AuthHelper {
             //reset time just in case there are several requests by the user
             //else there will be several refresh request if the first one has not received a response
 
-            userToken = await this.refreshToken(userToken.refresh_token, userToken.scope, request_url);
+            userToken = await this.refreshToken(userToken.refresh_token, userToken.scope);
             await this.databaseHelper.updateUserToken(payload.id, userToken);
         }
     }

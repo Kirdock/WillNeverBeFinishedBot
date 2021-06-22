@@ -1,0 +1,9 @@
+FROM node:latest
+WORKDIR /app/bot/server
+COPY server/package*.json ./
+RUN npm install
+RUN apt-get -y update\
+    && apt-get -y upgrade\
+    && apt-get install -y ffmpeg
+EXPOSE 4599
+CMD [ "npm", "run", "start:dev"]

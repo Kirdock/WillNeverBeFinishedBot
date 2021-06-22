@@ -59,7 +59,7 @@ export class WebServer {
                 res.redirect('/Login');
                 this.checkFiles(req);
             }
-            else if (await this.authHelper.auth(req.headers.authorization.split(' ')[1], req, res)) {
+            else if (await this.authHelper.auth(req.headers.authorization.split(' ')[1], res)) {
                 next();
             }
             else {

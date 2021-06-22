@@ -20,14 +20,21 @@ Most of the features are implemented on the website and not as commands.
 Environment Variables (.env file in root):
 - CLIENT_TOKEN (required): Token for Discord bot.
 - CLIENT_SECRET (required): Secret for Discord bot.
-- PORT: Port for webserver. Default: 4599.
-- OWNERS: "id1,id2,...". Super admins separated by ",".
-- PREFIXES: "!,-,...". Prefixes for bot commands in chat separated by ",". Default: !.
-- SCOPE: "identify,...". Scopes of the bot. Default: identify.
+- HOST: URL for the website. Used for `list` command (reply url) and OAUTH2. Default `http://localhost:5000`.
+- PORT: Port for webserver. Default: `4599`.
+- OWNERS: "id1,id2,...". Super admins separated by `,`.
+- PREFIXES: "!,-,...". Prefixes for bot commands in chat separated by `,`. Default: `!`.
+- SCOPE: "identify,...". Scopes of the bot. Default: `identify`.
 - WEBTOKEN_SECRET: Secret to encode webtoken.
 - DATABASE_NAME: Main database name for mongodb.
 - DATABASE_USER: Username for mongodb.
 - DATABASE_PASSWORD: Password for mongodb.
-- HOST: URL for the website. Only used for `list` command (reply url).
 
 Port is defined in .env and in Dockerfile (EXPOSE). These two must match.
+
+# Run in development
+Run server & Database: `docker-compose --env-file ./.env.test -f ./docker-compose.dev.yml  up --build`.
+- Here we use `.env.test` as environment file instead of `.env`
+- Make sure the HOST environment variable is set to `http://localhost:5000` or just don't set it because it's the default value
+Run client: `npm run start`.
+Access web interface via `localhost:5000`

@@ -1,4 +1,4 @@
-import { createLogger, transports, Logger as lg } from "winston";
+import { createLogger, transports, Logger as lg, format } from "winston";
 import { ConsoleTransportOptions } from "winston/lib/winston/transports";
 
 export class Logger {
@@ -9,7 +9,8 @@ export class Logger {
                 new transports.Console({
                     level: 'debug',
                     timestamp: true,
-                    prettyPrint: true
+                    prettyPrint: true,
+                    format: format.combine(format.json(), format.prettyPrint())
                 } as ConsoleTransportOptions),
                 new transports.File({
                     filename: 'Log.log'
