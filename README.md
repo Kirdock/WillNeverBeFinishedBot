@@ -36,5 +36,6 @@ Port is defined in .env and in Dockerfile (EXPOSE). These two must match.
 Run server & Database: `docker-compose --env-file ./.env.test -f ./docker-compose.dev.yml  up --build`.
 - Here we use `.env.test` as environment file instead of `.env`
 - Make sure the HOST environment variable is set to `http://localhost:5000` or just don't set it because it's the default value
+
 Run client: `npm run start`.
 Access web interface via `localhost:5000`

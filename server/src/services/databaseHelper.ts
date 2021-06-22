@@ -93,13 +93,16 @@ export class DatabaseHelper {
         await this.fileHelper.normalizeFiles(preparedFiles);
         const soundsMeta: SoundMeta[] = preparedFiles.map(file => new SoundMeta(file.path, this.fileHelper.getFileName(file.originalname), category, userId, serverId));
         await this.soundMetaCollection.insertMany(soundsMeta);
+        SoundMeta.mapTime(soundsMeta);
         return soundsMeta;
     }
 
-    async addSoundMeta(id: ObjectID, filePath: string, fileName: string, userId: Snowflake, category: string, serverId: Snowflake): Promise<InsertOneWriteOpResult<SoundMeta>>{
+    async addSoundMeta(id: ObjectID, filePath: string, fileName: string, userId: Snowflake, category: string, serverId: Snowflake): Promise<SoundMeta>{
         const soundMeta = new SoundMeta(filePath, fileName, category, userId, serverId);
         soundMeta._id = id;
-        return this.soundMetaCollection.insertOne(soundMeta);
+        await this.soundMetaCollection.insertOne(soundMeta);
+        SoundMeta.mapTime([soundMeta]);
+        return soundMeta;
     }
 
     async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<SoundMeta[]>{
@@ -107,15 +110,25 @@ export class DatabaseHelper {
             serverId: {$in: servers},
             ...(fromTime && { time: { $gt: fromTime }})
         };
-        return this.soundMetaCollection.find(query).toArray();
+        const soundsMeta: SoundMeta[] = await this.soundMetaCollection.find(query).toArray();
+        SoundMeta.mapTime(soundsMeta);
+        return soundsMeta;
     }
 
     async getSoundMeta(id: string): Promise<SoundMeta | undefined>{
-        return this.soundMetaCollection.findOne({_id: new ObjectID(id)});
+        const soundMeta: SoundMeta | undefined = await this.soundMetaCollection.findOne({_id: new ObjectID(id)});
+        if(soundMeta) {
+            SoundMeta.mapTime([soundMeta]);
+        }
+        return soundMeta;
     }
 
     async getSoundMetaByName(fileName: string): Promise<SoundMeta | undefined>{
-        return this.soundMetaCollection.findOne({fileName});
+        const soundMeta: SoundMeta | undefined = await this.soundMetaCollection.findOne({fileName});
+        if(soundMeta) {
+            SoundMeta.mapTime([soundMeta]);
+        }
+        return soundMeta;
     }
 
     async getSoundCategories(): Promise<string[]>{
