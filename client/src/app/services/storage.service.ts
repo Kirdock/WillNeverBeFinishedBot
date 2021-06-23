@@ -1,6 +1,6 @@
-import { Injectable } from "@angular/core";
-import { HomeSettings } from "../models/HomeSettings";
-import { UserPayload } from "../models/UserPayload";
+import { Injectable } from '@angular/core';
+import { HomeSettings } from '../models/HomeSettings';
+import { UserPayload } from '../models/UserPayload';
 
 @Injectable({
     providedIn: 'root'

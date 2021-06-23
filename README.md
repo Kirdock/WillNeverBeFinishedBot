@@ -32,6 +32,10 @@ Environment Variables (.env file in root):
 
 Port is defined in .env and in Dockerfile (EXPOSE). These two must match.
 
+# Run in production
+- Run `docker-compose up --build`.
+- Access website via `http://localhost:${PORT}`.
+
 # Run in development
 Run server & Database: `docker-compose --env-file ./.env.test -f ./docker-compose.dev.yml  up --build`.
 - Here we use `.env.test` as environment file instead of `.env`

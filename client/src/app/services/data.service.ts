@@ -1,19 +1,19 @@
-import { HttpResponse } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable } from "rxjs";
-import { filter, map, skip, skipWhile, tap } from "rxjs/operators";
-import { environment } from "src/environments/environment";
-import { Channel } from "../models/Channel";
-import { Log } from "../models/Log";
-import { PlaySoundRequest } from "../models/PlaySoundRequest";
-import { Server } from "../models/Server";
-import { ServerSettings } from "../models/ServerSettings";
-import { SoundMeta } from "../models/SoundMeta";
-import { Sounds } from "../models/Sounds";
-import { User } from "../models/User";
-import { ApiService } from "./api.service";
-import { AuthService } from "./auth.service";
-import { StorageService } from "./storage.service";
+import { HttpResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, map, tap } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import { Channel } from '../models/Channel';
+import { Log } from '../models/Log';
+import { PlaySoundRequest } from '../models/PlaySoundRequest';
+import { Server } from '../models/Server';
+import { ServerSettings } from '../models/ServerSettings';
+import { SoundMeta } from '../models/SoundMeta';
+import { Sounds } from '../models/Sounds';
+import { User } from '../models/User';
+import { ApiService } from './api.service';
+import { AuthService } from './auth.service';
+import { StorageService } from './storage.service';
 
 @Injectable({
     providedIn: 'root'

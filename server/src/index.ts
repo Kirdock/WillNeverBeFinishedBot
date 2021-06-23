@@ -1,11 +1,11 @@
-import express from "express";
-import { DiscordBot } from "./discordServer/DiscordBot";
-import { AuthHelper } from "./services/authHelper";
-import { DatabaseHelper } from "./services/databaseHelper";
-import { FileHelper } from "./services/fileHelper";
-import { Logger } from "./services/logger";
-import { Router } from "./webserver/routes";
-import { WebServer } from "./webserver/server";
+import express from 'express';
+import { DiscordBot } from './discordServer/DiscordBot';
+import { AuthHelper } from './services/authHelper';
+import { DatabaseHelper } from './services/databaseHelper';
+import { FileHelper } from './services/fileHelper';
+import { Logger } from './services/logger';
+import { Router } from './webserver/routes';
+import { WebServer } from './webserver/server';
 
 if (!process.env.CLIENT_TOKEN) {
     throw Error('Client token not provided!');

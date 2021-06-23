@@ -1,5 +1,5 @@
-import { createLogger, transports, Logger as lg, format } from "winston";
-import { ConsoleTransportOptions } from "winston/lib/winston/transports";
+import { createLogger, transports, Logger as lg, format } from 'winston';
+import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 
 export class Logger {
     private logger: lg;

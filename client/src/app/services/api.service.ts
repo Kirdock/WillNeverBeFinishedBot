@@ -1,13 +1,13 @@
-import { HttpClient, HttpResponse } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { Channel } from "../models/Channel";
-import { Log } from "../models/Log";
-import { PlaySoundRequest } from "../models/PlaySoundRequest";
-import { Server } from "../models/Server";
-import { ServerSettings } from "../models/ServerSettings";
-import { SoundMeta } from "../models/SoundMeta";
-import { User } from "../models/User";
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { Channel } from '../models/Channel';
+import { Log } from '../models/Log';
+import { PlaySoundRequest } from '../models/PlaySoundRequest';
+import { Server } from '../models/Server';
+import { ServerSettings } from '../models/ServerSettings';
+import { SoundMeta } from '../models/SoundMeta';
+import { User } from '../models/User';
 
 @Injectable({
     providedIn: 'root'

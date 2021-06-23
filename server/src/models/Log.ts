@@ -1,5 +1,5 @@
-import { Snowflake } from "discord.js";
-import { ObjectID } from "mongodb";
+import { Snowflake } from 'discord.js';
+import { ObjectID } from 'mongodb';
 
 export class Log {
     public _id: ObjectID = new ObjectID();

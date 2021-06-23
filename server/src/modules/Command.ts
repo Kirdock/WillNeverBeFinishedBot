@@ -1,8 +1,8 @@
-import { Message } from "discord.js";
-import { DatabaseHelper } from "../services/databaseHelper";
-import { FileHelper } from "../services/fileHelper";
-import { Logger } from "../services/logger";
-import { VoiceHelper } from "../services/voiceHelper";
+import { Message } from 'discord.js';
+import { DatabaseHelper } from '../services/databaseHelper';
+import { FileHelper } from '../services/fileHelper';
+import { Logger } from '../services/logger';
+import { VoiceHelper } from '../services/voiceHelper';
 
 export abstract class Command{
     protected abstract readonly commandText: string;

@@ -4,7 +4,7 @@ import { Logger } from './logger';
 import { DatabaseHelper } from './databaseHelper';
 import { DiscordBot } from '../discordServer/DiscordBot';
 import { UserPayload } from '../models/UserPayload';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { UserToken } from '../models/UserToken';
 
 export class AuthHelper {

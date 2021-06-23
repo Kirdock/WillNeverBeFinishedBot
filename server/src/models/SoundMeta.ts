@@ -1,5 +1,5 @@
-import { ObjectID } from "bson";
-import { Snowflake } from "discord.js";
+import { ObjectID } from 'bson';
+import { Snowflake } from 'discord.js';
 
 export class SoundMeta {
     public _id: ObjectID;
