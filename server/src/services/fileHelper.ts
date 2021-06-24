@@ -5,7 +5,7 @@ import ffmpeg from 'fluent-ffmpeg';
 
 export class FileHelper {
     public readonly rootDir: string = join(__dirname, '/../../../');
-    public readonly baseDir: string = join(this.rootDir, 'server', 'shared');
+    private readonly baseDir: string = join(this.rootDir, 'server', 'shared');
     public readonly soundFolder: string = join(this.baseDir, 'sounds');
     public readonly certFolder: string = join(this.baseDir, 'cert');
     private readonly workFolder: string = join(this.soundFolder, 'work');

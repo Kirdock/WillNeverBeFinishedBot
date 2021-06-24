@@ -62,6 +62,7 @@ export class DatabaseHelper {
         return (await this.userCollection.findOneAndUpdate({id: userId}, {$set: {token: info}},
             {
                 upsert: true,
+                returnDocument: 'after',
                 projection: {
                     _id: 1
                 }
