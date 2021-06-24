@@ -48,6 +48,10 @@ export class DatabaseHelper {
         await this.userCollection.createIndex({'id': 1});
     }
 
+    private timeToObjectID(time: number): ObjectID {
+        return new ObjectID(Math.floor(time / 1000).toString(16) + "0000000000000000");
+    }
+
     public async getUserToken(userId: string): Promise<UserToken> {
         const user = await this.userCollection.findOne<User>({id: userId},{projection: {token: 1, id: 1, _id: 1}});
         if(!user?.token) {
@@ -94,7 +98,7 @@ export class DatabaseHelper {
         await this.fileHelper.normalizeFiles(preparedFiles);
         const soundsMeta: SoundMeta[] = preparedFiles.map(file => new SoundMeta(file.path, this.fileHelper.getFileName(file.originalname), category, userId, serverId));
         await this.soundMetaCollection.insertMany(soundsMeta);
-        SoundMeta.mapTime(soundsMeta);
+        this.mapTime(soundsMeta);
         return soundsMeta;
     }
 
@@ -102,24 +106,24 @@ export class DatabaseHelper {
         const soundMeta = new SoundMeta(filePath, fileName, category, userId, serverId);
         soundMeta._id = id;
         await this.soundMetaCollection.insertOne(soundMeta);
-        SoundMeta.mapTime([soundMeta]);
+        this.mapTime([soundMeta]);
         return soundMeta;
     }
 
     async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<SoundMeta[]>{
         const query: FilterQuery<SoundMeta> = {
             serverId: {$in: servers},
-            ...(fromTime && { time: { $gt: fromTime }})
+            ...(fromTime && { _id: { $gt: this.timeToObjectID(fromTime)}})
         };
         const soundsMeta: SoundMeta[] = await this.soundMetaCollection.find(query).toArray();
-        SoundMeta.mapTime(soundsMeta);
+        this.mapTime(soundsMeta);
         return soundsMeta;
     }
 
     async getSoundMeta(id: string): Promise<SoundMeta | undefined>{
         const soundMeta: SoundMeta | undefined = await this.soundMetaCollection.findOne({_id: new ObjectID(id)});
         if(soundMeta) {
-            SoundMeta.mapTime([soundMeta]);
+            this.mapTime([soundMeta]);
         }
         return soundMeta;
     }
@@ -127,7 +131,7 @@ export class DatabaseHelper {
     async getSoundMetaByName(fileName: string): Promise<SoundMeta | undefined>{
         const soundMeta: SoundMeta | undefined = await this.soundMetaCollection.findOne({fileName});
         if(soundMeta) {
-            SoundMeta.mapTime([soundMeta]);
+            this.mapTime([soundMeta]);
         }
         return soundMeta;
     }
@@ -225,5 +229,11 @@ export class DatabaseHelper {
     async udpateServerSettings(serverInfo: ServerSettings): Promise<UpdateWriteOpResult>{
         const {id, ...data} = serverInfo;
         return this.serverInfoCollection.updateOne({id}, {$set: {...data}}, {upsert: true});
+    }
+
+    private mapTime(soundsMeta: {time?: number, _id: ObjectID}[]): void {
+        for(const soundMeta of soundsMeta) {
+            soundMeta.time = soundMeta._id.getTimestamp().getTime();
+        }
     }
 }

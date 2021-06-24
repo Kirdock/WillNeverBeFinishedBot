@@ -10,10 +10,4 @@ export class SoundMeta {
         // consider if only id or id and username should be saved
         this._id = new ObjectID();
     }
-
-    public static mapTime(soundsMeta: SoundMeta[]): void {
-        for(const soundMeta of soundsMeta) {
-            soundMeta.time = soundMeta._id.getTimestamp().getTime();
-        }
-    }
 }
