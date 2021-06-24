@@ -75,7 +75,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public filteredSoundCategories(sounds: Sounds): Category[] {
     return this.soundCategories.filter(category =>{
       return this.filteredSounds(sounds[category.name]).length !== 0;
-    });
+    }).sort((catA, catB) => catA.name.localeCompare(catB.name));
   }
 
   constructor(private readonly authService: AuthService, private readonly storageService: StorageService, private readonly dataService: DataService, private readonly toast: ToastrService, private domSanitizer: DomSanitizer) {
