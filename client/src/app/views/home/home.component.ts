@@ -75,7 +75,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public filteredSoundCategories(sounds: Sounds): Category[] {
     return this.soundCategories.filter(category =>{
       return this.filteredSounds(sounds[category.name]).length !== 0;
-    }).sort((catA, catB) => catA.name.localeCompare(catB.name));
+    });
   }
 
   constructor(private readonly authService: AuthService, private readonly storageService: StorageService, private readonly dataService: DataService, private readonly toast: ToastrService, private domSanitizer: DomSanitizer) {
@@ -118,6 +118,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         show: this.soundCategories.find(cat => cat.name === category)?.show ?? true
       };
     }) : [];
+    this.soundCategories.sort((catA, catB) => catA.name.localeCompare(catB.name));
     if(!this.selectedCategory || !this.soundCategories.some(category => category.name === this.selectedCategory)) {
       this.selectedCategory = this.soundCategories.find(_ => true)?.name;
     }

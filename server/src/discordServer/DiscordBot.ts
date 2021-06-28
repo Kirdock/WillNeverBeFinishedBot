@@ -132,9 +132,11 @@ export class DiscordBot {
                 }
 
                 // bot leaves if it is the only remaining member in the voice channel
-                if (oldChannelMemberCount === 1 && oldState.id === this.id || newChannelMemberCount === 1 && newState.id === this.id) {
+                if (oldChannelMemberCount === 1 && oldState.channel?.members.get(this.id)) {
                     this.voiceHelper.disconnectVoice(oldState.guild.id);
-                    return;
+                }
+                else if (newChannelMemberCount === 1 && newState.channel?.members.get(this.id)) {
+                    this.voiceHelper.disconnectVoice(newState.guild.id);
                 }
             }
         });
