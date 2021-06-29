@@ -9,7 +9,7 @@ services:
         env_file:
             - .env.test
         volumes:
-            - ./server:/app/bot/server
+            - ./server/src:/app/bot/server/src
             - ./client:/app/bot/client
         restart: always
     database:

@@ -12,7 +12,6 @@ import { SoundMeta } from '../models/SoundMeta';
 import { Sounds } from '../models/Sounds';
 import { User } from '../models/User';
 import { ApiService } from './api.service';
-import { AuthService } from './auth.service';
 import { StorageService } from './storage.service';
 
 @Injectable({
@@ -26,7 +25,7 @@ export class DataService {
     private _selectedServer: BehaviorSubject<Server | undefined> = new BehaviorSubject<Server | undefined>(undefined);
     private _soundFetchTime: Date = new Date();
 
-    constructor(private apiService: ApiService, private storageService: StorageService, private authService: AuthService) {
+    constructor(private apiService: ApiService, private storageService: StorageService) {
     }
 
     private get location(): string {
@@ -91,7 +90,7 @@ export class DataService {
         const formData = new FormData();
         formData.append('category', category);
         formData.append('serverId', serverId);
-        
+
         for(let i = 0; i < files.length; i++) {
             formData.append(`files`, files[i]);
         }

@@ -46,6 +46,7 @@ export class DatabaseHelper {
         this.database = this.client.db(process.env.DATABASE_NAME);
         await this.soundMetaCollection.createIndex({'category': 1});
         await this.userCollection.createIndex({'id': 1});
+        await this.serverInfoCollection.createIndex({'id': 1});
     }
 
     private timeToObjectID(time: number): ObjectID {

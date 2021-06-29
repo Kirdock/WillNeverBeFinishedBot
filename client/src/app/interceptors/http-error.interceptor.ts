@@ -26,7 +26,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
           if (error.status === 401 && !this.isReloading) {
             this.isReloading = true;
             this.toast.warning('Scheint so als hättast an ungültigen Token. Log di amfoch nochmol ein', ToastTitles.WARNING, {
-              timeOut: 10*1000
+              timeOut: 10_000
             });
             this.storageService.deleteToken();
             setTimeout(

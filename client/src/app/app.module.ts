@@ -20,6 +20,8 @@ import { HttpErrorInterceptor } from './interceptors/http-error.interceptor';
 import { UserIntrosComponent } from './components/user-intros/user-intros.component';
 import { ServerLogListComponent } from './components/server-log-list/server-log-list.component';
 import { ServerSettingsComponent } from './components/server-settings/server-settings.component';
+import { FlexModule } from '@angular/flex-layout';
+import { MatInputModule } from '@angular/material/input';
 
 @NgModule({
   declarations: [
@@ -32,20 +34,22 @@ import { ServerSettingsComponent } from './components/server-settings/server-set
     ServerLogListComponent,
     ServerSettingsComponent,
   ],
-  imports: [
-    BrowserModule,
-    HttpClientModule,
-    AppRoutingModule,
-    FormsModule,
-    ToastrModule.forRoot({
-      timeOut: 5000
-    }),
-    BrowserAnimationsModule,
-    MatTabsModule,
-    MatAutocompleteModule,
-    MatMenuModule,
-    MatButtonModule 
-  ],
+    imports: [
+      BrowserModule,
+      HttpClientModule,
+      AppRoutingModule,
+      FormsModule,
+      ToastrModule.forRoot({
+          timeOut: 5000
+      }),
+      BrowserAnimationsModule,
+      MatTabsModule,
+      MatAutocompleteModule,
+      MatMenuModule,
+      MatButtonModule,
+      FlexModule,
+      MatInputModule
+    ],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,

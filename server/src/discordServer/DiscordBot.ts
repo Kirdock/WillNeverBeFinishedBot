@@ -182,8 +182,7 @@ export class DiscordBot {
                     }
                     else if(content === 'leave'){
                         if(message.guild) {
-                            const forceLock = PlayCommand.forcePlayLock.includes(message.guild.id);
-                            if(forceLock){
+                            if(PlayCommand.forcePlayLock[message.guild.id]){
                                 if(await this.isUserAdminInServer(message.author.id,message.guild.id)){
                                     this.voiceHelper.disconnectVoice(message.guild.id);
                                 };
