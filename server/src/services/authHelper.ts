@@ -8,11 +8,8 @@ import { Response } from 'express';
 import { UserToken } from '../models/UserToken';
 
 export class AuthHelper {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     private readonly secret: string = process.env.WEBTOKEN_SECRET!;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     private readonly clientSecret: string = process.env.CLIENT_SECRET!;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     private readonly scope: string = process.env.SCOPE!;
     private readonly redirectUrl: string = new URL('/Login', process.env.HOST).toString();
 
@@ -21,7 +18,6 @@ export class AuthHelper {
     /**
      * Login with a provided code
      * @param code Code generated via OAuth2
-     * @param redirectUrl Url 
      * @returns encoded token
      */
     async login(code: string): Promise<string> {
@@ -40,8 +36,7 @@ export class AuthHelper {
         const user = await this.discordBot.fetchUserData(userToken);
         const _id = await this.databaseHelper.updateUserToken(user.id, userToken);
         const payload: UserPayload = new UserPayload(_id.toHexString(), user.id, user.username, this.discordBot.isSuperAdmin(user.id));
-        const token = sign(JSON.stringify(payload), this.secret);
-        return token;
+        return sign(JSON.stringify(payload), this.secret);
     }
 
     private async refreshToken(refresh_token: string, scope: string): Promise<UserToken> {
@@ -61,7 +56,8 @@ export class AuthHelper {
 
     /**
      * validates webtoken and stores payload in request
-     * @param req 
+     * @param authToken
+     * @param res
      * @returns status if webtoken is valid
      */
     async auth(authToken: string | undefined, res: Response): Promise<boolean> {

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subject, timer } from 'rxjs';
-import { filter, map, skip, skipWhile, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, skipWhile, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Server } from './models/Server';
 import { UserPayload } from './models/UserPayload';
 import { AuthService } from './services/auth.service';
@@ -18,7 +18,7 @@ export class AppComponent implements OnInit, OnDestroy {
   public readonly hasAdminServers$: Observable<boolean>;
   public readonly servers$: Observable<Server[]>;
   private _selectedServer: Server | undefined;
-  
+
   public get userPayload(): UserPayload | undefined {
     return this.storageService.payload;
   }

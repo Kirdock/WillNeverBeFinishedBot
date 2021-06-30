@@ -72,12 +72,6 @@ export class FileHelper {
         return basename(filePath, extname(filePath));
     }
 
-    public checkAndCreateFile(filePath: string): void {
-        if (!existsSync(filePath)) {
-            writeFileSync(filePath, '{}');
-        }
-    }
-
     public readFile(filePath: string): Buffer {
         return readFileSync(filePath);
     }

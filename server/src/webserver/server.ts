@@ -57,21 +57,21 @@ export class WebServer {
         else {
             if (!req.headers.authorization) {
                 res.redirect('/Login');
-                this.checkFiles(req);
+                await this.checkFiles(req);
             }
             else if (await this.authHelper.auth(req.headers.authorization.split(' ')[1], res)) {
                 next();
             }
             else {
                 res.sendStatus(401);
-                this.checkFiles(req);
+                await this.checkFiles(req);
             }
         }
     }
 
     private async checkFiles(req: Request) {
         if(req.files?.length) {
-            this.fileHelper.deleteFiles(req.files);
+            await this.fileHelper.deleteFiles(req.files);
         }
     }
 }

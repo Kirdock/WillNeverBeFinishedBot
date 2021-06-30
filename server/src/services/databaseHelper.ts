@@ -2,7 +2,17 @@ import { Snowflake } from 'discord.js';
 import { ServerSettings } from '../models/ServerSettings';
 import { SoundMeta } from '../models/SoundMeta';
 import { UserToken } from '../models/UserToken';
-import { Db, DeleteWriteOpResultObject, FilterQuery, FindOneOptions, InsertOneWriteOpResult, MongoClient, ObjectID, UpdateWriteOpResult } from 'mongodb';
+import {
+    Db,
+    DeleteWriteOpResultObject,
+    FilterQuery,
+    FindOneOptions,
+    InsertOneWriteOpResult,
+    InsertWriteOpResult,
+    MongoClient,
+    ObjectID,
+    UpdateWriteOpResult
+} from 'mongodb';
 import { FileHelper } from './fileHelper';
 import { Logger } from './logger';
 import { User } from '../models/User';
@@ -98,6 +108,7 @@ export class DatabaseHelper {
         const preparedFiles: Express.Multer.File[] = this.fileHelper.getFiles(files);
         await this.fileHelper.normalizeFiles(preparedFiles);
         const soundsMeta: SoundMeta[] = preparedFiles.map(file => new SoundMeta(file.path, this.fileHelper.getFileName(file.originalname), category, userId, serverId));
+        this.logSoundUpload(soundsMeta);
         await this.soundMetaCollection.insertMany(soundsMeta);
         this.mapTime(soundsMeta);
         return soundsMeta;
@@ -182,8 +193,9 @@ export class DatabaseHelper {
         return this.logSound(userId, meta, 'Play Sound');
     }
 
-    async logSoundUpload(soundMeta: SoundMeta): Promise<InsertOneWriteOpResult<Log>>{
-        return this.logSound(soundMeta.userId, soundMeta, 'Sound Upload');
+    private async logSoundUpload(soundMetas: SoundMeta[]): Promise<InsertWriteOpResult<any>>{
+        const logs = soundMetas.map(meta => new Log(meta.serverId, meta.userId, 'Sound Upload', {fileName: meta.fileName, id: meta._id}));
+        return this.logCollection.insertMany(logs);
     }
 
     async logSoundDelete(userId: Snowflake, soundMeta: SoundMeta): Promise<InsertOneWriteOpResult<Log>>{

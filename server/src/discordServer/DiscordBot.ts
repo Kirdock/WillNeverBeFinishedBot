@@ -12,24 +12,21 @@ import { Logger } from '../services/logger';
 import { VoiceHelper } from '../services/voiceHelper';
 
 export class DiscordBot {
-    private client: Client;
-    private voiceHelper: VoiceHelper;
-    public playSoundCommand: PlayCommand;
-    private superAdmins: string[];
-    private prefixes: string[];
-    private questionCommand: QuestionCommand;
+    private readonly client: Client;
+    private readonly voiceHelper: VoiceHelper;
+    private readonly superAdmins: string[];
+    private readonly prefixes: string[];
+    private readonly questionCommand: QuestionCommand;
     private readonly hostUrl: string;
+    public readonly playSoundCommand: PlayCommand;
 
     public get id(): string {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return this.client.user!.id;
     }
 
     constructor(private databaseHelper: DatabaseHelper, private fileHelper: FileHelper, private logger: Logger) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.prefixes = process.env.PREFIXES!.split(',');
         this.hostUrl = process.env.HOST!;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.superAdmins = process.env.OWNERS!.split(',').map(owner => owner.trim()).filter(owner => owner);
         this.client = new Client({
             ws: {
@@ -50,7 +47,6 @@ export class DiscordBot {
 
     private setReady() {
         this.client.on('ready', () => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             console.log(`Logged in as ${this.client.user!.tag}!`);
         });
     }
@@ -106,14 +102,14 @@ export class DiscordBot {
             if (newUserChannelId === oldUserChannelId) {
                 // unmute
                 if (serverInfo.playIntroWhenUnmuted && oldState.selfDeaf && !newState.selfDeaf) {
-                    this.playSoundCommand.playIntro(newState, serverInfo.defaultIntro);
+                    await this.playSoundCommand.playIntro(newState, serverInfo.defaultIntro);
                 }
             }
             else {
                 // user joins
                 if (!oldUserChannelId) {
                     if (serverInfo.playIntro && (!serverInfo.minUser || newChannelMemberCount > 1)) {
-                        this.playSoundCommand.playIntro(newState, serverInfo.defaultIntro);
+                        await this.playSoundCommand.playIntro(newState, serverInfo.defaultIntro);
                     }
                 }
                 // user leaves
@@ -121,7 +117,7 @@ export class DiscordBot {
                     if (serverInfo.playOutro && serverInfo.defaultOutro && oldChannelMemberCount > 0) {
                         const soundMeta = await this.databaseHelper.getSoundMeta(serverInfo.defaultOutro);
                         if (soundMeta) {
-                            this.playSoundCommand.playSound(oldState.guild.id, oldUserChannelId, soundMeta.path);
+                            await this.playSoundCommand.playSound(oldState.guild.id, oldUserChannelId, soundMeta.path);
                         }
                         // else remove intro if not found?
                     }
@@ -166,26 +162,26 @@ export class DiscordBot {
                 content = content.trim();
                 if(this.playSoundCommand.isCommand(content))
                 {
-                    this.playSoundCommand.doWork(message);
+                    await this.playSoundCommand.doWork(message);
                 }
                 else{
                     content = content.toLocaleLowerCase();
                     if(content.startsWith('list')){
-                        message.reply(this.hostUrl);
+                        await message.reply(this.hostUrl);
                     }
                     else if(this.questionCommand.isCommand(content))
                     {
-                        this.questionCommand.doWork(message);
+                        await this.questionCommand.doWork(message);
                     }
                     else if(content === 'ping'){
-                        message.reply('pong');
+                        await message.reply('pong');
                     }
                     else if(content === 'leave'){
                         if(message.guild) {
                             if(PlayCommand.forcePlayLock[message.guild.id]){
                                 if(await this.isUserAdminInServer(message.author.id,message.guild.id)){
                                     this.voiceHelper.disconnectVoice(message.guild.id);
-                                };
+                                }
                             }
                             else{
                                 this.voiceHelper.disconnectVoice(message.guild.id);
@@ -194,20 +190,20 @@ export class DiscordBot {
                     }
                     else if(content === 'stop'){
                         if(message.guild){
-                            this.playSoundCommand.stopPlaying(message.guild.id, this.isSuperAdmin(message.author.id));
+                            await this.playSoundCommand.stopPlaying(message.guild.id, this.isSuperAdmin(message.author.id));
                         }
                     }
                     else if(content === 'join'){
-                        this.voiceHelper.joinVoiceChannel(message);
+                        await this.voiceHelper.joinVoiceChannel(message);
                     }
                     else if(content === 'flip'){
-                        message.reply(Math.floor(Math.random()*2) == 0 ? 'Kopf' : 'Zahl');
+                        await message.reply(Math.floor(Math.random()*2) == 0 ? 'Kopf' : 'Zahl');
                     }
                     else if (content.startsWith('pick')){
                         const elements = content.substring(4).split(',').map(item => item.trim()).filter(item => item.length !== 0);
                         if(elements.length !== 0) {
                             const index = Math.floor(Math.random()*elements.length-1);
-                            message.reply(elements[index]);
+                            await message.reply(elements[index]);
                         }
                     }
                     else if (content.startsWith('bubble')) {
@@ -322,11 +318,6 @@ export class DiscordBot {
         return result;
     }
 
-    public async getServerName(serverId: string): Promise<string> {
-        const server = await this.client.guilds.fetch(serverId);
-        return server.name;
-    }
-
     public isSuperAdmin(userId: string): boolean {
         return this.superAdmins.includes(userId);
     }
@@ -384,8 +375,7 @@ export class DiscordBot {
      * 
      * @param joinToUser 
      * @param serverId 
-     * @param channelId 
-     * @param guild 
+     * @param channelId
      * @param userId 
      * @returns the channelId the bot will join
      */

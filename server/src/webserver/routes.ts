@@ -282,7 +282,7 @@ export class Router {
         }
 
         if (isAllowed && (!meta || meta.serverId === req.body.serverId)) {
-          databaseHelper.setIntro(id, soundId, req.body.serverId);
+          await databaseHelper.setIntro(id, soundId, req.body.serverId);
           res.statusMessage = 'Dei Untergong is gsetzt wordn';
           res.status(200).end();
         }

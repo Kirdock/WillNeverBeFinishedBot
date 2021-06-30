@@ -41,5 +41,5 @@ Run server & Database: `docker-compose --env-file ./.env.test -f ./docker-compos
 - Here we use `.env.test` as environment file instead of `.env`
 - Make sure the HOST environment variable is set to `http://localhost:5000` or just don't set it because it's the default value
 
-Run client: `npm run start`.
+Run client: `npm run start` or `yarn run start`.
 Access web interface via `localhost:5000`

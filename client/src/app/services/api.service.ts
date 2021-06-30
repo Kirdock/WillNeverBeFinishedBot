@@ -13,7 +13,7 @@ import { User } from '../models/User';
     providedIn: 'root'
 })
 export class ApiService {
-    
+
     constructor(private http: HttpClient) {
     }
 
@@ -55,10 +55,6 @@ export class ApiService {
 
     public deleteSound(id: string): Observable<any> {
         return this.http.delete(`deleteSound/${id}`);
-    }
-
-    public fetchCategories(): Observable<string[]> {
-        return this.http.get<string[]>('soundCategories');
     }
 
     public uploadFile(formData: FormData): Observable<any>{

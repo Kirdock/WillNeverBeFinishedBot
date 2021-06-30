@@ -18,16 +18,16 @@ export class PlayCommand extends Command {
         const meta = await this.databaseHelper.getSoundMetaByName(content);
         const path = meta?.path;
         if (!path) {
-            message.reply(this.fileNotFoundMessage);
+            await message.reply(this.fileNotFoundMessage);
             return;
         }
         if (this.voiceHelper.hasConnection(message.guild.id)) {
-            this.playSound(path, message.guild.id);
+            await this.playSound(path, message.guild.id);
         }
         else {
             try {
                 await this.voiceHelper.joinVoiceChannel(message);
-                this.playSound(message.guild.id, message.channel.id, path);
+                await this.playSound(message.guild.id, message.channel.id, path);
             }
             catch (e) {
                 this.logger.error(e, { message: message.content });
@@ -101,7 +101,7 @@ export class PlayCommand extends Command {
         if (soundId) {
             const soundMeta = await this.databaseHelper.getSoundMeta(soundId);
             if (soundMeta) {
-                this.playSound(voiceState.guild.id, newUserChannelId, soundMeta.path);
+                await this.playSound(voiceState.guild.id, newUserChannelId, soundMeta.path);
             }
             //else remove intro if not found?
         }
