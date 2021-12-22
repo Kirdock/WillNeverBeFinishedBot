@@ -20,7 +20,7 @@
   "homepage": "https://github.com/Kirdock/WillNeverBeFinishedBot#readme",
   "dependencies": {
     "@discordjs/opus": "^0.5.3",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "bufferutil": "^4.0.3",
     "connect-history-api-fallback": "^1.6.0",
     "discord.js": "^12.5.3",
