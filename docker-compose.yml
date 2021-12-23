@@ -1,14 +1,17 @@
-version: "3.9"
+version: "2"
 services: 
     server:
-        build:  .
+        build: .
+        image: striessnigk/willneverbefinishedbot
         ports:
             - ${PORT}:${PORT}
         env_file:
             - .env
         volumes:
             - WillNeverBeFinishedBot:/app/bot/server/shared
-        restart: always
+        restart: on-failure
+        depends_on:
+            - database
     database:
         image: "mongo"
         container_name: "mongodb"
@@ -17,7 +20,7 @@ services:
             - MONGO_INITDB_ROOT_USERNAME=${DATABASE_USER}
             - MONGO_INITDB_ROOT_PASSWORD=${DATABASE_PASSWORD}
         ports:
-            - 27017:27017
+            - "27017:27017"
         volumes:
             - mongodb_data_volume:/data/db
 volumes:

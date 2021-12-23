@@ -18,6 +18,7 @@ import { Logger } from './logger';
 import { User } from '../models/User';
 import { ErrorTypes } from './ErrorTypes';
 import { Log } from '../models/Log';
+import { IEnvironmentVariables } from '../interfaces/environment-variables';
 
 export class DatabaseHelper {
     private client: MongoClient;
@@ -27,11 +28,12 @@ export class DatabaseHelper {
     private readonly soundMetaCollectionName: string = 'sounds';
     private readonly logCollectionName: string = 'logs';
 
-    constructor(private logger: Logger, private fileHelper: FileHelper){
-        this.client = new MongoClient(`mongodb://${process.env.DATABASE_USER}:${process.env.DATABASE_PASSWORD}@mongodb:27017?retryWrites=true&writeConcern=majority`,
+    constructor(private logger: Logger, private fileHelper: FileHelper, config: IEnvironmentVariables){
+        this.client = new MongoClient(`mongodb://${config.DATABASE_USER}:${config.DATABASE_PASSWORD}@mongodb:27017?retryWrites=true`,
         {
             useNewUrlParser: true,
             useUnifiedTopology: true,
+            writeConcern: 'majority',
         });
     }
 
@@ -51,9 +53,9 @@ export class DatabaseHelper {
         return this.database.collection(this.logCollectionName);
     }
 
-    public async run(): Promise<void> {
+    public async run(config: IEnvironmentVariables): Promise<void> {
         await this.client.connect();
-        this.database = this.client.db(process.env.DATABASE_NAME);
+        this.database = this.client.db(config.DATABASE_NAME);
         await this.soundMetaCollection.createIndex({'category': 1});
         await this.userCollection.createIndex({'id': 1});
         await this.serverInfoCollection.createIndex({'id': 1});

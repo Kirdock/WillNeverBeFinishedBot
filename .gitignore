@@ -49,5 +49,4 @@ WillNeverBeFinishedBot/
 mongodb_data_volume/
 
 # environment files
-.env
-.env.test
+.env**
