@@ -6,12 +6,13 @@ import { FileHelper } from '../services/fileHelper';
 import { Logger } from '../services/logger';
 import { Request, Response } from 'express';
 import { join } from 'path';
+import { IEnvironmentVariables } from '../interfaces/environment-variables';
 
 export class WebServer {
     private readonly baseUrl = '/api';
 
-    constructor(router: express.Router, private authHelper: AuthHelper, private fileHelper: FileHelper, private logger: Logger) {
-        const port: number = +process.env.PORT!;
+    constructor(router: express.Router, private authHelper: AuthHelper, private fileHelper: FileHelper, private logger: Logger, config: IEnvironmentVariables) {
+        const port: number = +config.PORT;
         const app = express();
         const staticFileMiddleware = express.static(join(this.fileHelper.rootDir, 'client', 'dist'));
 

@@ -10,6 +10,7 @@ import { DatabaseHelper } from '../services/databaseHelper';
 import { FileHelper } from '../services/fileHelper';
 import { Logger } from '../services/logger';
 import { VoiceHelper } from '../services/voiceHelper';
+import { IEnvironmentVariables } from '../interfaces/environment-variables';
 
 export class DiscordBot {
     private readonly client: Client;
@@ -24,10 +25,10 @@ export class DiscordBot {
         return this.client.user!.id;
     }
 
-    constructor(private databaseHelper: DatabaseHelper, private fileHelper: FileHelper, private logger: Logger) {
-        this.prefixes = process.env.PREFIXES!.split(',');
-        this.hostUrl = process.env.HOST!;
-        this.superAdmins = process.env.OWNERS!.split(',').map(owner => owner.trim()).filter(owner => owner);
+    constructor(private databaseHelper: DatabaseHelper, private fileHelper: FileHelper, private logger: Logger, config: IEnvironmentVariables) {
+        this.prefixes = config.PREFIXES.split(',');
+        this.hostUrl = config.HOST;
+        this.superAdmins = config.OWNERS.split(',').map(owner => owner.trim()).filter(owner => owner);
         this.client = new Client({
             ws: {
                 intents: [
@@ -39,7 +40,7 @@ export class DiscordBot {
         this.setReady();
         this.setVoiceStateUpdate();
         this.setOnMessage();
-        this.client.login(process.env.CLIENT_TOKEN);
+        this.client.login(config.CLIENT_TOKEN);
         this.voiceHelper = new VoiceHelper(this, logger);
         this.playSoundCommand = new PlayCommand(logger, this.voiceHelper, databaseHelper, this.fileHelper);
         this.questionCommand = new QuestionCommand(logger, this.voiceHelper, this.databaseHelper, this.fileHelper);

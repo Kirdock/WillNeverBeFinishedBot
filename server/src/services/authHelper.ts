@@ -6,14 +6,20 @@ import { DiscordBot } from '../discordServer/DiscordBot';
 import { UserPayload } from '../models/UserPayload';
 import { Response } from 'express';
 import { UserToken } from '../models/UserToken';
+import { IEnvironmentVariables } from '../interfaces/environment-variables';
 
 export class AuthHelper {
-    private readonly secret: string = process.env.WEBTOKEN_SECRET!;
-    private readonly clientSecret: string = process.env.CLIENT_SECRET!;
-    private readonly scope: string = process.env.SCOPE!;
-    private readonly redirectUrl: string = new URL('/Login', process.env.HOST).toString();
+    private readonly secret: string;
+    private readonly clientSecret: string;
+    private readonly scope: string;
+    private readonly redirectUrl: string;
 
-    constructor(private logger: Logger, private databaseHelper: DatabaseHelper, private discordBot: DiscordBot) { }
+    constructor(private logger: Logger, private databaseHelper: DatabaseHelper, private discordBot: DiscordBot, config: IEnvironmentVariables) {
+        this.secret = config.WEBTOKEN_SECRET;
+        this.clientSecret = config.CLIENT_SECRET;
+        this.scope = config.SCOPE;
+        this.redirectUrl = new URL('/Login', config.HOST).toString();
+    }
 
     /**
      * Login with a provided code
