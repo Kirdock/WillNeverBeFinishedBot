@@ -35,7 +35,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          token: ${{ secrets.KEPTN_BOT_TOKEN }}
 
       - name: Find next version number
         id: version_number

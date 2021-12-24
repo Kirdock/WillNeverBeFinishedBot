@@ -11,7 +11,7 @@ defaults:
     shell: bash
 jobs:
   prepare_ci_run:
-    name: Prepare CI Run
+    name: Prepare Docker Build
     runs-on: ubuntu-latest
     outputs:
       GIT_SHA: ${{ steps.extract_branch.outputs.GIT_SHA }}
