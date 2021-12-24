@@ -36,7 +36,8 @@ async function start(config: IEnvironmentVariables): Promise<void> {
 function setDefaultOptionalEnvironmentVariables(envs: IRequiredEnvironmentVariables): IEnvironmentVariables {
     return {
         ...envs,
-        OWNERS: envs.OWNERS ?? ''
+        OWNERS: envs.OWNERS ?? '',
+        VERSION: envs.VERSION || 'develop',
     };
 }
 

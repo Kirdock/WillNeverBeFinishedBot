@@ -15,6 +15,8 @@ COPY server/package.json server/yarn.lock ./
 RUN yarn install
 COPY server/ ./
 
+ARG version="develop"
+ENV VERSION=$version
 ARG client_token=""
 ENV CLIENT_TOKEN=$client_token
 ARG client_secret=""
@@ -22,7 +24,8 @@ ENV CLIENT_SECRET=$client_secret
 ARG host="http://localhost:5000"
 ENV HOST=$host
 ARG port=4599
-ENV PORT=$portG prefixes="!"
+ENV PORT=$port
+ARG prefixes="!"
 ENV PREFIXES=$prefixes
 ARG scope="identify"
 ENV SCOPE=$scope

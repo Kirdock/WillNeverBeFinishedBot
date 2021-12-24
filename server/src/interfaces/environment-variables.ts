@@ -23,8 +23,10 @@ export interface IRequiredEnvironmentVariables {
     DATABASE_PASSWORD: string;
     WEBTOKEN_SECRET: string;
     OWNERS?: string;
+    VERSION?: string;
 }
 
 export interface IEnvironmentVariables extends IRequiredEnvironmentVariables {
     OWNERS: string;
+    VERSION: string;
 }
