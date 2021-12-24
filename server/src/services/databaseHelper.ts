@@ -19,16 +19,24 @@ import { User } from '../models/User';
 import { ErrorTypes } from './ErrorTypes';
 import { Log } from '../models/Log';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
+import { IDatabaseMetadata } from '../interfaces/database-metadata';
+import semver from 'semver/preload';
+import { MigratorHelper } from './migratorHelper';
 
 export class DatabaseHelper {
     private client: MongoClient;
     private database!: Db;
+    private readonly migratorHelper: MigratorHelper;
+    private readonly version: string;
+    private readonly metadataCollectionName = 'metadata';
     private readonly userCollectionName: string = 'users';
     private readonly serverInfoCollectionName: string = 'servers';
     private readonly soundMetaCollectionName: string = 'sounds';
     private readonly logCollectionName: string = 'logs';
 
     constructor(private logger: Logger, private fileHelper: FileHelper, config: IEnvironmentVariables){
+        this.version = config.VERSION;
+        this.migratorHelper = new MigratorHelper(this, logger, this.version);
         this.client = new MongoClient(`mongodb://${config.DATABASE_USER}:${config.DATABASE_PASSWORD}@mongodb:27017?retryWrites=true`,
         {
             useNewUrlParser: true,
@@ -53,12 +61,42 @@ export class DatabaseHelper {
         return this.database.collection(this.logCollectionName);
     }
 
+    private get metadataCollection() {
+        return this.database.collection(this.metadataCollectionName);
+    }
+
     public async run(config: IEnvironmentVariables): Promise<void> {
         await this.client.connect();
         this.database = this.client.db(config.DATABASE_NAME);
         await this.soundMetaCollection.createIndex({'category': 1});
         await this.userCollection.createIndex({'id': 1});
         await this.serverInfoCollection.createIndex({'id': 1});
+        await this.migratorHelper.migrateCheck();
+    }
+
+    public async getVersion(): Promise<string> {
+        const metadata = await this.getDatabaseMetadata();
+        return metadata.version;
+    }
+
+    public async setVersion(version: string): Promise<void> {
+        await this.metadataCollection.updateOne({},
+            {
+                $set:
+                    {
+                        version
+                    }
+                },
+                {
+                    upsert: true
+                }
+            );
+    }
+
+    private async getDatabaseMetadata(): Promise<IDatabaseMetadata> {
+        return await this.metadataCollection.findOne<IDatabaseMetadata>({}) ?? {
+            version: '0.1'
+        };
     }
 
     private timeToObjectID(time: number): ObjectID {

@@ -321,7 +321,7 @@ export class Router {
   }
 
   private notInServer(res: Response, userId: string, serverId: string) {
-    this.logger.warn({ userId, serverId }, 'User not in server');
+    this.logger.warn('User not in server', { userId, serverId });
     res.statusMessage = 'Du host auf den Server kan Zugriff!!';
     res.status(403).end();
   }
