@@ -24,9 +24,11 @@ export interface IRequiredEnvironmentVariables {
     WEBTOKEN_SECRET: string;
     OWNERS?: string;
     VERSION?: string;
+    DATABASE_CONTAINER_NAME?: string;
 }
 
 export interface IEnvironmentVariables extends IRequiredEnvironmentVariables {
     OWNERS: string;
     VERSION: string;
+    DATABASE_CONTAINER_NAME: string;
 }
