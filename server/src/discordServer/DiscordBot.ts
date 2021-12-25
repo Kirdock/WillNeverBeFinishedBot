@@ -35,7 +35,8 @@ export class DiscordBot {
                 Intents.FLAGS.GUILD_VOICE_STATES,
                 Intents.FLAGS.GUILD_MEMBERS,
                 Intents.FLAGS.GUILD_INTEGRATIONS,
-            ]
+                Intents.FLAGS.GUILD_MESSAGES,
+            ],
         });
         this.setReady();
         this.setVoiceStateUpdate();
@@ -137,9 +138,8 @@ export class DiscordBot {
     }
 
     private setOnMessage() {
-        this.client.on('message', async (message: Message) => {
+        this.client.on('messageCreate', async (message: Message) => {
             // Will be changed because of slash-commmands
-
 
             let content = undefined;
             let prefixFound = false;
