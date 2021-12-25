@@ -95,7 +95,7 @@ export class DatabaseHelper {
 
     private async getDatabaseMetadata(): Promise<IDatabaseMetadata> {
         return await this.metadataCollection.findOne<IDatabaseMetadata>({}) ?? {
-            version: '0.1'
+            version: '0.1.0'
         };
     }
 

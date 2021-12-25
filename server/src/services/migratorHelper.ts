@@ -33,7 +33,6 @@ export class MigratorHelper {
                 }
                 newDatabaseVersion = strategy.version;
             }
-            newDatabaseVersion = version;
         } catch (e) {
             if (newDatabaseVersion){
                 await this.database.setVersion(newDatabaseVersion);
