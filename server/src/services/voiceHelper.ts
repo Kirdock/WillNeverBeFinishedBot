@@ -1,7 +1,8 @@
-import { Message, VoiceChannel, VoiceConnection } from 'discord.js';
+import { Message, VoiceChannel } from 'discord.js';
 import { DiscordBot } from '../discordServer/DiscordBot';
 import { ErrorTypes } from './ErrorTypes';
 import { Logger } from './logger';
+import { joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
 
 export class VoiceHelper {
 
@@ -10,92 +11,83 @@ export class VoiceHelper {
     }
 
     /**
-     * 
-     * @param message 
-     * @returns 
+     *
+     * @param message
+     * @returns
      * @throws CHANNEL_JOIN_FAILED
      */
     public async joinVoiceChannel(message: Message): Promise<VoiceConnection> {
         let connection: VoiceConnection;
         if (message.member?.voice.channel) {
-            connection = await message.member.voice.channel.join();
-        }
-        else {
+            // message.member.voice.channel.join()
+            connection = await this.joinVoiceChannelById(message.member.guild.id, message.member.voice.channel.id);
+        } else {
             throw ErrorTypes.CHANNEL_JOIN_FAILED;
         }
         return connection;
     }
 
     /**
-     * 
-     * @param serverId 
-     * @param clientId 
+     *
+     * @param serverId
+     * @param clientId
      * @returns Connection of joined voice channel
      * @throws Error
      */
     async joinVoiceChannelById(serverId: string, clientId: string): Promise<VoiceConnection> {
         const server = await this.discordBot.getServer(serverId);
-        let connection: VoiceConnection;
         if (server) {
-            const channel = server.channels.cache.get(clientId);
+            const channel = await server.channels.fetch(clientId);
             if (!channel) {
                 throw ErrorTypes.CHANNEL_ID_NOT_FOUND;
-            }
-            else if (channel instanceof VoiceChannel) {
+            } else if (channel instanceof VoiceChannel) {
                 try {
-                    const conn = await channel.join();
+                    const conn = joinVoiceChannel({
+                        channelId: channel.id,
+                        guildId: channel.guildId,
+                        adapterCreator: channel.guild.voiceAdapterCreator,
+                    });
+
                     conn.on('error', reason => {
-                        this.logger.error(reason, { serverId, clientId });
-                        conn.removeAllListeners();
-                        this.disconnectVoice(conn.channel.id);
+                        this.logger.error(reason, {serverId, clientId});
+                        conn.disconnect();
                     });
-                    conn.on('failed', reason => {
-                        this.logger.error(reason, { serverId, clientId });
-                        conn.removeAllListeners();
-                    });
-                    connection = conn;
-                }
-                catch (e) {
-                    this.logger.error(e, { serverId, clientId });
+                    return conn;
+                } catch (e) {
+                    this.logger.error(e, {serverId, clientId});
                     throw ErrorTypes.CHANNEL_JOIN_FAILED;
                 }
-            }
-            else {
+            } else {
                 throw ErrorTypes.CHANNEL_NOT_VOICE;
             }
-        }
-        else {
+        } else {
             throw ErrorTypes.SERVER_ID_NOT_FOUND;
         }
-        //ErrorType throw Error
-        //Error also has data where it was thrown
+    }
+
+    /**
+     *
+     * @param serverId
+     * @returns `VoiceConnection` or `undefined`
+     */
+    public getConnection(serverId: string): VoiceConnection | undefined {
+        const connection = this.discordBot.getVoiceConnection(serverId);
+        if (connection && connection?.state.status !== VoiceConnectionStatus.Ready) {
+            connection.rejoin();
+        }
         return connection;
     }
 
-    public hasConnection(serverId: string): boolean {
-        return this.discordBot.hasVoiceConnection(serverId);
-    }
-
     /**
-     * 
-     * @param serverId 
-     * @returns `VoiceConnection` or `undefined`
-     */
-    public getConnection(serverId: string): VoiceConnection| undefined {
-        return this.discordBot.getVoiceConnection(serverId);
-    }
-
-    /**
-     * 
-     * @param serverId 
+     *
+     * @param serverId
      * @throws CONNECTION_NOT_FOUND
      */
     public disconnectVoice(serverId: string): void | never {
         const connection = this.getConnection(serverId);
         if (connection) {
             connection.disconnect();
-        }
-        else {
+        } else {
             throw ErrorTypes.CONNECTION_NOT_FOUND;
         }
     }

@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { Intents, User } from 'discord.js';
-import { Client, Guild, GuildMember, Message, Snowflake, VoiceConnection, VoiceState } from 'discord.js';
+import { Client, Guild, GuildMember, Intents, Message, Permissions, Snowflake, User, VoiceChannel, VoiceState } from 'discord.js';
 import { ServerSettings } from '../models/ServerSettings';
 import { UserObject } from '../models/UserObject';
 import { UserServerInformation } from '../models/UserServerInformation';
@@ -11,6 +10,7 @@ import { FileHelper } from '../services/fileHelper';
 import { Logger } from '../services/logger';
 import { VoiceHelper } from '../services/voiceHelper';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
+import { getVoiceConnection, VoiceConnection } from '@discordjs/voice';
 
 export class DiscordBot {
     private readonly client: Client;
@@ -30,12 +30,13 @@ export class DiscordBot {
         this.hostUrl = config.HOST;
         this.superAdmins = config.OWNERS.split(',').map(owner => owner.trim()).filter(owner => owner);
         this.client = new Client({
-            ws: {
-                intents: [
-                    Intents.NON_PRIVILEGED,
-                    'GUILD_MEMBERS',
-                ]
-            }
+            intents: [
+                Intents.FLAGS.GUILDS,
+                Intents.FLAGS.GUILD_VOICE_STATES,
+                Intents.FLAGS.GUILD_MEMBERS,
+                Intents.FLAGS.GUILD_INTEGRATIONS,
+                Intents.FLAGS.GUILD_MESSAGES,
+            ],
         });
         this.setReady();
         this.setVoiceStateUpdate();
@@ -53,7 +54,7 @@ export class DiscordBot {
     }
 
     public async fetchUserData(tokenData: { token_type: string, access_token: string }): Promise<UserObject> {
-        const { data } = await axios.get('https://discord.com/api/users/@me', {
+        const {data} = await axios.get('https://discord.com/api/users/@me', {
             headers: {
                 authorization: `${tokenData.token_type} ${tokenData.access_token}`
             },
@@ -62,28 +63,22 @@ export class DiscordBot {
     }
 
     /**
-     * 
-     * @param serverId 
-     * @returns 
+     *
+     * @param serverId
+     * @returns
      * @throws Error if guild is not found or invalid id is provided
      */
     public getServer(serverId: string): Promise<Guild> {
         return this.client.guilds.fetch(serverId);
     }
 
-    public hasVoiceConnection(serverId: string): boolean {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.client.voice!.connections.has(serverId);
-    }
-
     /**
-     * 
-     * @param serverId 
+     *
+     * @param serverId
      * @returns `VoiceConnection` or `undefined`
      */
     public getVoiceConnection(serverId: string): VoiceConnection | undefined {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.client.voice!.connections.get(serverId);
+        return getVoiceConnection(serverId);
     }
 
     private setVoiceStateUpdate() {
@@ -105,8 +100,7 @@ export class DiscordBot {
                 if (serverInfo.playIntroWhenUnmuted && oldState.selfDeaf && !newState.selfDeaf) {
                     await this.playSoundCommand.playIntro(newState, serverInfo.defaultIntro);
                 }
-            }
-            else {
+            } else {
                 // user joins
                 if (!oldUserChannelId) {
                     if (serverInfo.playIntro && (!serverInfo.minUser || newChannelMemberCount > 1)) {
@@ -131,8 +125,7 @@ export class DiscordBot {
                 // bot leaves if it is the only remaining member in the voice channel
                 if (oldChannelMemberCount === 1 && oldState.channel?.members.get(this.id)) {
                     this.voiceHelper.disconnectVoice(oldState.guild.id);
-                }
-                else if (newChannelMemberCount === 1 && newState.channel?.members.get(this.id)) {
+                } else if (newChannelMemberCount === 1 && newState.channel?.members.get(this.id)) {
                     this.voiceHelper.disconnectVoice(newState.guild.id);
                 }
             }
@@ -140,112 +133,98 @@ export class DiscordBot {
     }
 
     private setOnMessage() {
-        this.client.on('message', async (message: Message) => {
+        this.client.on('messageCreate', async (message: Message) => {
             // Will be changed because of slash-commmands
-
 
             let content = undefined;
             let prefixFound = false;
             const messageContent = message.content.toLocaleLowerCase().trim();
-            for(let i = 0; i < this.prefixes.length; i++){
-                if(messageContent.startsWith(this.prefixes[i]))
-                {
+            for (let i = 0; i < this.prefixes.length; i++) {
+                if (messageContent.startsWith(this.prefixes[i])) {
                     content = message.content.substring(this.prefixes[i].length);
                     prefixFound = true;
                     break;
                 }
             }
 
-            if(!prefixFound && messageContent.startsWith(`<@${this.id}>`)){
-                content = message.content.substring(this.id.length+3);
+            if (!prefixFound && messageContent.startsWith(`<@${this.id}>`)) {
+                content = message.content.substring(this.id.length + 3);
             }
-            if(content){
+            if (content) {
                 content = content.trim();
-                if(this.playSoundCommand.isCommand(content))
-                {
+                if (this.playSoundCommand.isCommand(content)) {
                     await this.playSoundCommand.doWork(message);
-                }
-                else{
+                } else {
                     content = content.toLocaleLowerCase();
-                    if(content.startsWith('list')){
+                    if (content.startsWith('list')) {
                         await message.reply(this.hostUrl);
-                    }
-                    else if(this.questionCommand.isCommand(content))
-                    {
+                    } else if (this.questionCommand.isCommand(content)) {
                         await this.questionCommand.doWork(message);
-                    }
-                    else if(content === 'ping'){
+                    } else if (content === 'ping') {
                         await message.reply('pong');
-                    }
-                    else if(content === 'leave'){
-                        if(message.guild) {
-                            if(PlayCommand.forcePlayLock[message.guild.id]){
-                                if(await this.isUserAdminInServer(message.author.id,message.guild.id)){
+                    } else if (content === 'leave') {
+                        if (message.guild) {
+                            if (PlayCommand.forcePlayLock[message.guild.id]) {
+                                if (await this.isUserAdminInServer(message.author.id, message.guild.id)) {
                                     this.voiceHelper.disconnectVoice(message.guild.id);
                                 }
-                            }
-                            else{
+                            } else {
                                 this.voiceHelper.disconnectVoice(message.guild.id);
                             }
                         }
-                    }
-                    else if(content === 'stop'){
-                        if(message.guild){
+                    } else if (content === 'stop') {
+                        if (message.guild) {
                             await this.playSoundCommand.stopPlaying(message.guild.id, this.isSuperAdmin(message.author.id));
                         }
-                    }
-                    else if(content === 'join'){
+                    } else if (content === 'join') {
                         await this.voiceHelper.joinVoiceChannel(message);
-                    }
-                    else if(content === 'flip'){
-                        await message.reply(Math.floor(Math.random()*2) == 0 ? 'Kopf' : 'Zahl');
-                    }
-                    else if (content.startsWith('pick')){
+                    } else if (content === 'flip') {
+                        await message.reply(Math.floor(Math.random() * 2) == 0 ? 'Kopf' : 'Zahl');
+                    } else if (content.startsWith('pick')) {
                         const elements = content.substring(4).split(',').map(item => item.trim()).filter(item => item.length !== 0);
-                        if(elements.length !== 0) {
-                            const index = Math.floor(Math.random()*elements.length-1);
+                        if (elements.length !== 0) {
+                            const index = Math.floor(Math.random() * elements.length - 1);
                             await message.reply(elements[index]);
                         }
-                    }
-                    else if (content.startsWith('bubble')) {
+                    } else if (content.startsWith('bubble')) {
                         const items = content.substring(6).split('x');
                         const numbers: number[] = [];
-                        for(const item of items) {
+                        for (const item of items) {
                             const it: string = item.trim();
-                            if(it) {
+                            if (it) {
                                 const n: number = +it;
-                                if(!isNaN(n)) {
+                                if (!isNaN(n)) {
                                     numbers.push(n);
                                 }
                             }
                         }
 
-                        if(numbers.length >= 2) {
+                        if (numbers.length >= 2) {
                             const text: string = `||pop||`;
                             const max: number = ((text.length * numbers[0] + 1) * numbers[1] + message.author.id.length + 3 + 1) > 2000 ? 15 : 250;
                             const a: number = Math.min(numbers[0], max);
                             const b: number = Math.min(numbers[1], max);
                             const stringBuilder: string[] = [];
 
-                            for(let i = 0; i < b; ++i) {
+                            for (let i = 0; i < b; ++i) {
                                 stringBuilder.push('\n');
-                                for(let y = 0; y < a; ++y) {
+                                for (let y = 0; y < a; ++y) {
                                     stringBuilder.push(text);
                                 }
                             }
                             message.reply(stringBuilder.join(''));
                         }
-                    }
-                    else{
+                    } else {
                         message.reply('Red Deitsch mit mir! I hob kan Plan wos du von mir wüllst!');
                     }
                 }
             }
         });
     }
+
     public async getUserServers(userId: string): Promise<UserServerInformation[]> {
         const allServers: UserServerInformation[] = [];
-        for (const guild of this.client.guilds.cache.array()) {
+        for (const guild of this.client.guilds.cache.values()) {
             const server: UserServerInformation | undefined = await this.getUserServer(await guild.fetch(), userId);
             if (server) {
                 allServers.push(server);
@@ -258,8 +237,7 @@ export class DiscordBot {
         let member: GuildMember | null;
         try {
             member = await guild.members.fetch(userId);
-        }
-        catch {
+        } catch {
             member = null;
         }
         return member;
@@ -270,17 +248,16 @@ export class DiscordBot {
         let server: UserServerInformation | undefined;
         const isOwner = this.isSuperAdmin(userId);
         if (member) {
-            server = new UserServerInformation(guild.id, guild.name, guild.icon, member.hasPermission('ADMINISTRATOR'), member.permissions.bitfield);
-        }
-        else if (isOwner) {
-            server = new UserServerInformation(guild.id, guild.name, guild.icon, true, 0);
+            server = new UserServerInformation(guild.id, guild.name, guild.icon, member.permissions.has(Permissions.FLAGS.ADMINISTRATOR));
+        } else if (isOwner) {
+            server = new UserServerInformation(guild.id, guild.name, guild.icon, true);
         }
         return server;
     }
 
     public async hasUserAdminServers(userId: string): Promise<boolean> {
         for (const guild of this.client.guilds.cache) {
-            if(await this.isUserAdminInServer(userId, guild[0])){
+            if (await this.isUserAdminInServer(userId, guild[0])) {
                 return true;
             }
         }
@@ -289,7 +266,7 @@ export class DiscordBot {
 
     public async getUsersWhereIsAdmin(userId: string, serverId: string): Promise<GuildMember[]> {
         let users: GuildMember[] = [];
-        if(await this.isUserAdminInServer(userId, serverId)) {
+        if (await this.isUserAdminInServer(userId, serverId)) {
             users = await this.getUsers(serverId);
         }
         users.sort((a, b) => a.displayName.localeCompare(b.displayName));
@@ -302,8 +279,7 @@ export class DiscordBot {
             const guild = await this.client.guilds.fetch(serverId);
             const member = await this.getGuildMember(guild, userId);
             status = member?.permissions.has('ADMINISTRATOR') ?? false;
-        }
-        catch {
+        } catch {
             status = false;
         }
 
@@ -325,7 +301,7 @@ export class DiscordBot {
 
     public async getVoiceChannelsOfServer(serverId: string): Promise<{ id: Snowflake, name: string }[]> {
         const guild = await this.getServer(serverId);
-        return guild?.channels.cache.array().filter(channel => channel.type === 'voice')
+        return guild?.channels.cache.filter((channel): channel is VoiceChannel => channel.type === 'GUILD_VOICE')
             .sort((channel1, channel2) => channel1.rawPosition - channel2.rawPosition)
             .map(item => {
                 return {
@@ -339,7 +315,7 @@ export class DiscordBot {
         const guild: Guild = await this.getServer(serverId);
         let users: GuildMember[] = [];
         if (guild) {
-            users = (await guild.members.fetch()).array();
+            users = Array.from((await guild.members.fetch()).values());
         }
         return users;
     }
@@ -373,11 +349,11 @@ export class DiscordBot {
     }
 
     /**
-     * 
-     * @param joinToUser 
-     * @param serverId 
+     *
+     * @param joinToUser
+     * @param serverId
      * @param channelId
-     * @param userId 
+     * @param userId
      * @returns the channelId the bot will join
      */
     public async getChannelIdThroughUser(joinToUser: boolean, serverId: string, channelId: string, userId: Snowflake): Promise<string | null> {
@@ -386,12 +362,11 @@ export class DiscordBot {
             const guild: Guild = await this.getServer(serverId);
             if (guild) {
                 const member = await this.getGuildMember(guild, userId);
-                if (member?.voice?.channelID) {
-                    result = member.voice.channelID;
+                if (member?.voice?.channelId) {
+                    result = member.voice.channelId;
                 }
             }
-        }
-        else {
+        } else {
             result = channelId;
         }
         return result;
@@ -401,6 +376,6 @@ export class DiscordBot {
         for (const userObject of array) {
             userObject.username = (await this.getSingleUser(userObject[key]))?.username;
         }
-        array.sort((a,b) => a.username.localeCompare(b.username));
+        array.sort((a, b) => a.username.localeCompare(b.username));
     }
 }
