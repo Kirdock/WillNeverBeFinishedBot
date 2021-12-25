@@ -20,14 +20,20 @@ export class Logger {
         });
     }
 
-    public debug(context: any, message: string): void {
-        this.logger.debug(message, { context });
+    public debug(message: string, context?: string | object): void {
+        this.logger.debug(message, {
+            ...(context && { context })
+        });
     }
-    public info(context: any, message: string): void {
-        this.logger.info(message, { context });
+    public info(message: string, context?: string | object): void {
+        this.logger.info(message, {
+            ...(context && { context })
+        });
     }
-    public warn(context: any, message: string): void {
-        this.logger.warn(message, { context });
+    public warn(message: string, context?: string | object): void {
+        this.logger.warn(message, {
+            ...(context && { context })
+        });
     }
 
     public error(context: Error | string, msg: any): void {
