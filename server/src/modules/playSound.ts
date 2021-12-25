@@ -9,6 +9,7 @@ export class PlayCommand extends Command {
     protected commandText = 'play';
     public static forcePlayLock: { [key: string]: boolean } = {};
     private readonly fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
+    private readonly userNotInVoiceChannelMessage = 'Du bist in kan Voice Channel!!';
     private readonly audioPlayers: { [serverId: string]: AudioPlayer } = {};
 
     public async doWork(message: Message): Promise<void> {
@@ -22,13 +23,12 @@ export class PlayCommand extends Command {
         if (!path) {
             await message.reply(this.fileNotFoundMessage);
             return;
-        }
-        if (this.voiceHelper.hasConnection(message.guild.id)) {
-            await this.playSound(path, message.guild.id);
+        } else if (!message.member?.voice.channelId) {
+            await message.reply(this.userNotInVoiceChannelMessage);
+            return;
         } else {
             try {
-                await this.voiceHelper.joinVoiceChannel(message);
-                await this.playSound(message.guild.id, message.channel.id, path);
+                await this.playSound(message.guild.id, message.member?.voice.channelId, path);
             } catch (e) {
                 this.logger.error(e, {message: message.content});
             }
@@ -44,7 +44,6 @@ export class PlayCommand extends Command {
     }
 
     public async playSound(serverId: Snowflake, channelId: string, file?: string, volumeMultiplier = 0.5, url?: string, forcePlay?: boolean): Promise<void> {
-
         if (!forcePlay && PlayCommand.forcePlayLock[serverId]) {
             return;
         }
@@ -54,7 +53,7 @@ export class PlayCommand extends Command {
         const connection: VoiceConnection = this.voiceHelper.getConnection(serverId) ?? await this.voiceHelper.joinVoiceChannelById(serverId, channelId);
         const serverInfo = await this.databaseHelper.getServerSettings(serverId);
         const player = this.getAudioPlayer(serverId, serverInfo);
-        
+
         connection.subscribe(player);
 
         let resource: AudioResource | undefined;

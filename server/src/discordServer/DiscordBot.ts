@@ -10,7 +10,7 @@ import { FileHelper } from '../services/fileHelper';
 import { Logger } from '../services/logger';
 import { VoiceHelper } from '../services/voiceHelper';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
-import { getVoiceConnection, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
+import { getVoiceConnection, VoiceConnection } from '@discordjs/voice';
 
 export class DiscordBot {
     private readonly client: Client;
@@ -70,11 +70,6 @@ export class DiscordBot {
      */
     public getServer(serverId: string): Promise<Guild> {
         return this.client.guilds.fetch(serverId);
-    }
-
-    public hasVoiceConnection(serverId: string): boolean {
-        const connection = this.getVoiceConnection(serverId);
-        return !!connection && connection.state.status === VoiceConnectionStatus.Ready;
     }
 
     /**

@@ -65,10 +65,6 @@ export class VoiceHelper {
         }
     }
 
-    public hasConnection(serverId: string): boolean {
-        return this.discordBot.hasVoiceConnection(serverId);
-    }
-
     /**
      *
      * @param serverId
