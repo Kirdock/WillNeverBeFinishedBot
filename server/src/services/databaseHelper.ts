@@ -37,7 +37,7 @@ export class DatabaseHelper {
     constructor(private logger: Logger, private fileHelper: FileHelper, config: IEnvironmentVariables){
         this.version = config.VERSION;
         this.migratorHelper = new MigratorHelper(this, logger, this.version);
-        this.client = new MongoClient(`mongodb://${config.DATABASE_USER}:${config.DATABASE_PASSWORD}@mongodb:27017?retryWrites=true`,
+        this.client = new MongoClient(`mongodb://${config.DATABASE_USER}:${config.DATABASE_PASSWORD}@${config.DATABASE_CONTAINER_NAME}:27017?retryWrites=true`,
         {
             useNewUrlParser: true,
             useUnifiedTopology: true,

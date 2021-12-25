@@ -38,6 +38,7 @@ function setDefaultOptionalEnvironmentVariables(envs: IRequiredEnvironmentVariab
         ...envs,
         OWNERS: envs.OWNERS ?? '',
         VERSION: envs.VERSION || 'develop',
+        DATABASE_CONTAINER_NAME: envs.DATABASE_CONTAINER_NAME || 'mongodb'
     };
 }
 
