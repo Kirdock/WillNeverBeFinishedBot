@@ -143,16 +143,19 @@ export class RecordVoiceHelper {
                 channels: this.channelCount,
                 sampleRate: this.sampleRate
             });
+            // @ts-ignore
+            const bytesBefore = stream._bufArr.reduce((bytes, [buffer]: [Buffer, string]) => {
+                return bytes + buffer.byteLength;
+            }, 0);
             const readStream = stream.rewind();
 
-            let bytesProcesses = -1;
+            // the writeStream should end, when the "required" bytes (till the user clicked "download recording") are written
             const interval = setInterval(() => {
-                if (writeStream.bytesProcessed === bytesProcesses) {
+                if (writeStream.bytesProcessed >= bytesBefore) {
                     readStream.unpipe(writeStream);
                     writeStream.end();
                     clearInterval(interval);
                 }
-                bytesProcesses = writeStream.bytesProcessed;
             }, 100);
 
             readStream.pipe(writeStream);
