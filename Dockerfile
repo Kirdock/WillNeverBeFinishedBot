@@ -2,6 +2,7 @@ FROM node:lts-alpine as client-build
 WORKDIR /app/client
 COPY client/package.json client/yarn.lock ./
 RUN yarn install
+COPY shared/ /app/shared/
 COPY client/ ./
 RUN yarn run build
 
@@ -9,11 +10,12 @@ RUN yarn run build
 FROM node:17 AS main-build
 WORKDIR /app/bot
 COPY --from=client-build /app/client/dist ./client/dist
+COPY shared/ ./shared
 
 WORKDIR /app/bot/server
 COPY server/package.json server/yarn.lock ./
 RUN yarn install
-COPY server/ ./
+COPY server/ shared/ ./
 
 ARG version="develop"
 ENV VERSION=$version

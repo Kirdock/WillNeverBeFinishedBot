@@ -1,13 +1,15 @@
-import { existsSync, promises as fs, mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { basename, extname, join } from 'path';
 import { Logger } from './logger';
 import ffmpeg from 'fluent-ffmpeg';
+import { rename, unlink } from 'fs/promises';
 
 export class FileHelper {
-    public readonly rootDir: string = join(__dirname, '/../../../');
-    private readonly baseDir: string = join(this.rootDir, 'server', 'shared');
-    public readonly soundFolder: string = join(this.baseDir, 'sounds');
-    public readonly certFolder: string = join(this.baseDir, 'cert');
+    public static readonly rootDir: string = join(__dirname, '/../../../');
+    public static readonly baseDir: string = join(FileHelper.rootDir, 'server', 'shared');
+    public readonly soundFolder: string = join(FileHelper.baseDir, 'sounds');
+    public readonly certFolder: string = join(FileHelper.baseDir, 'cert');
+    public static readonly recordingsDir = join(FileHelper.baseDir, 'recordings');
     private readonly workFolder: string = join(this.soundFolder, 'work');
 
     constructor(private logger: Logger) {
@@ -15,7 +17,7 @@ export class FileHelper {
     }
 
     private checkAndCreateFolderSystem() {
-        for (const folder of [this.baseDir, this.soundFolder, this.workFolder]) {
+        for (const folder of [FileHelper.baseDir, this.soundFolder, this.workFolder, FileHelper.recordingsDir]) {
             this.checkAndCreateFolder(folder);
         }
     }
@@ -32,25 +34,36 @@ export class FileHelper {
 
     public async deleteFile(path: string): Promise<boolean> {
         let deleted = false;
-        if (existsSync(path)) {
+        if (this.existsFile(path)) {
             try {
-                await fs.unlink(path);
+                await unlink(path);
                 deleted = true;
-            }
-            catch (e) {
-                this.logger.error(e, { path });
+            } catch (e) {
+                this.logger.error(e, {path});
             }
         }
 
         return deleted;
     }
 
-    async deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
+    public async deleteFilesByPath(files: string[]): Promise<boolean> {
+        let status = false;
+
+        for (const file of files) {
+            const stat = await this.deleteFile(file);
+            status &&= stat;
+
+        }
+        return status;
+    }
+
+    public async deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
         let status = false;
         const files: Express.Multer.File[] = this.getFiles(fileArray);
 
         for await (const file of files) {
-            status &&= await this.deleteFile(file.path);
+            const stat = await this.deleteFile(file.path);
+            status &&= stat;
         }
         return status;
     }
@@ -77,9 +90,9 @@ export class FileHelper {
     }
 
     public async normalizeFiles(files: Express.Multer.File[]): Promise<void> {
-        for(const file of files) {
+        for (const file of files) {
             await new Promise(resolve => {
-                const newFileName = this.getFileName(file.filename)+'.mp3';
+                const newFileName = this.getFileName(file.filename) + '.mp3';
                 const tempPath = join(this.workFolder, newFileName);
                 ffmpeg(file.path)
                     .audioFilter('loudnorm')
@@ -88,13 +101,12 @@ export class FileHelper {
                         resolve(e);
                     })
                     .on('end', async () => {
-                        try{
+                        try {
                             const newPath = join(file.destination, newFileName);
-                            await fs.unlink(file.path);
-                            await fs.rename(tempPath, newPath);
+                            await unlink(file.path);
+                            await rename(tempPath, newPath);
                             file.path = newPath;
-                        }
-                        catch {
+                        } catch {
                             await this.deleteFile(tempPath);
                         }
                         resolve(true);

@@ -1,10 +1,9 @@
-import express, { NextFunction } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import history from 'connect-history-api-fallback';
 import https from 'https';
 import { AuthHelper } from '../services/authHelper';
 import { FileHelper } from '../services/fileHelper';
 import { Logger } from '../services/logger';
-import { Request, Response } from 'express';
 import { join } from 'path';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 
@@ -14,10 +13,10 @@ export class WebServer {
     constructor(router: express.Router, private authHelper: AuthHelper, private fileHelper: FileHelper, private logger: Logger, config: IEnvironmentVariables) {
         const port: number = +config.PORT;
         const app = express();
-        const staticFileMiddleware = express.static(join(this.fileHelper.rootDir, 'client', 'dist'));
+        const staticFileMiddleware = express.static(join(FileHelper.rootDir, 'client', 'dist'));
 
         app.use(this.cors);
-        app.use(express.json({ limit: '20mb' }));
+        app.use(express.json({limit: '20mb'}));
         app.use(staticFileMiddleware);
         app.use(history());
         app.use(staticFileMiddleware);
@@ -27,8 +26,7 @@ export class WebServer {
         if (!this.fileHelper.existsFile(join(this.fileHelper.certFolder, 'privkey.pem'))) {
             console.log('start local');
             app.listen(port);
-        }
-        else {
+        } else {
             https.createServer({
                 key: this.fileHelper.readFile(join(this.fileHelper.certFolder, 'privkey.pem')),
                 cert: this.fileHelper.readFile(join(this.fileHelper.certFolder, 'cert.pem'))
@@ -45,8 +43,7 @@ export class WebServer {
         // intercept OPTIONS method
         if ('OPTIONS' === req.method) {
             res.sendStatus(200);
-        }
-        else {
+        } else {
             next();
         }
     }
@@ -54,16 +51,13 @@ export class WebServer {
     private async authentication(req: Request, res: Response, next: NextFunction) {
         if (req.url === `${this.baseUrl}/login`) {
             next();
-        }
-        else {
+        } else {
             if (!req.headers.authorization) {
                 res.redirect('/Login');
                 await this.checkFiles(req);
-            }
-            else if (await this.authHelper.auth(req.headers.authorization.split(' ')[1], res)) {
+            } else if (await this.authHelper.auth(req.headers.authorization.split(' ')[1], res)) {
                 next();
-            }
-            else {
+            } else {
                 res.sendStatus(401);
                 await this.checkFiles(req);
             }
@@ -71,7 +65,7 @@ export class WebServer {
     }
 
     private async checkFiles(req: Request) {
-        if(req.files?.length) {
+        if (req.files?.length) {
             await this.fileHelper.deleteFiles(req.files);
         }
     }

@@ -44,7 +44,7 @@ typings
 Thumbs.db
 
 # created folders by server
-shared/
+server/shared/
 WillNeverBeFinishedBot/
 mongodb_data_volume/
 

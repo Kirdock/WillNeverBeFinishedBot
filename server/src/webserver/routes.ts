@@ -1,8 +1,8 @@
 import multer from 'multer';
-import { extname } from 'path';
+import { basename, extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { FileHelper } from '../services/fileHelper';
-import { Response, Router as rs } from 'express';
+import { Request, Response, Router as rs } from 'express';
 import { Logger } from '../services/logger';
 import { DiscordBot } from '../discordServer/DiscordBot';
 import { DatabaseHelper } from '../services/databaseHelper';
@@ -12,9 +12,10 @@ import { ErrorTypes } from '../services/ErrorTypes';
 import { SoundMeta } from '../models/SoundMeta';
 import { GuildMember } from 'discord.js';
 import { Log } from '../models/Log';
+import { RecordVoiceHelper } from '../services/record-voice-helper';
 
 export class Router {
-    constructor(discordBot: DiscordBot, router: rs, fileHelper: FileHelper, databaseHelper: DatabaseHelper, private logger: Logger, authHelper: AuthHelper) {
+    constructor(discordBot: DiscordBot, router: rs, fileHelper: FileHelper, databaseHelper: DatabaseHelper, private logger: Logger, authHelper: AuthHelper, recordHelper: RecordVoiceHelper) {
 
         const storage = multer.diskStorage({
             destination: (_req, _file, cb) => {
@@ -63,7 +64,7 @@ export class Router {
                 const result: UserPayload = this.getPayload(res);
                 const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.body.serverSettings.id);
                 if (valid) {
-                    await databaseHelper.udpateServerSettings(req.body.serverSettings);
+                    await databaseHelper.updateServerSettings(req.body.serverSettings);
                     res.statusMessage = 'Einstöllungen sen aufm neiestn Stond';
                     res.status(200).end();
                 } else {
@@ -113,6 +114,27 @@ export class Router {
                     res.status(404).end();
                 }
             });
+
+        router.route('/recordVoice/:serverId')
+            .get(async (req: Request, res: Response) => {
+                const result: UserPayload = this.getPayload(res);
+
+                if (await discordBot.isUserInServer(result.id, req.params.serverId)) {
+                    const filePath = await recordHelper.getRecordedVoice(req.params.serverId, +(req.query.minutes?.toString() || 10));
+                    if (filePath) {
+                        res.on('finish', () => {
+                            fileHelper.deleteFile(filePath);
+                        })
+                        res.status(200).download(filePath, basename(filePath));
+                    } else {
+                        res.statusMessage = ErrorTypes.FILE_NOT_FOUND;
+                        res.status(404).end();
+                    }
+                } else {
+                    res.statusMessage = ErrorTypes.SERVER_ID_NOT_FOUND;
+                    res.status(404).end();
+                }
+            })
 
         router.route('/sounds/:serverId')
             .get(async (req, res) => {

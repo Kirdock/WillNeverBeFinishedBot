@@ -3,11 +3,12 @@ import { DiscordBot } from '../discordServer/DiscordBot';
 import { ErrorTypes } from './ErrorTypes';
 import { Logger } from './logger';
 import { joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
+import { DatabaseHelper } from './databaseHelper';
+import { RecordVoiceHelper } from './record-voice-helper';
 
 export class VoiceHelper {
 
-    constructor(private discordBot: DiscordBot, private logger: Logger) {
-
+    constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, private logger: Logger, private recordHelper: RecordVoiceHelper) {
     }
 
     /**
@@ -19,7 +20,6 @@ export class VoiceHelper {
     public async joinVoiceChannel(message: Message): Promise<VoiceConnection> {
         let connection: VoiceConnection;
         if (message.member?.voice.channel) {
-            // message.member.voice.channel.join()
             connection = await this.joinVoiceChannelById(message.member.guild.id, message.member.voice.channel.id);
         } else {
             throw ErrorTypes.CHANNEL_JOIN_FAILED;
@@ -46,7 +46,13 @@ export class VoiceHelper {
                         channelId: channel.id,
                         guildId: channel.guildId,
                         adapterCreator: channel.guild.voiceAdapterCreator,
+                        selfDeaf: false,
                     });
+
+                    const serverSettings = await this.databaseHelper.getServerSettings(serverId);
+                    if (serverSettings.recordVoice) {
+                        this.recordHelper.record(conn);
+                    }
 
                     conn.on('error', reason => {
                         this.logger.error(reason, {serverId, clientId});
