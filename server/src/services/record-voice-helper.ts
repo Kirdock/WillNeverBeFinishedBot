@@ -31,7 +31,7 @@ export class RecordVoiceHelper {
 
     constructor(private logger: Logger, private readonly fileHelper: FileHelper, config: IEnvironmentVariables) {
         const recordTime = +config.MAX_RECORD_TIME_MINUTES;
-        this.maxRecordTimeMs = (isNaN(recordTime) ? 10 : Math.abs(recordTime)) * 60 * 1_000;
+        this.maxRecordTimeMs = (!recordTime || isNaN(recordTime) ? 10 : Math.abs(recordTime)) * 60 * 1_000;
     }
 
     public startRecording(connection: VoiceConnection): void {
@@ -76,16 +76,16 @@ export class RecordVoiceHelper {
     }
 
     public stopRecording(connection: VoiceConnection): void {
-        for (const serverId in this.writeStreams) {
-            const serverStreams = this.writeStreams[serverId];
-            connection.receiver.speaking.removeListener('start', serverStreams.listener);
-            for (const userId in serverStreams.userStreams) {
-                const userStream = serverStreams.userStreams[userId];
-                userStream.source.destroy();
-                userStream.out.destroy();
-            }
+        const serverId = connection.joinConfig.guildId;
+        const serverStreams = this.writeStreams[serverId];
+        connection.receiver.speaking.removeListener('start', serverStreams.listener);
+
+        for (const userId in serverStreams.userStreams) {
+            const userStream = serverStreams.userStreams[userId];
+            userStream.source.destroy();
+            userStream.out.destroy();
         }
-        this.writeStreams = {};
+        delete this.writeStreams[serverId];
     }
 
     public async getRecordedVoice(serverId: Snowflake, minutes: number = 10): Promise<string | undefined> {
