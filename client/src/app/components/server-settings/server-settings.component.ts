@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
-import { Server } from 'src/app/models/Server';
+import { IServer } from 'src/app/interfaces/IServer';
 import { Sounds } from 'src/app/models/Sounds';
 import { DataService } from 'src/app/services/data.service';
 import { IServerSettings } from '../../../../../shared/interfaces/server-settings';
@@ -14,14 +14,14 @@ import { IServerSettings } from '../../../../../shared/interfaces/server-setting
 export class ServerSettingsComponent {
   public readonly serverSettings$: Observable<IServerSettings>;
   public readonly sounds$: Observable<Sounds | undefined>;
-  public readonly selectedServer$: Observable<Server | undefined>;
+  public readonly selectedServer$: Observable<IServer | undefined>;
 
   constructor(private readonly dataService: DataService) {
     this.sounds$ = this.dataService.sounds;
     this.selectedServer$ = this.dataService.selectedServer;
     this.serverSettings$ = this.selectedServer$
       .pipe(
-        filter((selectedServer?: Server): selectedServer is Server => !!selectedServer),
+        filter((selectedServer?: IServer): selectedServer is IServer => !!selectedServer),
         switchMap(selectedServer => this.dataService.getServerSettings(selectedServer.id))
       );
   }

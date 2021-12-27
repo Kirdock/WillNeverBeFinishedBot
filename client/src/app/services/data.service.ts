@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment';
 import { Channel } from '../models/Channel';
 import { Log } from '../models/Log';
 import { PlaySoundRequest } from '../models/PlaySoundRequest';
-import { Server } from '../models/Server';
+import { IServer } from '../interfaces/IServer';
 import { SoundMeta } from '../models/SoundMeta';
 import { Sounds } from '../models/Sounds';
 import { User } from '../models/User';
@@ -20,9 +20,9 @@ import { IServerSettings } from '../../../../shared/interfaces/server-settings';
 export class DataService {
   private _hasAdminServers: BehaviorSubject<boolean | undefined> = new BehaviorSubject<boolean | undefined>(undefined);
   private _sounds: BehaviorSubject<Sounds> = new BehaviorSubject<Sounds>({});
-  private _servers: BehaviorSubject<Server[]> = new BehaviorSubject<Server[]>([]);
+  private _servers: BehaviorSubject<IServer[]> = new BehaviorSubject<IServer[]>([]);
   private _channels: BehaviorSubject<Channel[]> = new BehaviorSubject<Channel[]>([]);
-  private _selectedServer: BehaviorSubject<Server | undefined> = new BehaviorSubject<Server | undefined>(undefined);
+  private _selectedServer: BehaviorSubject<IServer | undefined> = new BehaviorSubject<IServer | undefined>(undefined);
   private _soundFetchTime: Date = new Date();
 
   constructor(private apiService: ApiService, private storageService: StorageService) {
@@ -40,11 +40,11 @@ export class DataService {
     return `https://discord.com/api/oauth2/authorize?client_id=${environment.clientId}&permissions=3148800&redirect_uri=${this.location}&scope=bot`;
   }
 
-  public get selectedServer(): Observable<Server | undefined> {
+  public get selectedServer(): Observable<IServer | undefined> {
     return this._selectedServer.asObservable();
   }
 
-  public setSelectedServer(server: Server | undefined): void {
+  public setSelectedServer(server: IServer | undefined): void {
     this._selectedServer.next(server);
   }
 
@@ -56,7 +56,7 @@ export class DataService {
     return this._hasAdminServers.asObservable().pipe(filter((val: boolean | undefined): val is boolean => val !== undefined));
   }
 
-  public get servers(): Observable<Server[]> {
+  public get servers(): Observable<IServer[]> {
     return this._servers.asObservable();
   }
 

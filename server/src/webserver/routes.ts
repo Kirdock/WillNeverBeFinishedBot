@@ -55,17 +55,17 @@ export class Router {
         router.route('/servers')
             .get(async (req, res) => {
                 const result: UserPayload = this.getPayload(res);
-                const servers = await discordBot.getUserServers(result.id);
+                const servers = await discordBot.getUserServers(result.id, true);
                 res.status(200).json(servers);
             });
 
         router.route('/serverSettings')
             .post(async (req, res) => {
                 const result: UserPayload = this.getPayload(res);
-                const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.body.serverSettings.id);
+                const settings: ServerSettings = req.body.serverSettings;
+                const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, settings.id);
                 if (valid) {
-                    const settings: ServerSettings = req.body.serverSettings;
-                    await databaseHelper.updateServerSettings(req.body.serverSettings);
+                    await databaseHelper.updateServerSettings(settings);
                     if (!settings.recordVoice) {
                         const connection = discordBot.voiceHelper.getActiveConnection(settings.id);
                         if (connection) {
@@ -127,7 +127,7 @@ export class Router {
                 const result: UserPayload = this.getPayload(res);
 
                 if (await discordBot.isUserInServer(result.id, req.params.serverId)) {
-                    const filePath = await discordBot.voiceHelper.recordHelper.getRecordedVoice(req.params.serverId, +(req.query.minutes?.toString() || 10));
+                    const filePath = await discordBot.voiceHelper.recordHelper.getRecordedVoice(req.params.serverId, req.query.minutes ? +(req.query.minutes.toString()) : undefined);
                     if (filePath) {
                         res.on('finish', () => {
                             fileHelper.deleteFile(filePath);

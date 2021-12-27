@@ -8,7 +8,7 @@ import { Category } from 'src/app/models/Category';
 import { Channel } from 'src/app/models/Channel';
 import { HomeSettings } from 'src/app/models/HomeSettings';
 import { PlaySoundRequest } from 'src/app/models/PlaySoundRequest';
-import { Server } from 'src/app/models/Server';
+import { IServer } from 'src/app/interfaces/IServer';
 import { FileInfo, SoundMeta } from 'src/app/models/SoundMeta';
 import { Sounds } from 'src/app/models/Sounds';
 import { ToastTitles } from 'src/app/models/ToastTitles';
@@ -23,7 +23,7 @@ import { StorageService } from 'src/app/services/storage.service';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   public readonly sounds$: Observable<Sounds | undefined>;
-  public readonly selectedServer$: Observable<Server | undefined>;
+  public readonly selectedServer$: Observable<IServer | undefined>;
   public channels: Channel[] = [];
   public soundCategories: Category[] = [];
   public selectedCategory?: string;
@@ -32,7 +32,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   public settings: HomeSettings = new HomeSettings();
   public soundPollingInterval = 30_000;
   private destroyed$: Subject<void> = new Subject<void>();
-  public recordVoiceMinutes = 1;
 
   public get isOwner(): boolean {
     return this.authService.isOwner();
@@ -53,6 +52,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   public set selectedChannelId(channelId: string | undefined) {
     this.settings.selectedChannelId = channelId;
+    this.saveSettings();
+  }
+
+  public get recordVoiceMinutes(): number {
+    return this.settings.recordVoiceMinutes;
+  }
+
+  public set recordVoiceMinutes(minutes: number) {
+    this.settings.recordVoiceMinutes = minutes;
     this.saveSettings();
   }
 
@@ -90,7 +98,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.selectedServer$
       .pipe(
         takeUntil(this.destroyed$),
-        filter((server?: Server): server is Server => !!server)
+        filter((server?: IServer): server is IServer => !!server)
       ).subscribe((server) => {
       this.selectedChannelId = undefined;
       this.fetchChannels(server.id);

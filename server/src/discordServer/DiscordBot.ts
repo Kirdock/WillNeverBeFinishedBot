@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Client, Guild, GuildMember, Intents, Message, Permissions, Snowflake, User, VoiceChannel, VoiceState } from 'discord.js';
 import { ServerSettings } from '../models/ServerSettings';
 import { UserObject } from '../models/UserObject';
-import { UserServerInformation } from '../models/UserServerInformation';
+import { IUserServerInformation } from '../interfaces/IUserServerInformation';
 import { PlayCommand } from '../modules/playSound';
 import { QuestionCommand } from '../modules/question';
 import { DatabaseHelper } from '../services/databaseHelper';
@@ -42,7 +42,7 @@ export class DiscordBot {
         this.setVoiceStateUpdate();
         this.setOnMessage();
         this.client.login(config.CLIENT_TOKEN);
-        this.voiceHelper = new VoiceHelper(this, databaseHelper, logger, this.fileHelper);
+        this.voiceHelper = new VoiceHelper(this, databaseHelper, logger, this.fileHelper, config);
         this.playSoundCommand = new PlayCommand(logger, this.voiceHelper, databaseHelper, this.fileHelper);
         this.questionCommand = new QuestionCommand(logger, this.voiceHelper, this.databaseHelper, this.fileHelper);
     }
@@ -222,11 +222,14 @@ export class DiscordBot {
         });
     }
 
-    public async getUserServers(userId: string): Promise<UserServerInformation[]> {
-        const allServers: UserServerInformation[] = [];
+    public async getUserServers(userId: string, includeServerSettings: boolean): Promise<IUserServerInformation[]> {
+        const allServers: IUserServerInformation[] = [];
         for (const guild of this.client.guilds.cache.values()) {
-            const server: UserServerInformation | undefined = await this.getUserServer(await guild.fetch(), userId);
+            const server: IUserServerInformation | undefined = await this.getUserServer(await guild.fetch(), userId);
             if (server) {
+                if (includeServerSettings) {
+                    server.settings = await this.databaseHelper.getServerSettings(server.id);
+                }
                 allServers.push(server);
             }
         }
@@ -243,14 +246,24 @@ export class DiscordBot {
         return member;
     }
 
-    private async getUserServer(guild: Guild, userId: string): Promise<UserServerInformation | undefined> {
+    private async getUserServer(guild: Guild, userId: string): Promise<IUserServerInformation | undefined> {
         const member = await this.getGuildMember(guild, userId);
-        let server: UserServerInformation | undefined;
+        let server: IUserServerInformation | undefined;
         const isOwner = this.isSuperAdmin(userId);
         if (member) {
-            server = new UserServerInformation(guild.id, guild.name, guild.icon, member.permissions.has(Permissions.FLAGS.ADMINISTRATOR));
+            server = {
+                id: guild.id,
+                name: guild.name,
+                icon: guild.icon,
+                isAdmin: member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+            };
         } else if (isOwner) {
-            server = new UserServerInformation(guild.id, guild.name, guild.icon, true);
+            server = {
+                id: guild.id,
+                name: guild.name,
+                icon: guild.icon,
+                isAdmin: true,
+            };
         }
         return server;
     }

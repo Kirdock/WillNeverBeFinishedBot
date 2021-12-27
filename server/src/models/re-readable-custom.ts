@@ -53,6 +53,12 @@ export class ReReadable extends Writable {
         return this._bufArr[0]?.[2];
     }
 
+    get byteLength(): number {
+        return this._bufArr.reduce((bytes, [buffer]: [Buffer, string, number]) => {
+            return bytes + buffer.byteLength;
+        }, 0);
+    }
+
     _destroy(error: Error | null, callback: (error?: (Error | null)) => void) {
         clearInterval(this.fadeOutInterval);
         super._destroy(error, callback);

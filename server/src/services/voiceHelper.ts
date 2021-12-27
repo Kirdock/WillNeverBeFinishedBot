@@ -6,12 +6,13 @@ import { joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from '@disco
 import { DatabaseHelper } from './databaseHelper';
 import { RecordVoiceHelper } from './record-voice-helper';
 import { FileHelper } from './fileHelper';
+import { IEnvironmentVariables } from '../interfaces/environment-variables';
 
 export class VoiceHelper {
     public readonly recordHelper: RecordVoiceHelper;
 
-    constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, private logger: Logger, fileHelper: FileHelper) {
-        this.recordHelper = new RecordVoiceHelper(logger, fileHelper);
+    constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, private logger: Logger, fileHelper: FileHelper, config: IEnvironmentVariables) {
+        this.recordHelper = new RecordVoiceHelper(logger, fileHelper, config);
     }
 
     /**
@@ -54,7 +55,7 @@ export class VoiceHelper {
 
                     const serverSettings = await this.databaseHelper.getServerSettings(serverId);
                     if (serverSettings.recordVoice) {
-                        this.recordHelper.record(conn);
+                        this.recordHelper.startRecording(conn);
                     }
 
                     conn.on('error', reason => {

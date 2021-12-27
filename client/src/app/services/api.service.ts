@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { Channel } from '../models/Channel';
 import { Log } from '../models/Log';
 import { PlaySoundRequest } from '../models/PlaySoundRequest';
-import { Server } from '../models/Server';
+import { IServer } from '../interfaces/IServer';
 import { SoundMeta } from '../models/SoundMeta';
 import { User } from '../models/User';
 import { IServerSettings } from '../../../../shared/interfaces/server-settings';
@@ -41,8 +41,8 @@ export class ApiService {
     return this.http.get<string>(`userIntro/${serverId}`);
   }
 
-  public getServers(): Observable<Server[]> {
-    return this.http.get<Server[]>('servers');
+  public getServers(): Observable<IServer[]> {
+    return this.http.get<IServer[]>('servers');
   }
 
   public getServerSettings(serverId: string): Observable<IServerSettings> {
