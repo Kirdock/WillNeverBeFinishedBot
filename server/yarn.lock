@@ -2074,11 +2074,6 @@ registry-url@^5.0.0:
   dependencies:
     rc "^1.2.8"
 
-rereadable-stream@^1.4.13:
-  version "1.4.13"
-  resolved "https://registry.yarnpkg.com/rereadable-stream/-/rereadable-stream-1.4.13.tgz#39991d684162a9b7c042144284576b730dff72ae"
-  integrity sha512-g/HAYvVm1nXgmUAnqL01Zl3spGkZ9jqqlvIwlNd5O5FjQilq5BU6FeH65pcYP8Sn5lCenbpJ/+wGfkmQKKfp6A==
-
 resolve@^1.0.0:
   version "1.20.0"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.20.0.tgz#629a013fb3f70755d6f0b7935cc1c2c5378b1975"

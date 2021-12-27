@@ -2,19 +2,16 @@ import { EndBehaviorType, VoiceConnection } from '@discordjs/voice';
 import { Snowflake } from 'discord.js';
 import { OpusEncoder } from '@discordjs/opus';
 import { Logger } from './logger';
-import ffmpeg from 'fluent-ffmpeg';
-import { ReReadable } from 'rereadable-stream';
+import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import { Transform, TransformCallback, TransformOptions } from 'stream';
 import { ReadStream } from 'fs';
 import { join } from 'path';
 import { FileHelper } from './fileHelper';
 import { FileWriter } from 'wav';
+import { ReReadable } from '../models/re-readable-custom';
 
 interface UserStreams {
-    [userId: string]: {
-        startTime: number,
-        stream: ReReadable
-    }
+    [userId: string]: ReReadable;
 }
 
 export class RecordVoiceHelper {
@@ -34,14 +31,13 @@ export class RecordVoiceHelper {
             //check if already listening
             if (!this.writeStreams[connection.joinConfig.guildId][userId]) {
                 const encoder = new OpusEncoder(this.sampleRate, this.channelCount);
-                const date = Date.now();
                 const opusStream = connection.receiver.subscribe(userId, {
                     end: {
                         behavior: EndBehaviorType.AfterSilence,
                         duration: this.maxRecordTimeMs,
                     },
                 }) as unknown as ReadStream;
-                const out = new ReReadable();
+                const out = new ReReadable(this.maxRecordTimeMs);
                 opusStream.on('end', () => {
                     delete this.writeStreams[connection.joinConfig.guildId][userId];
                 });
@@ -51,13 +47,10 @@ export class RecordVoiceHelper {
                 });
 
                 opusStream
-                    .pipe(new OpusDecodingStream({highWaterMark: 100 * 1024 * 1024}, encoder))
+                    .pipe(new OpusDecodingStream({}, encoder)) // max 100 MB
                     .pipe(out);
 
-                this.writeStreams[connection.joinConfig.guildId][userId] = {
-                    startTime: date,
-                    stream: out
-                };
+                this.writeStreams[connection.joinConfig.guildId][userId] = out;
             }
         });
     }
@@ -90,9 +83,9 @@ export class RecordVoiceHelper {
     private getMinStartTime(serverId: string): number | undefined {
         let minStartTime: number | undefined;
         for (const userId in this.writeStreams[serverId]) {
-            const user = this.writeStreams[serverId][userId];
-            if (!minStartTime || user.startTime < minStartTime) {
-                minStartTime = user.startTime;
+            const stream = this.writeStreams[serverId][userId];
+            if (!minStartTime || (stream.startTime && stream.startTime < minStartTime)) {
+                minStartTime = stream.startTime;
             }
         }
         return minStartTime;
@@ -100,8 +93,8 @@ export class RecordVoiceHelper {
 
     private async getFfmpegSpecs(streams: UserStreams, minStartTime: number, endTime: number, minutes: number) {
         const maxRecordTime = endTime - minutes * 60 * 1000;
-        const recordTime = Math.max(minStartTime, maxRecordTime);
-        const maxDuration = endTime - recordTime;
+        const startRecordTime = Math.max(minStartTime, maxRecordTime);
+        const maxDuration = endTime - startRecordTime; // duration of the longest user recording
         let ffmpegOptions = ffmpeg();
         let userCount = 0;
         let amixString = '';
@@ -109,14 +102,21 @@ export class RecordVoiceHelper {
         const createdFiles: string[] = [];
 
         for (const userId in streams) {
-            const user = streams[userId];
-            const duration = endTime - user.startTime;
-            const delay = maxDuration - duration;
+            const stream = streams[userId];
             const filePath = join(FileHelper.recordingsDir, `${endTime}-${userId}.wav`);
             try {
-                await this.saveFile(user.stream, filePath);
+                const startTimeOfFile = stream.startTime;
+                const skipTime = startRecordTime - (startTimeOfFile ?? 0);
+                await this.saveFile(stream, filePath);
+                const duration = await this.getFileDuration(filePath);
+                let delay = maxDuration - duration;
+                delay = delay < 0 ? 0 : delay;
+
                 createdFiles.push(filePath);
-                ffmpegOptions = ffmpegOptions.addInput(filePath)
+                ffmpegOptions = ffmpegOptions.addInput(filePath);
+                if (skipTime > 0) {
+                    ffmpegOptions = ffmpegOptions.seekInput(skipTime / 1000);
+                }
                 delayStrings.push(`[${userCount}]adelay=${delay}|${delay}[a${userCount}]`);
                 amixString = `${amixString}[a${userCount}]`;
                 ++userCount;
@@ -137,14 +137,26 @@ export class RecordVoiceHelper {
         }
     }
 
+    private async getFileDuration(filePath: string): Promise<number> {
+        return new Promise((resolve, reject) => {
+            ffmpeg.ffprobe(filePath, (err: Error, metadata: FfprobeData) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(metadata.format.duration ?? 0);
+                }
+            })
+        })
+    }
+
     private async saveFile(stream: ReReadable, filePath: string): Promise<void> {
         return new Promise((resolve, reject) => {
             const writeStream = new FileWriter(filePath, {
                 channels: this.channelCount,
                 sampleRate: this.sampleRate
             });
-            // @ts-ignore
-            const bytesBefore = stream._bufArr.reduce((bytes, [buffer]: [Buffer, string]) => {
+
+            const bytesBefore = stream._bufArr.reduce((bytes, [buffer]: [Buffer, string, number]) => {
                 return bytes + buffer.byteLength;
             }, 0);
             const readStream = stream.rewind();
