@@ -50,7 +50,7 @@ export class PlayCommand extends Command {
         if (forcePlay) {
             PlayCommand.forcePlayLock[serverId] = true;
         }
-        const connection: VoiceConnection = this.voiceHelper.getConnection(serverId) ?? await this.voiceHelper.joinVoiceChannelById(serverId, channelId);
+        const connection: VoiceConnection = await this.voiceHelper.getOrJoinVoiceChannel(serverId, channelId);
         const serverInfo = await this.databaseHelper.getServerSettings(serverId);
         const player = this.getAudioPlayer(serverId, serverInfo);
 
@@ -108,7 +108,7 @@ export class PlayCommand extends Command {
 
     public async stopPlaying(serverId: Snowflake, isAdmin: boolean): Promise<void> {
         if (!PlayCommand.forcePlayLock[serverId] || isAdmin) {
-            const connection = this.voiceHelper.getConnection(serverId);
+            const connection = this.voiceHelper.getActiveConnection(serverId);
             if (connection) {
                 const player = this.getAudioPlayer(serverId);
                 player.stop(true);

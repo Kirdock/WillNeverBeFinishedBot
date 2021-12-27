@@ -11,11 +11,10 @@ import { Logger } from '../services/logger';
 import { VoiceHelper } from '../services/voiceHelper';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { getVoiceConnection, VoiceConnection } from '@discordjs/voice';
-import { RecordVoiceHelper } from '../services/record-voice-helper';
 
 export class DiscordBot {
     private readonly client: Client;
-    private readonly voiceHelper: VoiceHelper;
+    public readonly voiceHelper: VoiceHelper;
     private readonly superAdmins: string[];
     private readonly prefixes: string[];
     private readonly questionCommand: QuestionCommand;
@@ -26,7 +25,7 @@ export class DiscordBot {
         return this.client.user!.id;
     }
 
-    constructor(private databaseHelper: DatabaseHelper, private fileHelper: FileHelper, private logger: Logger, recordHelper: RecordVoiceHelper, config: IEnvironmentVariables) {
+    constructor(private databaseHelper: DatabaseHelper, private fileHelper: FileHelper, private logger: Logger, config: IEnvironmentVariables) {
         this.prefixes = config.PREFIXES.split(',');
         this.hostUrl = config.HOST;
         this.superAdmins = config.OWNERS.split(',').map(owner => owner.trim()).filter(owner => owner);
@@ -43,7 +42,7 @@ export class DiscordBot {
         this.setVoiceStateUpdate();
         this.setOnMessage();
         this.client.login(config.CLIENT_TOKEN);
-        this.voiceHelper = new VoiceHelper(this, databaseHelper, logger, recordHelper);
+        this.voiceHelper = new VoiceHelper(this, databaseHelper, logger, this.fileHelper);
         this.playSoundCommand = new PlayCommand(logger, this.voiceHelper, databaseHelper, this.fileHelper);
         this.questionCommand = new QuestionCommand(logger, this.voiceHelper, this.databaseHelper, this.fileHelper);
     }

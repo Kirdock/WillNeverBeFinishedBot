@@ -7,7 +7,6 @@ import { Logger } from './services/logger';
 import { Router } from './webserver/routes';
 import { WebServer } from './webserver/server';
 import { IEnvironmentVariables, IRequiredEnvironmentVariables, KEnvironmentVariables } from './interfaces/environment-variables';
-import { RecordVoiceHelper } from './services/record-voice-helper';
 
 const logger: Logger = new Logger();
 
@@ -20,12 +19,11 @@ async function start(config: IEnvironmentVariables): Promise<void> {
     try {
         const fileHelper: FileHelper = new FileHelper(logger);
         const databaseHelper = new DatabaseHelper(logger, fileHelper, config);
-        const recordHelper = new RecordVoiceHelper(logger, fileHelper);
         await databaseHelper.run(config);
-        const discordBot: DiscordBot = new DiscordBot(databaseHelper, fileHelper, logger, recordHelper, config);
+        const discordBot: DiscordBot = new DiscordBot(databaseHelper, fileHelper, logger, config);
         const authHelper = new AuthHelper(logger, databaseHelper, discordBot, config);
         const router = express.Router();
-        new Router(discordBot, router, fileHelper, databaseHelper, logger, authHelper, recordHelper);
+        new Router(discordBot, router, fileHelper, databaseHelper, logger, authHelper);
         new WebServer(router, authHelper, fileHelper, logger, config);
     } catch (e) {
         logger.error(e, 'Server start');

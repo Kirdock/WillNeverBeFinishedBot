@@ -5,10 +5,13 @@ import { Logger } from './logger';
 import { joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
 import { DatabaseHelper } from './databaseHelper';
 import { RecordVoiceHelper } from './record-voice-helper';
+import { FileHelper } from './fileHelper';
 
 export class VoiceHelper {
+    public readonly recordHelper: RecordVoiceHelper;
 
-    constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, private logger: Logger, private recordHelper: RecordVoiceHelper) {
+    constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, private logger: Logger, fileHelper: FileHelper) {
+        this.recordHelper = new RecordVoiceHelper(logger, fileHelper);
     }
 
     /**
@@ -71,17 +74,29 @@ export class VoiceHelper {
         }
     }
 
+    public async getOrJoinVoiceChannel(serverId: string, channelId: string): Promise<VoiceConnection> {
+        let connection = this.discordBot.getVoiceConnection(serverId);
+        if (connection) {
+            if (connection.joinConfig.channelId !== channelId || connection.state.status !== VoiceConnectionStatus.Ready) {
+                connection.rejoin({
+                    channelId,
+                    selfDeaf: false,
+                    selfMute: false,
+                });
+            }
+        } else {
+            connection = await this.joinVoiceChannelById(serverId, channelId)
+        }
+        return connection;
+    }
+
     /**
      *
      * @param serverId
      * @returns `VoiceConnection` or `undefined`
      */
-    public getConnection(serverId: string): VoiceConnection | undefined {
-        const connection = this.discordBot.getVoiceConnection(serverId);
-        if (connection && connection?.state.status !== VoiceConnectionStatus.Ready) {
-            connection.rejoin();
-        }
-        return connection;
+    public getActiveConnection(serverId: string): VoiceConnection | undefined {
+        return this.discordBot.getVoiceConnection(serverId);
     }
 
     /**
@@ -90,7 +105,7 @@ export class VoiceHelper {
      * @throws CONNECTION_NOT_FOUND
      */
     public disconnectVoice(serverId: string): void | never {
-        const connection = this.getConnection(serverId);
+        const connection = this.getActiveConnection(serverId);
         if (connection) {
             connection.disconnect();
         } else {

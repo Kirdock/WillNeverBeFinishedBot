@@ -11,48 +11,76 @@ import { FileWriter } from 'wav';
 import { ReReadable } from '../models/re-readable-custom';
 
 interface UserStreams {
-    [userId: string]: ReReadable;
+    [userId: string]: {
+        source: ReadStream,
+        out: ReReadable,
+    };
 }
 
 export class RecordVoiceHelper {
     private readonly maxRecordTimeMs = 10 * 60 * 1000; // 10 minutes
     private readonly channelCount = 1;
     private readonly sampleRate = 16_000;
-    private readonly writeStreams: {
-        [serverId: string]: UserStreams
+    private writeStreams: {
+        [serverId: string]: {
+            userStreams: UserStreams,
+            listener: (userId: string) => void;
+        }
     } = {};
 
     constructor(private logger: Logger, private readonly fileHelper: FileHelper) {
     }
 
     public record(connection: VoiceConnection): void {
-        connection.receiver.speaking.on('start', (userId: string) => {
-            this.writeStreams[connection.joinConfig.guildId] ??= {};
-            //check if already listening
-            if (!this.writeStreams[connection.joinConfig.guildId][userId]) {
-                const encoder = new OpusEncoder(this.sampleRate, this.channelCount);
-                const opusStream = connection.receiver.subscribe(userId, {
-                    end: {
-                        behavior: EndBehaviorType.AfterSilence,
-                        duration: this.maxRecordTimeMs,
-                    },
-                }) as unknown as ReadStream;
-                const out = new ReReadable(this.maxRecordTimeMs);
-                opusStream.on('end', () => {
-                    delete this.writeStreams[connection.joinConfig.guildId][userId];
-                });
-                opusStream.on('error', async (error: Error) => {
-                    this.logger.error(error, 'Error while recording voice');
-                    delete this.writeStreams[connection.joinConfig.guildId][userId];
-                });
+        if (!this.writeStreams[connection.joinConfig.guildId]) {
+            const listener = (userId: string) => {
+                //check if already listening
+                if (!this.writeStreams[connection.joinConfig.guildId].userStreams[userId]) {
+                    const encoder = new OpusEncoder(this.sampleRate, this.channelCount);
+                    const opusStream = connection.receiver.subscribe(userId, {
+                        end: {
+                            behavior: EndBehaviorType.AfterSilence,
+                            duration: this.maxRecordTimeMs,
+                        },
+                    }) as unknown as ReadStream;
+                    const out = new ReReadable(this.maxRecordTimeMs);
+                    opusStream.on('end', () => {
+                        delete this.writeStreams[connection.joinConfig.guildId].userStreams[userId];
+                    });
+                    opusStream.on('error', async (error: Error) => {
+                        this.logger.error(error, 'Error while recording voice');
+                        delete this.writeStreams[connection.joinConfig.guildId].userStreams[userId];
+                    });
 
-                opusStream
-                    .pipe(new OpusDecodingStream({}, encoder)) // max 100 MB
-                    .pipe(out);
+                    opusStream
+                        .pipe(new OpusDecodingStream({}, encoder))
+                        .pipe(out);
 
-                this.writeStreams[connection.joinConfig.guildId][userId] = out;
+                    this.writeStreams[connection.joinConfig.guildId].userStreams[userId] = {
+                        source: opusStream,
+                        out
+                    };
+                }
             }
-        });
+            this.writeStreams[connection.joinConfig.guildId] = {
+                userStreams: {},
+                listener,
+            };
+            connection.receiver.speaking.on('start', listener);
+        }
+    }
+
+    public stopRecording(connection: VoiceConnection): void {
+        for (const serverId in this.writeStreams) {
+            const serverStreams = this.writeStreams[serverId];
+            connection.receiver.speaking.removeListener('start', serverStreams.listener);
+            for (const userId in serverStreams) {
+                const userStream = serverStreams.userStreams[userId];
+                userStream.source.destroy();
+                userStream.out.destroy();
+            }
+        }
+        this.writeStreams = {};
     }
 
     public async getRecordedVoice(serverId: Snowflake, minutes: number): Promise<string | undefined> {
@@ -61,7 +89,7 @@ export class RecordVoiceHelper {
             const minStartTime = this.getMinStartTime(serverId);
 
             if (minStartTime) {
-                const {command, createdFiles} = await this.getFfmpegSpecs(this.writeStreams[serverId], minStartTime, endTime, minutes);
+                const {command, createdFiles} = await this.getFfmpegSpecs(this.writeStreams[serverId].userStreams, minStartTime, endTime, minutes);
                 if (createdFiles.length) {
                     const resultPath = join(FileHelper.recordingsDir, `${endTime}.wav`);
                     command.map('[a]')
@@ -83,9 +111,9 @@ export class RecordVoiceHelper {
     private getMinStartTime(serverId: string): number | undefined {
         let minStartTime: number | undefined;
         for (const userId in this.writeStreams[serverId]) {
-            const stream = this.writeStreams[serverId][userId];
-            if (!minStartTime || (stream.startTime && stream.startTime < minStartTime)) {
-                minStartTime = stream.startTime;
+            const stream = this.writeStreams[serverId].userStreams[userId];
+            if (!minStartTime || (stream.out.startTime && stream.out.startTime < minStartTime)) {
+                minStartTime = stream.out.startTime;
             }
         }
         return minStartTime;
@@ -105,9 +133,9 @@ export class RecordVoiceHelper {
             const stream = streams[userId];
             const filePath = join(FileHelper.recordingsDir, `${endTime}-${userId}.wav`);
             try {
-                const startTimeOfFile = stream.startTime;
+                const startTimeOfFile = stream.out.startTime;
                 const skipTime = startRecordTime - (startTimeOfFile ?? 0);
-                await this.saveFile(stream, filePath);
+                await this.saveFile(stream.out, filePath);
                 const duration = await this.getFileDuration(filePath);
                 let delay = maxDuration - duration;
                 delay = delay < 0 ? 0 : delay;
