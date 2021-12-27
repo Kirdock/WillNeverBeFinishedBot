@@ -52,7 +52,7 @@ export class RecordVoiceHelper {
                     opusStream.on('end', () => {
                         delete this.writeStreams[serverId].userStreams[userId];
                     });
-                    opusStream.on('error', async (error: Error) => {
+                    opusStream.on('error', (error: Error) => {
                         this.logger.error(error, 'Error while recording voice');
                         delete this.writeStreams[serverId].userStreams[userId];
                     });
@@ -79,7 +79,7 @@ export class RecordVoiceHelper {
         for (const serverId in this.writeStreams) {
             const serverStreams = this.writeStreams[serverId];
             connection.receiver.speaking.removeListener('start', serverStreams.listener);
-            for (const userId in serverStreams) {
+            for (const userId in serverStreams.userStreams) {
                 const userStream = serverStreams.userStreams[userId];
                 userStream.source.destroy();
                 userStream.out.destroy();
