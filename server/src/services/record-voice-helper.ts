@@ -116,7 +116,7 @@ export class RecordVoiceHelper {
 
     private getMinStartTime(serverId: string): number | undefined {
         let minStartTime: number | undefined;
-        for (const userId in this.writeStreams[serverId]) {
+        for (const userId in this.writeStreams[serverId].userStreams) {
             const stream = this.writeStreams[serverId].userStreams[userId];
             const startTime = stream.out.startTime;
 
