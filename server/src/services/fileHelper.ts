@@ -47,7 +47,7 @@ export class FileHelper {
     }
 
     public async deleteFilesByPath(files: string[]): Promise<boolean> {
-        let status = false;
+        let status = true;
 
         for (const file of files) {
             const stat = await this.deleteFile(file);
@@ -58,7 +58,7 @@ export class FileHelper {
     }
 
     public async deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
-        let status = false;
+        let status = true;
         const files: Express.Multer.File[] = this.getFiles(fileArray);
 
         for await (const file of files) {
