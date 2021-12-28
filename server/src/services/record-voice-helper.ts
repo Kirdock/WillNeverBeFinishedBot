@@ -38,10 +38,10 @@ export class RecordVoiceHelper {
         const serverId = connection.joinConfig.guildId;
         if (!this.writeStreams[serverId]) {
             const listener = (userId: string) => {
-                //check if already listening
+                //check if already listening to user
                 if (!this.writeStreams[serverId].userStreams[userId]) {
                     const encoder = new OpusEncoder(this.sampleRate, this.channelCount);
-                    const out = new ReReadable(this.maxRecordTimeMs);
+                    const out = new ReReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, {highWaterMark: 100 * 1024 * 1024});
                     const opusStream = connection.receiver.subscribe(userId, {
                         end: {
                             behavior: EndBehaviorType.AfterSilence,
@@ -89,9 +89,12 @@ export class RecordVoiceHelper {
     }
 
     public async getRecordedVoice(serverId: Snowflake, minutes: number = 10): Promise<string | undefined> {
+        if (!this.writeStreams[serverId]) {
+            return;
+        }
         const recordTimeMs = Math.min(Math.abs(minutes) * 60 * 1_000, this.maxRecordTimeMs)
+        const endTime = Date.now();
         return new Promise(async (resolve, reject) => {
-            const endTime = Date.now();
             const minStartTime = this.getMinStartTime(serverId);
 
             if (minStartTime) {
@@ -118,10 +121,9 @@ export class RecordVoiceHelper {
         let minStartTime: number | undefined;
         for (const userId in this.writeStreams[serverId].userStreams) {
             const stream = this.writeStreams[serverId].userStreams[userId];
-            const startTime = stream.out.startTime;
 
-            if (!minStartTime || (startTime && startTime < minStartTime)) {
-                minStartTime = startTime;
+            if (!minStartTime || (stream.out.startTime < minStartTime)) {
+                minStartTime = stream.out.startTime;
             }
         }
         return minStartTime;
@@ -130,7 +132,7 @@ export class RecordVoiceHelper {
     private async getFfmpegSpecs(streams: UserStreams, minStartTime: number, endTime: number, recordTimeMs: number) {
         const maxRecordTime = endTime - recordTimeMs;
         const startRecordTime = Math.max(minStartTime, maxRecordTime);
-        const maxDuration = endTime - startRecordTime; // duration of the longest user recording
+        const maxDuration = endTime - minStartTime; // duration of the longest user recording
         let ffmpegOptions = ffmpeg();
         let amixString = '';
         const delayStrings: string[] = [];
@@ -140,11 +142,10 @@ export class RecordVoiceHelper {
             const stream = streams[userId];
             const filePath = join(FileHelper.recordingsDir, `${endTime}-${userId}.wav`);
             try {
-                const startTimeOfFile = stream.out.startTime;
-                const skipTime = startRecordTime - (startTimeOfFile ?? 0);
                 await this.saveFile(stream.out, filePath);
-                const duration = await this.getFileDuration(filePath);
-                let delay = maxDuration - duration;
+                const durationMs = await this.getFileDuration(filePath);
+                const skipTime = durationMs - maxDuration;
+                let delay = stream.out.startTime - startRecordTime;
                 delay = delay < 0 ? 0 : delay;
                 ffmpegOptions = ffmpegOptions.addInput(filePath);
 
@@ -178,7 +179,7 @@ export class RecordVoiceHelper {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(metadata.format.duration ?? 0);
+                    resolve((metadata.format.duration ?? 0) * 1_000); // seconds to milliseconds
                 }
             })
         })
