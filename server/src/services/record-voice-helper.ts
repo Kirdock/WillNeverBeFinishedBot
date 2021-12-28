@@ -1,7 +1,7 @@
 import { EndBehaviorType, VoiceConnection } from '@discordjs/voice';
 import { Snowflake } from 'discord.js';
 import { Logger } from './logger';
-import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
+import ffmpeg from 'fluent-ffmpeg';
 import { ReadStream } from 'fs';
 import { join } from 'path';
 import { FileHelper } from './fileHelper';
@@ -127,7 +127,7 @@ export class RecordVoiceHelper {
     private async getFfmpegSpecs(streams: UserStreams, minStartTime: number, endTime: number, recordTimeMs: number) {
         const maxRecordTime = endTime - recordTimeMs;
         const startRecordTime = Math.max(minStartTime, maxRecordTime);
-        const maxDuration = endTime - minStartTime; // duration of the longest user recording
+        // length of the result recording would be endTime - startRecordTime
         let ffmpegOptions = ffmpeg();
         let amixString = '';
         const delayStrings: string[] = [];
@@ -138,8 +138,8 @@ export class RecordVoiceHelper {
             const filePath = join(FileHelper.recordingsDir, `${endTime}-${userId}.wav`);
             try {
                 await this.saveFile(stream.out, filePath);
-                const durationMs = await this.getFileDuration(filePath);
-                const skipTime = durationMs - maxDuration;
+                // durationOfFile - maxDuration would not be right, because silent after last chunk is not added to the stream
+                const skipTime = startRecordTime - stream.out.startTime;
                 let delay = stream.out.startTime - startRecordTime;
                 delay = delay < 0 ? 0 : delay;
                 ffmpegOptions = ffmpegOptions.addInput(filePath);
@@ -166,18 +166,6 @@ export class RecordVoiceHelper {
             ]).map('[a]'),
             createdFiles
         }
-    }
-
-    private async getFileDuration(filePath: string): Promise<number> {
-        return new Promise((resolve, reject) => {
-            ffmpeg.ffprobe(filePath, (err: Error, metadata: FfprobeData) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve((metadata.format.duration ?? 0) * 1_000); // seconds to milliseconds
-                }
-            })
-        })
     }
 
     private async saveFile(stream: ReReadable, filePath: string): Promise<void> {

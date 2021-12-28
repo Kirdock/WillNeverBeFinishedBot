@@ -17,7 +17,6 @@ export class ReReadable extends Writable {
     private fadeOutInterval: Timeout;
     private numChannels: number;
     private sampleRate: number;
-    private _startTime: number | undefined;
     private _encoder: OpusEncoder;
 
     // lifeTime in milliseconds
@@ -33,7 +32,6 @@ export class ReReadable extends Writable {
         this._readableOptions = adjustedOptions;
         this.numChannels = numChannels;
         this.sampleRate = sampleRate;
-        this._startTime = Date.now();
         this._encoder = new OpusEncoder(this.sampleRate, this.numChannels)
 
         this._highWaterMark = adjustedOptions.highWaterMark ?? 32;
@@ -65,7 +63,7 @@ export class ReReadable extends Writable {
     }
 
     get startTime(): number {
-        return this._startTime ?? this._bufArr[0]?.[2] ?? Date.now();
+        return this._bufArr[0]?.[2] ?? Date.now();
     }
 
     _destroy(error: Error | null, callback: (error?: (Error | null)) => void) {
@@ -112,8 +110,8 @@ export class ReReadable extends Writable {
         }
         const chunkBefore = lastElement[0];
         const timeBefore = lastElement[2];
-        const silenceTimeSec = (startTime - (timeBefore + this.getChunkTimeMs(chunkBefore))) / 1_000;
-        if (silenceTimeSec < 0.04) { // tolerance of 40ms
+        const silenceTimeSec = ((startTime - (timeBefore + this.getChunkTimeMs(chunkBefore))) / 1_000) - 0.04;  // tolerance of 40ms
+        if (silenceTimeSec <= 0) {
             return 0;
         }
         const totalSamples = silenceTimeSec * this.sampleRate;
@@ -195,7 +193,6 @@ export class ReReadable extends Writable {
         ret.bufCr = count < this._bufArr.length && count > 0 ? this._bufArr.length - count : 0;
 
         this.on('drop', (count) => {
-            this._startTime = this._bufArr[0]?.[2];
             ret.bufCr -= count;
             if (ret.bufCr < 0) {
                 ret.emit('drop', -ret.bufCr);
