@@ -1,5 +1,6 @@
 import { Readable, Writable, WritableOptions } from 'stream';
 import { EventEmitter } from 'events';
+import { OpusEncoder } from '@discordjs/opus';
 import Timeout = NodeJS.Timeout;
 
 // adjusted version of https://github.com/scramjetorg/rereadable-stream
@@ -17,6 +18,7 @@ export class ReReadable extends Writable {
     private numChannels: number;
     private sampleRate: number;
     private _startTime: number | undefined;
+    private _encoder: OpusEncoder;
 
     // lifeTime in milliseconds
     constructor(lifeTime: number, sampleRate: number, numChannels: number, options?: { length?: number } & WritableOptions) {
@@ -32,6 +34,7 @@ export class ReReadable extends Writable {
         this.numChannels = numChannels;
         this.sampleRate = sampleRate;
         this._startTime = Date.now();
+        this._encoder = new OpusEncoder(this.sampleRate, this.numChannels)
 
         this._highWaterMark = adjustedOptions.highWaterMark ?? 32;
         this._bufArrLength = adjustedOptions.length;
@@ -72,6 +75,9 @@ export class ReReadable extends Writable {
 
     _write(chunk: Buffer, encoding: BufferEncoding, callback: (error?: Error | null) => void, isSilent = false) {
         const startTime = Date.now();
+        if (!isSilent) {
+            chunk = this.decodeChunk(chunk);
+        }
         const addChunk = () => {
             this._bufArr.push([chunk, encoding, this.getStartTimeOfChunk(chunk, startTime)]);
             if (this._bufArr.length > this._bufArrLength) {
@@ -116,10 +122,10 @@ export class ReReadable extends Writable {
 
     _writev(chunks: Array<{ chunk: Buffer, encoding: BufferEncoding }>, callback: (error?: Error | null) => void) {
         const startTime = Date.now();
-        this._bufArr.push(...chunks.map(({
-                                             chunk,
-                                             encoding
-                                         }: { chunk: Buffer, encoding: BufferEncoding }) => [chunk, encoding, this.getStartTimeOfChunk(chunk, startTime)] as [Buffer, BufferEncoding, number]));
+        this._bufArr.push(...chunks.map(({chunk, encoding}: { chunk: Buffer, encoding: BufferEncoding }) => {
+            chunk = this.decodeChunk(chunk);
+            return [chunk, encoding, this.getStartTimeOfChunk(chunk, startTime)] as [Buffer, BufferEncoding, number];
+        }));
         if (this._bufArr.length > this._bufArrLength) {
             this._waiting = callback;
             this.drop();
@@ -127,6 +133,10 @@ export class ReReadable extends Writable {
             callback();
         }
         this.emit('wrote');
+    }
+
+    private decodeChunk(chunk: Buffer): Buffer {
+        return this._encoder.decode(chunk);
     }
 
     private getStartTimeOfChunk(chunk: Buffer, startTime: number): number {

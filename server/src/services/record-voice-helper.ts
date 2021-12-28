@@ -1,9 +1,7 @@
 import { EndBehaviorType, VoiceConnection } from '@discordjs/voice';
 import { Snowflake } from 'discord.js';
-import { OpusEncoder } from '@discordjs/opus';
 import { Logger } from './logger';
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
-import { Transform, TransformCallback, TransformOptions } from 'stream';
 import { ReadStream } from 'fs';
 import { join } from 'path';
 import { FileHelper } from './fileHelper';
@@ -40,7 +38,6 @@ export class RecordVoiceHelper {
             const listener = (userId: string) => {
                 //check if already listening to user
                 if (!this.writeStreams[serverId].userStreams[userId]) {
-                    const encoder = new OpusEncoder(this.sampleRate, this.channelCount);
                     const out = new ReReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, {highWaterMark: 100 * 1024 * 1024});
                     const opusStream = connection.receiver.subscribe(userId, {
                         end: {
@@ -57,9 +54,7 @@ export class RecordVoiceHelper {
                         delete this.writeStreams[serverId].userStreams[userId];
                     });
 
-                    opusStream
-                        .pipe(new OpusDecodingStream({}, encoder))
-                        .pipe(out);
+                    opusStream.pipe(out);
 
                     this.writeStreams[serverId].userStreams[userId] = {
                         source: opusStream,
@@ -214,21 +209,5 @@ export class RecordVoiceHelper {
                 reject(error);
             });
         });
-    }
-}
-
-class OpusDecodingStream extends Transform {
-    private encoder: OpusEncoder;
-
-    constructor(options: TransformOptions, encoder: OpusEncoder) {
-        super(options);
-        this.encoder = encoder;
-    }
-
-    _transform(data: unknown, encoding: BufferEncoding, callback: TransformCallback) {
-        if (data instanceof Buffer) {
-            this.push(this.encoder.decode(data));
-        }
-        callback();
     }
 }
