@@ -4,7 +4,7 @@ import { OpusEncoder } from '@discordjs/opus';
 import Timeout = NodeJS.Timeout;
 
 type BufferArrayElement = [Buffer, BufferEncoding, number, number]; // chunk, encoding, startTime (time chunk received), endTime (time chunk pushed to array)
-type ReadWriteOptions = { length?: number, disableFlush?: boolean } & WritableOptions;
+type ReadWriteOptions = { length?: number } & WritableOptions;
 
 // adjusted version of https://github.com/scramjetorg/rereadable-stream
 export class ReplayReadable extends Writable {
@@ -35,7 +35,7 @@ export class ReplayReadable extends Writable {
         this._readableOptions = adjustedOptions;
         this.numChannels = numChannels;
         this.sampleRate = sampleRate;
-        this._encoder = new OpusEncoder(this.sampleRate, this.numChannels)
+        this._encoder = new OpusEncoder(this.sampleRate, this.numChannels);
 
         this._highWaterMark = adjustedOptions.highWaterMark ?? 32;
         this._bufArrLength = adjustedOptions.length;

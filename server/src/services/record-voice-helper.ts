@@ -17,7 +17,7 @@ interface UserStreams {
 }
 
 export class RecordVoiceHelper {
-    private readonly maxRecordTimeMs; // 10 minutes
+    private readonly maxRecordTimeMs: number; // 10 minutes
     private readonly channelCount = 1;
     private readonly sampleRate = 16_000;
     private readonly maxUserRecordingLength = 100 * 1024 * 1024; // 100 MB
@@ -86,6 +86,7 @@ export class RecordVoiceHelper {
 
     public async getRecordedVoice(serverId: Snowflake, minutes: number = 10): Promise<string | undefined> {
         if (!this.writeStreams[serverId]) {
+            this.logger.warn(`server with id ${serverId} does not have any streams`, 'Record voice');
             return;
         }
         const recordTimeMs = Math.min(Math.abs(minutes) * 60 * 1_000, this.maxRecordTimeMs)

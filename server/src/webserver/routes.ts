@@ -66,9 +66,11 @@ export class Router {
                 const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, settings.id);
                 if (valid) {
                     await databaseHelper.updateServerSettings(settings);
-                    if (!settings.recordVoice) {
-                        const connection = discordBot.voiceHelper.getActiveConnection(settings.id);
-                        if (connection) {
+                    const connection = discordBot.voiceHelper.getActiveConnection(settings.id);
+                    if (connection) {
+                        if (settings.recordVoice) {
+                            discordBot.voiceHelper.recordHelper.startRecording(connection);
+                        } else {
                             discordBot.voiceHelper.recordHelper.stopRecording(connection);
                         }
                     }
