@@ -6,13 +6,13 @@ import { ReadStream } from 'fs';
 import { join } from 'path';
 import { FileHelper } from './fileHelper';
 import { FileWriter } from 'wav';
-import { ReReadable } from '../models/re-readable-custom';
+import { ReplayReadable } from '../models/replay-readable';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 
 interface UserStreams {
     [userId: string]: {
         source: ReadStream,
-        out: ReReadable,
+        out: ReplayReadable,
     };
 }
 
@@ -20,6 +20,7 @@ export class RecordVoiceHelper {
     private readonly maxRecordTimeMs; // 10 minutes
     private readonly channelCount = 1;
     private readonly sampleRate = 16_000;
+    private readonly maxUserRecordingLength = 100 * 1024 * 1024; // 100 MB
     private writeStreams: {
         [serverId: string]: {
             userStreams: UserStreams,
@@ -38,7 +39,7 @@ export class RecordVoiceHelper {
             const listener = (userId: string) => {
                 //check if already listening to user
                 if (!this.writeStreams[serverId].userStreams[userId]) {
-                    const out = new ReReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, {highWaterMark: 100 * 1024 * 1024});
+                    const out = new ReplayReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, {highWaterMark: this.maxUserRecordingLength, length: this.maxUserRecordingLength});
                     const opusStream = connection.receiver.subscribe(userId, {
                         end: {
                             behavior: EndBehaviorType.AfterSilence,
@@ -137,9 +138,8 @@ export class RecordVoiceHelper {
             const stream = streams[userId];
             const filePath = join(FileHelper.recordingsDir, `${endTime}-${userId}.wav`);
             try {
-                await this.saveFile(stream.out, filePath);
-                // durationOfFile - maxDuration would not be right, because silent after last chunk is not added to the stream
-                const skipTime = startRecordTime - stream.out.startTime;
+                await this.saveFile(stream.out, filePath, endTime);
+                const skipTime = startRecordTime - stream.out.startTime; // or durationOfFile - maxDuration. Silent padding is added at the end, so durationOfFile would be valid
                 let delay = stream.out.startTime - startRecordTime;
                 delay = delay < 0 ? 0 : delay;
                 ffmpegOptions = ffmpegOptions.addInput(filePath);
@@ -168,28 +168,19 @@ export class RecordVoiceHelper {
         }
     }
 
-    private async saveFile(stream: ReReadable, filePath: string): Promise<void> {
+    private async saveFile(stream: ReplayReadable, filePath: string, endTime: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const writeStream = new FileWriter(filePath, {
                 channels: this.channelCount,
                 sampleRate: this.sampleRate
             });
 
-            const bytesBefore = stream.byteLength;
-            const readStream = stream.rewind();
-
-            // the writeStream should end, when the "required" bytes (till the user clicked "download recording") are written
-            const interval = setInterval(() => {
-                if (writeStream.bytesProcessed >= bytesBefore) {
-                    readStream.unpipe(writeStream);
-                    writeStream.end();
-                    clearInterval(interval);
-                }
-            }, 100);
+            const readStream = stream.rewind(endTime);
 
             readStream.pipe(writeStream);
 
             writeStream.on('done', () => {
+                readStream.destroy();
                 resolve();
             });
             writeStream.on('error', (error: Error) => {
