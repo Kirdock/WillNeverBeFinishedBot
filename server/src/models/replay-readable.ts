@@ -1,5 +1,4 @@
 import { Readable, Writable, WritableOptions } from 'stream';
-import { EventEmitter } from 'events';
 import { OpusEncoder } from '@discordjs/opus';
 import Timeout = NodeJS.Timeout;
 
@@ -12,11 +11,7 @@ export class ReplayReadable extends Writable {
     public readonly _bufArr: BufferArrayElement[];
     private readonly _bufArrLength: number; // max _bufArr length
     private readonly _readableOptions: ReadWriteOptions;
-    private _reading: number;
-    private hiBufCr: number;
-    private loBufCr: number;
     private _waiting: ((error?: Error | null) => void) | null;
-    private _ended: Promise<unknown>;
     private readonly fadeOutInterval: Timeout;
     private readonly numChannels: number;
     private readonly sampleRate: number;
@@ -40,12 +35,8 @@ export class ReplayReadable extends Writable {
         this._highWaterMark = adjustedOptions.highWaterMark ?? 32;
         this._bufArrLength = adjustedOptions.length;
 
-        this._reading = 0;
         this._bufArr = [];
-        this.hiBufCr = 0;
-        this.loBufCr = 0;
         this._waiting = null;
-        this._ended = new Promise((res) => this.on('finish', res));
         this.fadeOutInterval = setInterval(() => {
             const newDate = Date.now();
 
@@ -69,11 +60,12 @@ export class ReplayReadable extends Writable {
     }
 
     public _write(chunk: Buffer, encoding: BufferEncoding, callback: (error?: Error | null) => void) {
+        // encoding is 'buffer'... whatever...
         const addTime = Date.now();
         chunk = this.decodeChunk(chunk);
         const startTimeOfChunk = this.getStartTimeOfChunk(chunk, addTime);
 
-        const chunk2 = this.writeSilentBytes(startTimeOfChunk);
+        const chunk2 = this.getSilentBuffer(startTimeOfChunk);
         if (chunk2) {
             this._bufArr.push([chunk2, encoding, this._bufArr[this._bufArr.length - 1][3], Date.now()]);
         }
@@ -92,77 +84,59 @@ export class ReplayReadable extends Writable {
         this.emit('wrote');
     }
 
-    private updateBufPosition(bufCr: number): void {
-        this.hiBufCr = bufCr > this.hiBufCr ? bufCr : this.hiBufCr;
-        this.loBufCr = bufCr > this.loBufCr ? bufCr : this.loBufCr;
-        if (this._waiting && this.hiBufCr >= this._bufArrLength - this._highWaterMark) {
-            const cb = this._waiting;
-            this._waiting = null;
-            cb();
-        }
-    }
-
     private drop(): void {
         if (this._bufArr.length > this._bufArrLength) {
             this.emit('drop', this._bufArr.splice(0, this._bufArr.length - this._bufArrLength).length);
         }
     }
 
-    public rewind(stopTime: number): Readable {
-        return this.tail(-1, stopTime);
+    public rewind(startTime: number, stopTime: number): Readable {
+        return this.tail(startTime, stopTime);
     }
 
-    public tail(count: number, stopTime = Date.now()): Readable {
-        let end = false;
-        this.setMaxListeners(++this._reading + EventEmitter.defaultMaxListeners);
-        // @ts-ignore
-        const ret: Readable & { bufCr: number } = new Readable({
-            ...this._readableOptions,
+    public tail(startTime: number, stopTime: number): Readable {
+        const ret: Readable = new Readable({
+            highWaterMark: this._readableOptions.highWaterMark,
             read: () => {
-                if (ret.bufCr < this._bufArr.length) {
-                    while (ret.bufCr < this._bufArr.length) {                 // while there's anything to read
-                        const [chunk, encoding, startTime] = this._bufArr[ret.bufCr++];
-                        if (startTime > stopTime) { // read everything till endTime
-                            end = true;
-                            break;
-                        }
+                let lastIndex = 0;
+                let firstValidStartTime = 0;
+                for (let i = 0; i < this._bufArr.length; ++i) {
+                    const [chunk, encoding, chunkStartTime] = this._bufArr[i];
 
-                        const resp = ret.push(chunk, encoding);               // push to readable
-                        if (!resp && !end) { // until there's not willing to read and we're not ended
-                            break;
-                        }
-                    }
-                    if (!end) {
-                        ret.push(this.writeSilentBytes(stopTime), this._bufArr[0][1]); // add silent time till stopTime
-                        ret.bufCr++;
+                    if (chunkStartTime < startTime) { // skipTime
+                        continue;
+                    } else if (!firstValidStartTime) {
+                        firstValidStartTime = chunkStartTime;
                     }
 
-                    end = true;
-                    this.updateBufPosition(ret.bufCr);
-                } else if (!end) {
-                    this.once('wrote', ret._read);
+                    if (chunkStartTime > stopTime) { // read everything till endTime
+                        break;
+                    }
+                    lastIndex = i;
+
+                    const resp = ret.push(chunk, encoding); // push to readable
+                    if (!resp) { // until there's not willing to read
+                        break;
+                    }
                 }
 
-                if (end) {
-                    ret.push(null);
+                const delayTimeSec = (firstValidStartTime - startTime) / 1_000;
+                if (delayTimeSec > 0) {
+                    // add delay time till start time of user
+                    const buffer = this.getSilentBuffer(delayTimeSec, true);
+                    if (buffer) {
+                        ret.unshift(buffer, this._bufArr[0][1]);
+                    }
                 }
+
+                const silentBuffer = this.getSilentBuffer(stopTime, false, lastIndex);
+                if (silentBuffer) {
+                    ret.push(silentBuffer, this._bufArr[0][1]); // add silent time till stopTime
+                }
+
+                ret.push(null);
             }
         });
-
-        const listener = (count: number) => {
-            ret.bufCr -= count;
-            if (ret.bufCr < 0) {
-                ret.emit('drop', -ret.bufCr);
-                ret.bufCr = 0;
-            }
-        };
-        ret.on('end', () => {
-            this.removeListener('drop', listener);
-            this.setMaxListeners(--this._reading + EventEmitter.defaultMaxListeners);
-        });
-        ret.bufCr = count < this._bufArr.length && count > 0 ? this._bufArr.length - count : 0;
-
-        this.on('drop', listener);
 
         return ret;
     }
@@ -176,33 +150,40 @@ export class ReplayReadable extends Writable {
         }
     }
 
-    private writeSilentBytes(stopTime: number): Buffer | undefined {
-        const silentBytes = this.getSilentBytes(stopTime);
-        return silentBytes ? Buffer.from(new ArrayBuffer(silentBytes)) : undefined;
+    private getSilentBuffer(stopTime: number, isSeconds = false, atIndex?: number): Buffer | undefined {
+        const silentBytes = this.getSilentBytes(stopTime, isSeconds, atIndex);
+        return silentBytes ? Buffer.alloc(silentBytes) : undefined;
     }
 
-    private getSilentBytes(stopTime: number): number {
-        const silenceTimeSec = this.getSilentSeconds(stopTime);
+    /**
+     *
+     * @param stopTime Either the stopTime in ms or the amount of seconds
+     * @param isSeconds
+     * @param atIndex Position in the arrayBuffer that should be compared to
+     * @private
+     */
+    private getSilentBytes(stopTime: number, isSeconds = false, atIndex?: number): number {
+        const silenceTimeSec = isSeconds ? stopTime : this.getSilentSeconds(stopTime, atIndex);
         if (silenceTimeSec) {
             const totalSamples = silenceTimeSec * this.sampleRate;
-            return totalSamples * this.numChannels * Buffer.BYTES_PER_ELEMENT;
+            return totalSamples * this.numChannels * Buffer.BYTES_PER_ELEMENT * 2; // I don't know why 2, but without it, we only have half of the silent bytes needed
         } else {
             return 0;
         }
     }
 
-    private getSilentSeconds(stopTime: number) {
-        const lastElement = this._bufArr[this._bufArr.length - 1];
+    private getSilentSeconds(stopTime: number, index = this._bufArr.length - 1) {
+        const lastElement = this._bufArr[index];
         if (!lastElement) {
             return 0;
         }
         const endTimeBefore = lastElement[3];
-        const silenceTimeSec = ((stopTime - endTimeBefore) / 1_000) - 0.04;  // tolerance of 40ms
-        return silenceTimeSec < 0 ? 0 : silenceTimeSec;
+        const silenceTimeSec = (stopTime - endTimeBefore) / 1_000;
+        return (silenceTimeSec - 0.04) < 0 ? 0 : silenceTimeSec; // ignore if silent time is less than 40ms
     }
 
     private decodeChunk(chunk: Buffer): Buffer {
-        return this._encoder.decode(chunk);
+        return this._encoder.decode(chunk); // TODO: seems like the noise is either related to decode or it's wrongly received in the first place
     }
 
     private getStartTimeOfChunk(chunk: Buffer, addTime: number): number {

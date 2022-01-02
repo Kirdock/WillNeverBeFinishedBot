@@ -18,7 +18,7 @@ interface UserStreams {
 
 export class RecordVoiceHelper {
     private readonly maxRecordTimeMs: number; // 10 minutes
-    private readonly channelCount = 1;
+    private readonly channelCount = 2;
     private readonly sampleRate = 16_000;
     private readonly maxUserRecordingLength = 100 * 1024 * 1024; // 100 MB
     private writeStreams: {
@@ -46,6 +46,7 @@ export class RecordVoiceHelper {
                             duration: this.maxRecordTimeMs,
                         },
                     }) as unknown as ReadStream;
+
 
                     opusStream.on('end', () => {
                         delete this.writeStreams[serverId].userStreams[userId];
@@ -89,13 +90,13 @@ export class RecordVoiceHelper {
             this.logger.warn(`server with id ${serverId} does not have any streams`, 'Record voice');
             return;
         }
-        const recordTimeMs = Math.min(Math.abs(minutes) * 60 * 1_000, this.maxRecordTimeMs)
+        const recordDurationMs = Math.min(Math.abs(minutes) * 60 * 1_000, this.maxRecordTimeMs)
         const endTime = Date.now();
         return new Promise(async (resolve, reject) => {
             const minStartTime = this.getMinStartTime(serverId);
 
             if (minStartTime) {
-                const {command, createdFiles} = await this.getFfmpegSpecs(this.writeStreams[serverId].userStreams, minStartTime, endTime, recordTimeMs);
+                const {command, createdFiles} = await this.getFfmpegSpecs(this.writeStreams[serverId].userStreams, minStartTime, endTime, recordDurationMs);
                 if (createdFiles.length) {
                     const resultPath = join(FileHelper.recordingsDir, `${endTime}.wav`);
                     command
@@ -117,40 +118,42 @@ export class RecordVoiceHelper {
     private getMinStartTime(serverId: string): number | undefined {
         let minStartTime: number | undefined;
         for (const userId in this.writeStreams[serverId].userStreams) {
-            const stream = this.writeStreams[serverId].userStreams[userId];
+            const startTime = this.writeStreams[serverId].userStreams[userId].out.startTime;
 
-            if (!minStartTime || (stream.out.startTime < minStartTime)) {
-                minStartTime = stream.out.startTime;
+            if (!minStartTime || (startTime < minStartTime)) {
+                minStartTime = startTime;
             }
         }
         return minStartTime;
     }
 
-    private async getFfmpegSpecs(streams: UserStreams, minStartTime: number, endTime: number, recordTimeMs: number) {
-        const maxRecordTime = endTime - recordTimeMs;
+    private async getFfmpegSpecs(streams: UserStreams, minStartTime: number, endTime: number, recordDurationMs: number) {
+        const maxRecordTime = endTime - recordDurationMs;
         const startRecordTime = Math.max(minStartTime, maxRecordTime);
+
+        /*
+        ------|----------------------|----------------|-------------------------------|-------
+        ------|----------------------|----------------|-------------------------------|-------
+             user1 Start      startRecordTime    user2 Start                        endTime
+              |<-----skipTime------->|<---delayTime-->|
+
+         delayTime = userStartTime - startRecordTime  // valid if > 0
+         skipTime = startRecordTime - userStartTime   // valid if > 0
+         */
+
         // length of the result recording would be endTime - startRecordTime
         let ffmpegOptions = ffmpeg();
-        let amixString = '';
-        const delayStrings: string[] = [];
+        let amixStrings = [];
         const createdFiles: string[] = [];
 
         for (const userId in streams) {
-            const stream = streams[userId];
+            const stream = streams[userId].out;
             const filePath = join(FileHelper.recordingsDir, `${endTime}-${userId}.wav`);
             try {
-                await this.saveFile(stream.out, filePath, endTime);
-                const skipTime = startRecordTime - stream.out.startTime; // or durationOfFile - maxDuration. Silent padding is added at the end, so durationOfFile would be valid
-                let delay = stream.out.startTime - startRecordTime;
-                delay = delay < 0 ? 0 : delay;
+                await this.saveFile(stream, filePath, startRecordTime, endTime);
                 ffmpegOptions = ffmpegOptions.addInput(filePath);
 
-                if (skipTime > 0) {
-                    ffmpegOptions = ffmpegOptions.seekInput(skipTime / 1000);
-                }
-
-                amixString += `[a${delayStrings.length}]`;
-                delayStrings.push(`[${delayStrings.length}]adelay=${delay}|${delay}[a${delayStrings.length}]`);
+                amixStrings.push(`[${createdFiles.length}:a]`);
                 createdFiles.push(filePath);
             } catch (e) {
                 this.logger.error(e, 'Error while saving user recording');
@@ -159,29 +162,27 @@ export class RecordVoiceHelper {
 
         return {
             command: ffmpegOptions.complexFilter([
-                ...delayStrings,
                 {
-                    filter: `amix=inputs=${delayStrings.length}[a]`,
-                    inputs: `${amixString}`,
+                    filter: `amix=inputs=${createdFiles.length}[a]`,
+                    inputs: amixStrings.join(),
                 }
             ]).map('[a]'),
             createdFiles
         }
     }
 
-    private async saveFile(stream: ReplayReadable, filePath: string, endTime: number): Promise<void> {
+    private async saveFile(stream: ReplayReadable, filePath: string, startTime: number, endTime: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const writeStream = new FileWriter(filePath, {
                 channels: this.channelCount,
                 sampleRate: this.sampleRate
             });
 
-            const readStream = stream.rewind(endTime);
+            const readStream = stream.rewind(startTime, endTime);
 
             readStream.pipe(writeStream);
 
             writeStream.on('done', () => {
-                readStream.destroy();
                 resolve();
             });
             writeStream.on('error', (error: Error) => {
