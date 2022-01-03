@@ -62,6 +62,10 @@ export class ReplayReadable extends Writable {
     public _write(chunk: Buffer, encoding: BufferEncoding, callback: (error?: Error | null) => void) {
         // encoding is 'buffer'... whatever...
         const addTime = Date.now();
+        if (chunk.byteLength < 10) { // sometimes some noise comes in (just Buffer< f8 ff fe >), which does not seem to be a valid chunk
+            return;
+        }
+
         chunk = this.decodeChunk(chunk);
         const startTimeOfChunk = this.getStartTimeOfChunk(chunk, addTime);
 

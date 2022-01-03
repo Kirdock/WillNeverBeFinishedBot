@@ -131,7 +131,7 @@ export class RecordVoiceHelper {
             const filePath = join(FileHelper.recordingsDir, `${endTime}.mkv`);
             for (let i = 0; i < files.length; ++i) {
                 options = options.addInput(files[i]);
-                outputOptions.push(`-map ${i}`)
+                outputOptions.push(`-map ${i}`);
             }
             options
                 .outputOptions(outputOptions)
