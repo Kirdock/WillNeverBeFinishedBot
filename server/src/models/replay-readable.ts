@@ -178,8 +178,8 @@ export class ReplayReadable extends Writable {
             return 0;
         }
         const endTimeBefore = lastElement[3];
-        const silenceTimeSec = (stopTime - endTimeBefore) / 1_000;
-        return (silenceTimeSec - 0.04) < 0 ? 0 : silenceTimeSec; // ignore if silent time is less than 40ms
+        const silenceTimeSec = ((stopTime - endTimeBefore) / 1_000) - 0.04; // tolerance 40ms
+        return silenceTimeSec < 0 ? 0 : silenceTimeSec;
     }
 
     private decodeChunk(chunk: Buffer): Buffer {
