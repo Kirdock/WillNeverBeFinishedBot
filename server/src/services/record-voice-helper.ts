@@ -164,7 +164,7 @@ export class RecordVoiceHelper {
             command: ffmpegOptions.complexFilter([
                 {
                     filter: `amix=inputs=${createdFiles.length}[a]`,
-                    inputs: amixStrings.join(),
+                    inputs: amixStrings.join(''),
                 }
             ]).map('[a]'),
             createdFiles
