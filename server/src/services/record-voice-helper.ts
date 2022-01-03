@@ -8,6 +8,7 @@ import { FileHelper } from './fileHelper';
 import { FileWriter } from 'wav';
 import { ReplayReadable } from '../models/replay-readable';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
+import { AudioExportType } from '../../../shared/models/types';
 
 interface UserStreams {
     [userId: string]: {
@@ -85,7 +86,7 @@ export class RecordVoiceHelper {
         delete this.writeStreams[serverId];
     }
 
-    public async getRecordedVoice(serverId: Snowflake, minutes: number = 10): Promise<string | undefined> {
+    public async getRecordedVoice(serverId: Snowflake, exportType: AudioExportType = 'audio', minutes: number = 10): Promise<string | undefined> {
         if (!this.writeStreams[serverId]) {
             this.logger.warn(`server with id ${serverId} does not have any streams`, 'Record voice');
             return;
@@ -101,11 +102,19 @@ export class RecordVoiceHelper {
                     const resultPath = join(FileHelper.recordingsDir, `${endTime}.wav`);
                     command
                         .on('end', async () => {
-                            await this.fileHelper.deleteFilesByPath(createdFiles);
-                            resolve(resultPath);
+                            let path;
+                            if (exportType === 'audio') {
+                                path = resultPath;
+                                await this.fileHelper.deleteFilesByPath(createdFiles);
+                            } else {
+                                const files = [resultPath, ...createdFiles];
+                                path = await this.toMKV(files, endTime);
+                                await this.fileHelper.deleteFilesByPath(files);
+                            }
+                            resolve(path);
                         })
                         .on('error', reject)
-                        .saveToFile(resultPath)
+                        .saveToFile(resultPath);
                 } else {
                     resolve(undefined);
                 }
@@ -113,6 +122,25 @@ export class RecordVoiceHelper {
                 resolve(undefined);
             }
         });
+    }
+
+    private toMKV(files: string[], endTime: number): Promise<string> {
+        return new Promise((resolve, reject) => {
+            let options = ffmpeg();
+            const outputOptions: string[] = [];
+            const filePath = join(FileHelper.recordingsDir, `${endTime}.mkv`);
+            for (let i = 0; i < files.length; ++i) {
+                options = options.addInput(files[i]);
+                outputOptions.push(`-map ${i}`)
+            }
+            options
+                .outputOptions(outputOptions)
+                .on('end', () => {
+                    resolve(filePath);
+                })
+                .on('error', reject)
+                .saveToFile(filePath);
+        })
     }
 
     private getMinStartTime(serverId: string): number | undefined {

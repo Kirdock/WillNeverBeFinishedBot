@@ -8,6 +8,7 @@ import { IServer } from '../interfaces/IServer';
 import { SoundMeta } from '../models/SoundMeta';
 import { User } from '../models/User';
 import { IServerSettings } from '../../../../shared/interfaces/server-settings';
+import { AudioExportType } from '../../../../shared/models/types';
 
 @Injectable({
   providedIn: 'root'
@@ -89,10 +90,11 @@ export class ApiService {
     return this.http.get<Log[]>(`logs/${serverId}`, {params});
   }
 
-  public downloadRecordedVoice(serverId: string, recordMinutes: number): Observable<HttpResponse<Blob>> {
+  public downloadRecordedVoice(serverId: string, recordType: AudioExportType, recordMinutes: number): Observable<HttpResponse<Blob>> {
     return this.http.get(`recordVoice/${serverId}`, {
       params: {
         minutes: recordMinutes,
+        recordType
       },
       responseType: 'blob',
       observe: 'response'

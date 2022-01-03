@@ -13,6 +13,7 @@ import { SoundMeta } from '../models/SoundMeta';
 import { GuildMember } from 'discord.js';
 import { Log } from '../models/Log';
 import { ServerSettings } from '../models/ServerSettings';
+import { AudioExportType } from '../../../shared/models/types';
 
 export class Router {
     constructor(discordBot: DiscordBot, router: rs, fileHelper: FileHelper, databaseHelper: DatabaseHelper, private logger: Logger, authHelper: AuthHelper) {
@@ -129,7 +130,7 @@ export class Router {
                 const result: UserPayload = this.getPayload(res);
 
                 if (await discordBot.isUserInServer(result.id, req.params.serverId)) {
-                    const filePath = await discordBot.voiceHelper.recordHelper.getRecordedVoice(req.params.serverId, req.query.minutes ? +(req.query.minutes.toString()) : undefined);
+                    const filePath = await discordBot.voiceHelper.recordHelper.getRecordedVoice(req.params.serverId, req.query.recordType?.toString() as AudioExportType, req.query.minutes ? +(req.query.minutes.toString()) : undefined);
                     if (filePath) {
                         res.on('finish', () => {
                             fileHelper.deleteFile(filePath);

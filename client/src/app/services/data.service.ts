@@ -13,6 +13,7 @@ import { User } from '../models/User';
 import { ApiService } from './api.service';
 import { StorageService } from './storage.service';
 import { IServerSettings } from '../../../../shared/interfaces/server-settings';
+import { AudioExportType } from '../../../../shared/models/types';
 
 @Injectable({
   providedIn: 'root'
@@ -185,7 +186,7 @@ export class DataService {
     this.setHasAdminServers();
   }
 
-  public downloadRecordedVoice(serverId: string, recordTime: number): Observable<HttpResponse<Blob>> {
-    return this.apiService.downloadRecordedVoice(serverId, recordTime);
+  public downloadRecordedVoice(serverId: string, recordType: AudioExportType, recordTime: number): Observable<HttpResponse<Blob>> {
+    return this.apiService.downloadRecordedVoice(serverId, recordType, recordTime);
   }
 }

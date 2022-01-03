@@ -120,8 +120,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  public downloadRecordedVoice(serverId: string): void {
-    this.dataService.downloadRecordedVoice(serverId, this.recordVoiceMinutes).subscribe((response) => {
+  public downloadRecordedVoice(serverId: string, asMKV: boolean): void {
+    this.dataService.downloadRecordedVoice(serverId, asMKV ? 'mkv' : 'audio', this.recordVoiceMinutes).subscribe((response) => {
       if (response.body) {
         this.downloadFileByBlob(response);
       } else {
