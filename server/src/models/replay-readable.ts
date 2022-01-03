@@ -107,21 +107,27 @@ export class ReplayReadable extends Writable {
         const ret: Readable = new Readable({
             highWaterMark: this._readableOptions.highWaterMark,
             read: () => {
-                let lastIndex = 0;
-                let firstValidStartTime = 0;
+                let delayAdded = false;
                 for (let i = 0; i < this._bufArr.length; ++i) {
                     const [chunk, encoding, chunkStartTime] = this._bufArr[i];
 
                     if (chunkStartTime < startTime) { // skipTime
                         continue;
-                    } else if (!firstValidStartTime) {
-                        firstValidStartTime = chunkStartTime;
+                    } else if (!delayAdded) {
+                        // add delay time till start time of user
+                        const delayTimeSec = (chunkStartTime - startTime) / 1_000;
+                        if (delayTimeSec > 0) {
+                            const buffers = this.getSilentBuffer(delayTimeSec, false, true);
+                            for (const buffer of buffers) {
+                                ret.push(buffer, this._bufArr[0][1]);
+                            }
+                        }
+                        delayAdded = true;
                     }
 
                     if (chunkStartTime > stopTime) { // read everything till endTime
                         break;
                     }
-                    lastIndex = i;
 
                     const resp = ret.push(chunk, encoding); // push to readable
                     if (!resp) { // until there's not willing to read
@@ -129,19 +135,7 @@ export class ReplayReadable extends Writable {
                     }
                 }
 
-                const delayTimeSec = (firstValidStartTime - startTime) / 1_000;
-                if (delayTimeSec > 0) {
-                    // add delay time till start time of user
-                    const buffers = this.getSilentBuffer(delayTimeSec, false, true);
-                    for (const buffer of buffers) {
-                        ret.unshift(buffer, this._bufArr[0][1]);
-                    }
-                }
 
-                const silentBuffer = this.getSilentBuffer(stopTime, false, false, lastIndex);
-                for (const buffer of silentBuffer) {
-                    ret.push(buffer, this._bufArr[0][1]); // add silent time till stopTime
-                }
 
                 ret.push(null);
             }
@@ -159,8 +153,8 @@ export class ReplayReadable extends Writable {
         }
     }
 
-    private getSilentBuffer(stopTime: number, isWriting = true, isSeconds = false, atIndex?: number): Buffer[] {
-        const silentBytes = this.getSilentBytes(stopTime, isSeconds, atIndex);
+    private getSilentBuffer(stopTime: number, isWriting = true, isSeconds = false): Buffer[] {
+        const silentBytes = this.getSilentBytes(stopTime, isSeconds);
         const silentPerChunk = Math.floor(silentBytes / this.chunkSize);
         const buffers: Buffer[] = [];
         for (let i = 0; i < silentPerChunk; ++i) {
@@ -182,11 +176,10 @@ export class ReplayReadable extends Writable {
      *
      * @param stopTime Either the stopTime in ms or the amount of seconds
      * @param isSeconds
-     * @param atIndex Position in the arrayBuffer that should be compared to
      * @private
      */
-    private getSilentBytes(stopTime: number, isSeconds = false, atIndex?: number): number {
-        const silenceTimeSec = isSeconds ? stopTime : this.getSilentSeconds(stopTime, atIndex);
+    private getSilentBytes(stopTime: number, isSeconds = false): number {
+        const silenceTimeSec = isSeconds ? stopTime : this.getSilentSeconds(stopTime);
         if (silenceTimeSec) {
             const totalSamples = silenceTimeSec * this.sampleRate;
             return totalSamples * this.numChannels * Buffer.BYTES_PER_ELEMENT * 2; // I don't know why 2, but without it, we only have half of the silent bytes needed
@@ -195,8 +188,8 @@ export class ReplayReadable extends Writable {
         }
     }
 
-    private getSilentSeconds(stopTime: number, index = this._bufArr.length - 1) {
-        const lastElement = this._bufArr[index];
+    private getSilentSeconds(stopTime: number) {
+        const lastElement = this._bufArr[this._bufArr.length - 1];
         if (!lastElement) {
             return 0;
         }
