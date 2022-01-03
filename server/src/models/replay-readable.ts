@@ -16,6 +16,9 @@ export class ReplayReadable extends Writable {
     private readonly numChannels: number;
     private readonly sampleRate: number;
     private _encoder: OpusEncoder;
+    private readonly chunkSize: number;
+    private currentOffset: number;
+    private readonly chunkTimeMs: number;
 
     // lifeTime in milliseconds
     constructor(lifeTime: number, sampleRate: number, numChannels: number, options?: ReadWriteOptions) {
@@ -31,6 +34,9 @@ export class ReplayReadable extends Writable {
         this.numChannels = numChannels;
         this.sampleRate = sampleRate;
         this._encoder = new OpusEncoder(this.sampleRate, this.numChannels);
+        this.currentOffset = 0;
+        this.chunkTimeMs = 20;
+        this.chunkSize = (this.chunkTimeMs / 1000) * this.sampleRate * this.numChannels * Buffer.BYTES_PER_ELEMENT * 2; // 20ms per chunk; I don't know why times 2 but without the time is not correct
 
         this._highWaterMark = adjustedOptions.highWaterMark ?? 32;
         this._bufArrLength = adjustedOptions.length;
@@ -63,12 +69,14 @@ export class ReplayReadable extends Writable {
         // encoding is 'buffer'... whatever...
         const addTime = Date.now();
 
-        chunk = this.decodeChunk(chunk);
+        chunk = this.decodeChunk(chunk); // always 1280 bytes; 40 ms or 20 ms
         const startTimeOfChunk = this.getStartTimeOfChunk(chunk, addTime);
 
-        const chunk2 = this.getSilentBuffer(startTimeOfChunk);
-        if (chunk2) {
-            this._bufArr.push([chunk2, encoding, this._bufArr[this._bufArr.length - 1][3], Date.now()]);
+        const silentBuffers = this.getSilentBuffer(startTimeOfChunk);
+        let endTimeBefore = this._bufArr[this._bufArr.length - 1]?.[3];
+        for (const ch of silentBuffers) {
+            this._bufArr.push([ch, encoding, endTimeBefore, Date.now()]);
+            endTimeBefore += this.chunkTimeMs;
         }
         this._bufArr.push([chunk, encoding, startTimeOfChunk, Date.now()]);
         this.checkAndDrop(callback);
@@ -124,15 +132,15 @@ export class ReplayReadable extends Writable {
                 const delayTimeSec = (firstValidStartTime - startTime) / 1_000;
                 if (delayTimeSec > 0) {
                     // add delay time till start time of user
-                    const buffer = this.getSilentBuffer(delayTimeSec, true);
-                    if (buffer) {
+                    const buffers = this.getSilentBuffer(delayTimeSec, false, true);
+                    for (const buffer of buffers) {
                         ret.unshift(buffer, this._bufArr[0][1]);
                     }
                 }
 
-                const silentBuffer = this.getSilentBuffer(stopTime, false, lastIndex);
-                if (silentBuffer) {
-                    ret.push(silentBuffer, this._bufArr[0][1]); // add silent time till stopTime
+                const silentBuffer = this.getSilentBuffer(stopTime, false, false, lastIndex);
+                for (const buffer of silentBuffer) {
+                    ret.push(buffer, this._bufArr[0][1]); // add silent time till stopTime
                 }
 
                 ret.push(null);
@@ -151,9 +159,23 @@ export class ReplayReadable extends Writable {
         }
     }
 
-    private getSilentBuffer(stopTime: number, isSeconds = false, atIndex?: number): Buffer | undefined {
+    private getSilentBuffer(stopTime: number, isWriting = true, isSeconds = false, atIndex?: number): Buffer[] {
         const silentBytes = this.getSilentBytes(stopTime, isSeconds, atIndex);
-        return silentBytes ? Buffer.alloc(silentBytes) : undefined;
+        const silentPerChunk = Math.floor(silentBytes / this.chunkSize);
+        const buffers: Buffer[] = [];
+        for (let i = 0; i < silentPerChunk; ++i) {
+            buffers.push(Buffer.alloc(this.chunkSize))
+        }
+        if (isWriting) {
+            this.currentOffset += silentBytes % this.chunkSize;
+            if (buffers.length) {
+                for (; this.currentOffset >= this.chunkSize; this.currentOffset -= this.chunkSize) {
+                    buffers.push(Buffer.alloc(this.chunkSize));
+
+                }
+            }
+        }
+        return buffers;
     }
 
     /**
@@ -194,6 +216,6 @@ export class ReplayReadable extends Writable {
     private getChunkTimeMs(chunk: Buffer): number {
         const bytesPerSample = Buffer.BYTES_PER_ELEMENT;
         const totalSamples = chunk.byteLength / bytesPerSample / this.numChannels;
-        return (totalSamples / this.sampleRate) * 1_000;
+        return (totalSamples / this.sampleRate / 2) * 1_000;
     }
 }
