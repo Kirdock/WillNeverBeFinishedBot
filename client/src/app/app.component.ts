@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subject, timer } from 'rxjs';
 import { filter, map, skipWhile, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { Server } from './models/Server';
+import { IServer } from './interfaces/IServer';
 import { UserPayload } from './models/UserPayload';
 import { AuthService } from './services/auth.service';
 import { DataService } from './services/data.service';
@@ -16,8 +16,8 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly _updateInterval = 30_000;
   private readonly destroyed$: Subject<void> = new Subject<void>();
   public readonly hasAdminServers$: Observable<boolean>;
-  public readonly servers$: Observable<Server[]>;
-  private _selectedServer: Server | undefined;
+  public readonly servers$: Observable<IServer[]>;
+  private _selectedServer: IServer | undefined;
 
   public get userPayload(): UserPayload | undefined {
     return this.storageService.payload;
@@ -31,12 +31,12 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.dataService.addServerLink;
   }
 
-  public get selectedServer(): Server | undefined {
+  public get selectedServer(): IServer | undefined {
     return this._selectedServer;
   }
 
-  public set selectedServer(server: Server | undefined) {
-    if(server?.id !== this._selectedServer?.id) {
+  public set selectedServer(server: IServer | undefined) {
+    if (server?.id !== this._selectedServer?.id) {
       this._selectedServer = server;
       this.storageService.settings.selectedServerId = server?.id;
       this.dataService.setSelectedServer(server);
@@ -54,32 +54,32 @@ export class AppComponent implements OnInit, OnDestroy {
         takeUntil(this.destroyed$),
         skipWhile(servers => servers.length === 0),
       ).subscribe(servers => {
-        this.selectedServer = servers.find(server => server.id === this.storageService.settings.selectedServerId) || servers.find(() => true);
-      });
+      this.selectedServer = servers.find(server => server.id === this.storageService.settings.selectedServerId) || servers.find(() => true);
+    });
     this.dataService.selectedServer
       .pipe(
         takeUntil(this.destroyed$),
-        filter((server?: Server): server is Server => !!server),
+        filter((server?: IServer): server is IServer => !!server),
         map(server => server.id),
-        skipWhile(()=> !this.isLoggedIn),
+        skipWhile(() => !this.isLoggedIn),
         tap(serverId => this.dataService.loadSounds(serverId)),
-        switchMap(serverId => timer(this._updateInterval, this._updateInterval).pipe(map((()=> serverId)))),
-        skipWhile(()=> !this.isLoggedIn),
+        switchMap(serverId => timer(this._updateInterval, this._updateInterval).pipe(map((() => serverId)))),
+        skipWhile(() => !this.isLoggedIn),
         takeUntil(this.destroyed$)
       ).subscribe(serverId => {
-        this.dataService.loadSounds(serverId, true);
-      });
+      this.dataService.loadSounds(serverId, true);
+    });
 
     timer(0, this._updateInterval)
       .pipe(
         takeUntil(this.destroyed$),
-        skipWhile(()=> !this.isLoggedIn),
+        skipWhile(() => !this.isLoggedIn),
       ).subscribe(() => {
-        this.dataService.update();
+      this.dataService.update();
     });
   }
 
-  public getFilteredServers(servers: Server[], selectedServer: Server | undefined): Server[] {
+  public getFilteredServers(servers: IServer[], selectedServer: IServer | undefined): IServer[] {
     return selectedServer ? servers.filter(server => server.id !== selectedServer.id) : servers;
   }
 

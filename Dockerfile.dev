@@ -1,7 +1,8 @@
 FROM node:17
 WORKDIR /app/bot/server
-COPY server/package*.json ./
+COPY server/package.json server/yarn.lock ./
 RUN yarn install
+COPY shared/ app/bot/shared
 COPY server/ ./
 RUN apt-get -y update\
     && apt-get -y upgrade\

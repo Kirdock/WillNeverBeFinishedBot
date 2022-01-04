@@ -1,36 +1,21 @@
-import { HttpHeaders, HttpResponse } from '@angular/common/http';
+export type FileInfo = { src: string, fullName: string };
 
 export class SoundMeta {
-    public time!: number;
-    public _id!: string;
-    public fileName!: string;
-    public category!: string;
-    public userId!: string;
-    public username?: string;
-    public serverId!: string;
-    public fileInfo?: {src: string, fullName: string};
+  public time!: number;
+  public _id!: string;
+  public fileName!: string;
+  public category!: string;
+  public userId!: string;
+  public username?: string;
+  public serverId!: string;
+  public fileInfo?: FileInfo;
 
-    public setFileInfo(response: HttpResponse<Blob>) {
-        this.fileInfo = {
-            src: URL.createObjectURL(response.body),
-            fullName: this.getFileNameOutOfHeader(response.headers)
-        };
-    }
+  public setFileInfo(src: string, fullName: string): this is (SoundMeta & { fileInfo: FileInfo }) {
+    this.fileInfo = {src, fullName};
+    return true;
+  }
 
-    private getFileNameOutOfHeader(headers: HttpHeaders){
-        let fileName = '';
-        const disposition = headers.get('content-disposition');
-        if (disposition?.includes('attachment')) {
-            const reg = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-            const matches = reg.exec(disposition);
-            if (matches?.[1]) { 
-              fileName = matches[1].replace(/['"]/g, '');
-            }
-        }
-        return fileName;
-      }
-
-      public static fromJSON(data: any): SoundMeta {
-          return Object.assign(new this(), data);
-      }
+  public static fromJSON(data: any): SoundMeta {
+    return Object.assign(new this(), data);
+  }
 }

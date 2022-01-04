@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Observable, of, Subject} from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
-import { Server } from 'src/app/models/Server';
+import { IServer } from 'src/app/interfaces/IServer';
 import { Sounds } from 'src/app/models/Sounds';
 import { DataService } from 'src/app/services/data.service';
 
@@ -13,7 +13,7 @@ import { DataService } from 'src/app/services/data.service';
 export class AccountComponent implements OnDestroy {
   public userIntro: string | undefined;
   public cacheIntroBefore: string | undefined;
-  public selectedServer$: Observable<Server | undefined>;
+  public selectedServer$: Observable<IServer | undefined>;
   public readonly sounds$: Observable<Sounds | undefined>;
   private readonly destroyed$: Subject<void> = new Subject<void>();
 
@@ -29,9 +29,9 @@ export class AccountComponent implements OnDestroy {
   }
 
   public updateIntro(serverId: string, soundId?: string) {
-    this.dataService.updateIntro(soundId, serverId).subscribe(()=>{
+    this.dataService.updateIntro(soundId, serverId).subscribe(() => {
       this.userIntro = soundId;
-    },() => {
+    }, () => {
       this.userIntro = this.cacheIntroBefore;
     });
   }

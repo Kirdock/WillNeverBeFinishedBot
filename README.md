@@ -36,6 +36,7 @@ Environment Variables (.env file in root):
 - DATABASE_USER: Username for mongodb.
 - DATABASE_PASSWORD: Password for mongodb.
 - DATABASE_CONTAINER_NAME: Container or host name for mongodb. Default `mongodb`. Use `localhost` if you want to access it on localhost
+- MAX_RECORD_TIME_MINUTES: Max amount of minutes recorded voice should be tracked.
 
 # Run in production
 

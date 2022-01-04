@@ -16,7 +16,7 @@ if (checkRequiredEnvironmentVariables(process.env)) {
 }
 
 async function start(config: IEnvironmentVariables): Promise<void> {
-    try{
+    try {
         const fileHelper: FileHelper = new FileHelper(logger);
         const databaseHelper = new DatabaseHelper(logger, fileHelper, config);
         await databaseHelper.run(config);
@@ -25,8 +25,7 @@ async function start(config: IEnvironmentVariables): Promise<void> {
         const router = express.Router();
         new Router(discordBot, router, fileHelper, databaseHelper, logger, authHelper);
         new WebServer(router, authHelper, fileHelper, logger, config);
-    }
-    catch(e) {
+    } catch (e) {
         logger.error(e, 'Server start');
         process.exit(1);
     }
@@ -38,13 +37,14 @@ function setDefaultOptionalEnvironmentVariables(envs: IRequiredEnvironmentVariab
         ...envs,
         OWNERS: envs.OWNERS ?? '',
         VERSION: envs.VERSION || 'develop',
-        DATABASE_CONTAINER_NAME: envs.DATABASE_CONTAINER_NAME || 'mongodb'
+        DATABASE_CONTAINER_NAME: envs.DATABASE_CONTAINER_NAME || 'mongodb',
+        MAX_RECORD_TIME_MINUTES: envs.MAX_RECORD_TIME_MINUTES || '',
     };
 }
 
 function checkRequiredEnvironmentVariables(envs: Partial<IRequiredEnvironmentVariables>): envs is IRequiredEnvironmentVariables {
-    for (const env of KEnvironmentVariables){
-        if(!envs[env]) {
+    for (const env of KEnvironmentVariables) {
+        if (!envs[env]) {
             logger.error(new Error(`env ${env} not provided`), 'Startup');
             process.exit(0);
         }

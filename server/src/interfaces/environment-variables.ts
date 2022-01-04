@@ -25,10 +25,12 @@ export interface IRequiredEnvironmentVariables {
     OWNERS?: string;
     VERSION?: string;
     DATABASE_CONTAINER_NAME?: string;
+    MAX_RECORD_TIME_MINUTES?: string;
 }
 
 export interface IEnvironmentVariables extends IRequiredEnvironmentVariables {
     OWNERS: string;
     VERSION: string;
     DATABASE_CONTAINER_NAME: string;
+    MAX_RECORD_TIME_MINUTES: string;
 }
