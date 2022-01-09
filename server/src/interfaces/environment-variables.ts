@@ -22,6 +22,7 @@ export interface IRequiredEnvironmentVariables {
     DATABASE_USER: string;
     DATABASE_PASSWORD: string;
     WEBTOKEN_SECRET: string;
+    LOG_LEVEL?: string;
     OWNERS?: string;
     VERSION?: string;
     DATABASE_CONTAINER_NAME?: string;
@@ -33,4 +34,5 @@ export interface IEnvironmentVariables extends IRequiredEnvironmentVariables {
     VERSION: string;
     DATABASE_CONTAINER_NAME: string;
     MAX_RECORD_TIME_MINUTES: string;
+    LOG_LEVEL: string;
 }
