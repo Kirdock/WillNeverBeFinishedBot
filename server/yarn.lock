@@ -1925,7 +1925,7 @@ play-audio@^0.4.3:
   resolved "https://registry.yarnpkg.com/play-audio/-/play-audio-0.4.3.tgz#f51610bd90537b6b58e7a7f0ab51897bf81ca925"
   integrity sha512-DOLTP1+cgXH0k1ZdZyXXRsAPnVrzV2xZV6EXpWRsMtk24oolS7mD3WUQltuCeuJXKGM1tIsXLr+EZo6Ky4aKRg==
 
-play-dl@^1.7.8:
+play-dl@latest:
   version "1.7.8"
   resolved "https://registry.yarnpkg.com/play-dl/-/play-dl-1.7.8.tgz#a85ce7ba2225bf048b09d58cb00e814a0ecb5551"
   integrity sha512-yxK+qmZ09HATi/T2bBHQX2n2nJ9UI7g9btIi+NKjABZw1ISpgK4AIHJ3y5B+HfG77g4SUbbBZ6fK9fiGnDxuUA==
