@@ -8,7 +8,8 @@ import { Router } from './webserver/routes';
 import { WebServer } from './webserver/server';
 import { IEnvironmentVariables, IRequiredEnvironmentVariables, KEnvironmentVariables } from './interfaces/environment-variables';
 
-const logger: Logger = new Logger();
+const defaultLogLevel = 'debug';
+const logger: Logger = new Logger(process.env.LOG_LEVEL || defaultLogLevel);
 
 if (checkRequiredEnvironmentVariables(process.env)) {
     const config = setDefaultOptionalEnvironmentVariables(process.env);
@@ -39,6 +40,7 @@ function setDefaultOptionalEnvironmentVariables(envs: IRequiredEnvironmentVariab
         VERSION: envs.VERSION || 'develop',
         DATABASE_CONTAINER_NAME: envs.DATABASE_CONTAINER_NAME || 'mongodb',
         MAX_RECORD_TIME_MINUTES: envs.MAX_RECORD_TIME_MINUTES || '',
+        LOG_LEVEL: envs.LOG_LEVEL || defaultLogLevel,
     };
 }
 

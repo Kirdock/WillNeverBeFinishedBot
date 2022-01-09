@@ -17,6 +17,8 @@ COPY server/package.json server/yarn.lock ./
 RUN yarn install
 COPY server/ shared/ ./
 
+ARG logLevel="debug"
+ENV LOG_LEVEL=$logLevel
 ARG version="develop"
 ENV VERSION=$version
 ARG client_token=""

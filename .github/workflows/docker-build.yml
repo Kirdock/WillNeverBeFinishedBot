@@ -102,5 +102,6 @@ jobs:
             striessnigk/willneverbefinishedbot:${{ env.VERSION }}.${{ env.DATETIME }}
           build-args: |
             version=${{ env.VERSION }}
+            logLevel="info"
           push: true
           pull: true

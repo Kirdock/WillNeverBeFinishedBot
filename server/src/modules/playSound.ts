@@ -1,9 +1,9 @@
 import { Message, Snowflake, VoiceState } from 'discord.js';
-import ytdl from 'ytdl-core';
 import { Command } from './Command';
 import { ErrorTypes } from '../services/ErrorTypes';
 import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, StreamType, VoiceConnection } from '@discordjs/voice';
 import { ServerSettings } from '../models/ServerSettings';
+import { stream as youtubeStream } from 'play-dl';
 
 export class PlayCommand extends Command {
     protected commandText = 'play';
@@ -59,8 +59,8 @@ export class PlayCommand extends Command {
         let resource: AudioResource | undefined;
         const streamOptions = {inlineVolume: true, inputType: StreamType.OggOpus};
         if (!file && url) {
-            const stream = ytdl(url, {filter: 'audioonly'});
-            resource = createAudioResource(stream, streamOptions);
+            const stream = await youtubeStream(url);
+            resource = createAudioResource(stream.stream, {...streamOptions, inputType: stream.type});
         } else if (file) {
             resource = createAudioResource(file, streamOptions);
         }
