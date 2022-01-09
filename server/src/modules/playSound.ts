@@ -66,6 +66,7 @@ export class PlayCommand extends Command {
         }
         if (resource) {
             resource.volume?.setVolume(volumeMultiplier);
+            this.logger.debug(`${file ?? url} starts playing. Player State: ${JSON.stringify(player.state)}`, 'playSound');
             player.play(resource);
         }
     }
