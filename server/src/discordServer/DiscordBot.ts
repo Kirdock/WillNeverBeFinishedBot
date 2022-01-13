@@ -183,7 +183,7 @@ export class DiscordBot {
                     } else if (content.startsWith('pick')) {
                         const elements = content.substring(4).split(',').map(item => item.trim()).filter(item => item.length !== 0);
                         if (elements.length !== 0) {
-                            const index = Math.floor(Math.random() * elements.length - 1);
+                            const index = Math.floor(Math.random() * elements.length);
                             await message.reply(elements[index]);
                         }
                     } else if (content.startsWith('bubble')) {
