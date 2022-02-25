@@ -28,7 +28,6 @@ export class DiscordBot {
     constructor(private databaseHelper: DatabaseHelper, private fileHelper: FileHelper, private logger: Logger, config: IEnvironmentVariables) {
         this.prefixes = config.PREFIXES.split(',');
         this.hostUrl = config.HOST;
-        this.superAdmins = config.OWNERS.split(',').map(owner => owner.trim()).filter(owner => owner);
         this.client = new Client({
             intents: [
                 Intents.FLAGS.GUILDS,
@@ -38,6 +37,8 @@ export class DiscordBot {
                 Intents.FLAGS.GUILD_MESSAGES,
             ],
         });
+        const admins = [...config.OWNERS.split(','), this.client.application?.owner?.id].map(owner => owner?.trim());
+        this.superAdmins = admins.filter((owner: string | undefined, index: number): owner is string => !!owner && admins.indexOf(owner) === index);
         this.setReady();
         this.setVoiceStateUpdate();
         this.setOnMessage();
@@ -48,8 +49,10 @@ export class DiscordBot {
     }
 
     private setReady() {
-        this.client.on('ready', () => {
+        this.client.on('ready', async () => {
             console.log(`Logged in as ${this.client.user!.tag}!`);
+            // await this.clearCommands();
+            await this.setMessageContextMenu();
         });
     }
 
@@ -390,5 +393,47 @@ export class DiscordBot {
             userObject.username = (await this.getSingleUser(userObject[key]))?.username;
         }
         array.sort((a, b) => a.username.localeCompare(b.username));
+    }
+
+    private async setMessageContextMenu(): Promise<void> {
+        if (this.client.application) {
+            const openSteamCommandName = 'Gib Steam Link';
+
+            for (const guild of this.client.guilds.cache.values()) {
+                await this.client.application.commands.create({
+                    type: 'MESSAGE',
+                    name: openSteamCommandName,
+                    defaultPermission: true,
+                }, guild.id);
+            }
+            this.client.on('interactionCreate', async (interaction) => {
+                if (!interaction.isMessageContextMenu()) return;
+                if (interaction.commandName === openSteamCommandName) {
+                    const steamLink = this.buildSteamLinkOutOfMessage(interaction.targetMessage.content);
+                    await interaction.reply({
+                        content: steamLink || 'Hob kan Steam Link gfundn!',
+                        ephemeral: true
+                    });
+                }
+            });
+        }
+    }
+
+    private buildSteamLinkOutOfMessage(content: string): string | undefined {
+        const urlRegex = /(https:\/\/store\.steampowered\.com\/[^\s]+)/g;
+        let url = content.match(urlRegex)?.[0];
+        if (url) {
+            url = `steam://openurl/${url}`;
+        }
+        return url;
+    }
+
+    private async clearCommands(): Promise<void> {
+        if (this.client.application) {
+            this.client.application.commands.set([]);
+            for (const guild of this.client.guilds.cache.values()) {
+                await guild.commands.set([]);
+            }
+        }
     }
 }
