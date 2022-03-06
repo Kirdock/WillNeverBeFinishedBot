@@ -1,7 +1,7 @@
 import { Message, Snowflake, VoiceState } from 'discord.js';
 import { Command } from './Command';
 import { ErrorTypes } from '../services/ErrorTypes';
-import { AudioPlayer, AudioPlayerError, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, NoSubscriberBehavior, StreamType, VoiceConnection } from '@discordjs/voice';
+import { AudioPlayer, AudioPlayerError, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, StreamType, VoiceConnection } from '@discordjs/voice';
 import { ServerSettings } from '../models/ServerSettings';
 import { stream as youtubeStream } from 'play-dl';
 import { createReadStream } from 'fs';
@@ -11,6 +11,7 @@ export class PlayCommand extends Command {
     public static forcePlayLock: { [key: string]: boolean } = {};
     private readonly fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
     private readonly userNotInVoiceChannelMessage = 'Du bist in kan Voice Channel!!';
+    private readonly audioPlayers: { [serverId: string]: AudioPlayer } = {};
 
     public async doWork(message: Message): Promise<void> {
         if (!message.guild) {
@@ -52,7 +53,7 @@ export class PlayCommand extends Command {
         }
         const connection: VoiceConnection = await this.voiceHelper.getOrJoinVoiceChannel(serverId, channelId);
         const serverInfo = await this.databaseHelper.getServerSettings(serverId);
-        const player = this.getAudioPlayer(serverId, serverInfo);
+        const player = this.createAudioPlayer(serverId, serverInfo);
 
         connection.subscribe(player);
 
@@ -71,12 +72,8 @@ export class PlayCommand extends Command {
         }
     }
 
-    private getAudioPlayer(serverId: Snowflake, serverInfo?: ServerSettings): AudioPlayer {
-        const player = createAudioPlayer({
-            behaviors: {
-                noSubscriber: NoSubscriberBehavior.Stop
-            }
-        })
+    private createAudioPlayer(serverId: Snowflake, serverInfo?: ServerSettings): AudioPlayer {
+        const player = createAudioPlayer();
         player.on(AudioPlayerStatus.Idle, () => {
             this.removeLock(serverId);
             if (serverInfo?.leaveChannelAfterPlay) {
@@ -87,7 +84,12 @@ export class PlayCommand extends Command {
             this.logger.error(error, 'PlaySound');
             this.removeLock(serverId);
         });
-        return player;
+        this.audioPlayers[serverId] = player;
+        return this.audioPlayers[serverId];
+    }
+
+    private getAudioPlayer(serverId: Snowflake): AudioPlayer | undefined {
+        return this.audioPlayers[serverId];
     }
 
     private removeLock(serverId: string): void {
@@ -113,7 +115,7 @@ export class PlayCommand extends Command {
             const connection = this.voiceHelper.getActiveConnection(serverId);
             if (connection) {
                 const player = this.getAudioPlayer(serverId);
-                player.stop(true);
+                player?.stop(true);
             } else {
                 throw ErrorTypes.SERVER_ID_NOT_FOUND;
             }
