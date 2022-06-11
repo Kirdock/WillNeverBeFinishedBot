@@ -115,7 +115,7 @@ export class DatabaseHelper {
     }
 
     async setIntro(userId: Snowflake, soundId: ObjectID, serverId: Snowflake): Promise<UpdateWriteOpResult> {
-        return this.userCollection.updateOne({id: userId}, {$set: {intros: {[serverId]: soundId}}}, {upsert: true});
+        return this.userCollection.updateOne({id: userId}, {$set: {[`intros.${serverId}`]: soundId}}, {upsert: true});
     }
 
     async getIntro(userId: Snowflake, serverId: Snowflake): Promise<string | undefined> {
