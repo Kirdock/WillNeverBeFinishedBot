@@ -2,9 +2,9 @@ import { Component } from '@angular/core';
 import { Observable, of, Subject } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { IServer } from 'src/app/interfaces/IServer';
-import { Sounds } from 'src/app/models/Sounds';
-import { User } from 'src/app/models/User';
+import { IUser } from 'src/app/interfaces/User';
 import { DataService } from 'src/app/services/data.service';
+import { ISounds } from '../../interfaces/sound-meta';
 
 @Component({
   selector: 'app-user-intros',
@@ -13,13 +13,13 @@ import { DataService } from 'src/app/services/data.service';
 })
 export class UserIntrosComponent {
   public searchText: string = '';
-  public readonly users$: Observable<User[]>;
+  public readonly users$: Observable<IUser[]>;
   public cacheIntroBefore?: string;
-  public readonly sounds$: Observable<Sounds | undefined>;
+  public readonly sounds$: Observable<ISounds | undefined>;
   private readonly destroyed$: Subject<void> = new Subject<void>();
   public readonly selectedServer$: Observable<IServer | undefined>;
 
-  public getFilteredUsers(allUsers: User[]) {
+  public getFilteredUsers(allUsers: IUser[]) {
     let users;
     if (this.searchText.length > 0) {
       const re = new RegExp(this.searchText, 'i');
@@ -40,7 +40,7 @@ export class UserIntrosComponent {
       );
   }
 
-  public updateIntro(user: User, serverId: string, soundId: string | undefined) {
+  public updateIntro(user: IUser, serverId: string, soundId: string | undefined) {
     this.dataService.updateIntro(soundId, serverId, user.id).subscribe(() => {
       user.intros[serverId] = soundId;
     }, () => {

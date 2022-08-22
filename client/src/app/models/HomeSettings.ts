@@ -1,11 +1,9 @@
-export class HomeSettings {
-  public volume: number = 0.5;
-  public selectedServerId?: string;
-  public selectedChannelId?: string;
-  public joinUser: boolean = true;
-  public recordVoiceMinutes: number = 1;
+import { IHomeSettings } from '../interfaces/home-settings';
 
-  static fromJSON(data: any) {
-    return Object.assign(new this(), data);
-  }
+export function createHomeSettings(): IHomeSettings {
+  return {
+    volume: 0.5,
+    joinUser: true,
+    recordVoiceMinutes: 1,
+  };
 }

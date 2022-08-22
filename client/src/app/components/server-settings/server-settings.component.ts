@@ -2,9 +2,9 @@ import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
 import { IServer } from 'src/app/interfaces/IServer';
-import { Sounds } from 'src/app/models/Sounds';
 import { DataService } from 'src/app/services/data.service';
 import { IServerSettings } from '../../../../../shared/interfaces/server-settings';
+import { ISounds } from '../../interfaces/sound-meta';
 
 @Component({
   selector: 'app-server-settings',
@@ -13,7 +13,7 @@ import { IServerSettings } from '../../../../../shared/interfaces/server-setting
 })
 export class ServerSettingsComponent {
   public readonly serverSettings$: Observable<IServerSettings>;
-  public readonly sounds$: Observable<Sounds | undefined>;
+  public readonly sounds$: Observable<ISounds | undefined>;
   public readonly selectedServer$: Observable<IServer | undefined>;
 
   constructor(private readonly dataService: DataService) {

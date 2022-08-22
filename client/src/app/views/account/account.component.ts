@@ -2,8 +2,8 @@ import { Component, OnDestroy } from '@angular/core';
 import { Observable, of, Subject } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { IServer } from 'src/app/interfaces/IServer';
-import { Sounds } from 'src/app/models/Sounds';
 import { DataService } from 'src/app/services/data.service';
+import { ISounds } from '../../interfaces/sound-meta';
 
 @Component({
   selector: 'app-account',
@@ -14,7 +14,7 @@ export class AccountComponent implements OnDestroy {
   public userIntro: string | undefined;
   public cacheIntroBefore: string | undefined;
   public selectedServer$: Observable<IServer | undefined>;
-  public readonly sounds$: Observable<Sounds | undefined>;
+  public readonly sounds$: Observable<ISounds | undefined>;
   private readonly destroyed$: Subject<void> = new Subject<void>();
 
   constructor(private readonly dataService: DataService) {

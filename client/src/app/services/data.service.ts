@@ -1,28 +1,27 @@
 import { HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
+import { filter, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
-import { Channel } from '../models/Channel';
-import { Log } from '../models/Log';
-import { PlaySoundRequest } from '../models/PlaySoundRequest';
+import { IChannel } from '../interfaces/Channel';
+import { ILog } from '../interfaces/Log';
 import { IServer } from '../interfaces/IServer';
-import { SoundMeta } from '../models/SoundMeta';
-import { Sounds } from '../models/Sounds';
-import { User } from '../models/User';
+import { IUser } from '../interfaces/User';
 import { ApiService } from './api.service';
 import { StorageService } from './storage.service';
 import { IServerSettings } from '../../../../shared/interfaces/server-settings';
 import { AudioExportType } from '../../../../shared/models/types';
+import { IPlaySoundRequest } from '../interfaces/play-sound-request';
+import { ISoundMeta, ISounds } from '../interfaces/sound-meta';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
   private _hasAdminServers: BehaviorSubject<boolean | undefined> = new BehaviorSubject<boolean | undefined>(undefined);
-  private _sounds: BehaviorSubject<Sounds> = new BehaviorSubject<Sounds>({});
+  private _sounds: BehaviorSubject<ISounds> = new BehaviorSubject<ISounds>({});
   private _servers: BehaviorSubject<IServer[]> = new BehaviorSubject<IServer[]>([]);
-  private _channels: BehaviorSubject<Channel[]> = new BehaviorSubject<Channel[]>([]);
+  private _channels: BehaviorSubject<IChannel[]> = new BehaviorSubject<IChannel[]>([]);
   private _selectedServer: BehaviorSubject<IServer | undefined> = new BehaviorSubject<IServer | undefined>(undefined);
   private _soundFetchTime: Date = new Date();
 
@@ -49,7 +48,7 @@ export class DataService {
     this._selectedServer.next(server);
   }
 
-  public get sounds(): Observable<Sounds> {
+  public get sounds(): Observable<ISounds> {
     return this._sounds.asObservable();
   }
 
@@ -61,7 +60,7 @@ export class DataService {
     return this._servers.asObservable();
   }
 
-  public get channels(): Observable<Channel[]> {
+  public get channels(): Observable<IChannel[]> {
     return this._channels.asObservable();
   }
 
@@ -87,7 +86,7 @@ export class DataService {
     });
   }
 
-  public submitFile(files: FileList, category: string, serverId: string): Observable<SoundMeta[]> {
+  public submitFile(files: FileList, category: string, serverId: string): Observable<ISoundMeta[]> {
     const formData = new FormData();
     formData.append('category', category);
     formData.append('serverId', serverId);
@@ -102,7 +101,7 @@ export class DataService {
     );
   }
 
-  public playSound(data: PlaySoundRequest): Observable<any> {
+  public playSound(data: IPlaySoundRequest): Observable<any> {
     return this.apiService.playSound(data);
   }
 
@@ -113,24 +112,22 @@ export class DataService {
     }
     this._soundFetchTime = new Date();
     this.apiService.getSounds(serverId, fromTime)
-      .pipe(
-        map(newSoundsMetas => newSoundsMetas.map(meta => SoundMeta.fromJSON(meta)))
-      ).subscribe(newSounds => {
-      if (!fromTime || newSounds.length !== 0) {
-        const sounds = newSounds.reduce((result: Sounds, sound: SoundMeta) => {
-          if (!result[sound.category]) {
-            result[sound.category] = [];
-          }
-          result[sound.category].push(sound);
+      .subscribe(newSounds => {
+        if (!fromTime || newSounds.length !== 0) {
+          const sounds: ISounds = newSounds.reduce((result: ISounds, sound: ISoundMeta) => {
+            if (!result[sound.category]) {
+              result[sound.category] = [];
+            }
+            result[sound.category].push(sound);
 
-          return result;
-        }, fromTime ? this._sounds.getValue() : {});
-        for (const category in sounds) {
-          sounds[category].sort((soundA, soundB) => soundA.fileName.localeCompare(soundB.fileName));
+            return result;
+          }, fromTime ? this._sounds.getValue() : {} as ISounds);
+          for (const category in sounds) {
+            sounds[category].sort((soundA, soundB) => soundA.fileName.localeCompare(soundB.fileName));
+          }
+          this._sounds.next(sounds);
         }
-        this._sounds.next(sounds);
-      }
-    });
+      });
   }
 
   public loadServers() {
@@ -169,7 +166,7 @@ export class DataService {
     return this.apiService.updateServerSettings(serverSettings);
   }
 
-  public getUsersData(serverId: string): Observable<User[]> {
+  public getUsersData(serverId: string): Observable<IUser[]> {
     return this.apiService.fetchUsersData(serverId);
   }
 
@@ -177,7 +174,7 @@ export class DataService {
     return this.apiService.getUserIntro(serverId);
   }
 
-  public getLogs(serverId: string, pageSize?: number, pageKey?: number, fromTime?: Date): Observable<Log[]> {
+  public getLogs(serverId: string, pageSize?: number, pageKey?: number, fromTime?: Date): Observable<ILog[]> {
     return this.apiService.getLogs(serverId, pageSize, pageKey, fromTime);
   }
 
