@@ -12,10 +12,10 @@ import { AuthService } from 'src/app/services/auth.service';
 import { DataService } from 'src/app/services/data.service';
 import { StorageService } from 'src/app/services/storage.service';
 import { IHomeSettings } from '../../interfaces/home-settings';
-import { createHomeSettings } from '../../models/HomeSettings';
+import { createHomeSettings } from '../../utils/HomeSettings';
 import { IPlaySoundRequest } from '../../interfaces/play-sound-request';
 import { FileInfo, ISoundMeta, ISounds } from '../../interfaces/sound-meta';
-import { setFileInfo } from '../../models/SoundMeta';
+import { setFileInfo } from '../../utils/SoundMeta';
 
 @Component({
   selector: 'app-home',

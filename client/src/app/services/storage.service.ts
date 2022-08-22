@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { IUserPayload } from '../interfaces/UserPayload';
 import { IHomeSettings } from '../interfaces/home-settings';
-import { createHomeSettings } from '../models/HomeSettings';
+import { createHomeSettings } from '../utils/HomeSettings';
 
 @Injectable({
   providedIn: 'root'

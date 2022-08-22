@@ -1,9 +1,9 @@
 import { Snowflake } from 'discord.js';
-import { createServerSettings } from '../models/ServerSettings';
+import { createServerSettings } from '../utils/ServerSettings';
 import { IUserToken } from '../interfaces/UserToken';
 import { Collection, Db, DeleteResult, Document, Filter, FindOptions, InsertManyResult, InsertOneResult, MongoClient, ObjectId, UpdateFilter, UpdateResult } from 'mongodb';
 import { FileHelper } from './fileHelper';
-import { createUser } from '../models/User';
+import { createUser } from '../utils/User';
 import { ErrorTypes } from './ErrorTypes';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { IDatabaseMetadata } from '../interfaces/database-metadata';
@@ -13,7 +13,7 @@ import { ILog } from '../interfaces/log';
 import { IServerSettings } from '../../../shared/interfaces/server-settings';
 import { IUser } from '../interfaces/user';
 import { ISoundMeta } from '../interfaces/sound-meta';
-import { createSoundMeta } from '../models/SoundMeta';
+import { createSoundMeta } from '../utils/SoundMeta';
 
 export class DatabaseHelper {
     private client: MongoClient;

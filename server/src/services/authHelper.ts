@@ -7,7 +7,7 @@ import { IUserToken } from '../interfaces/UserToken';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { logger } from './logHelper';
 import { FileHelper } from './fileHelper';
-import { createUserPayload } from '../models/UserPayload';
+import { createUserPayload } from '../utils/UserPayload';
 import { IUserPayload } from '../interfaces/user-payload';
 
 export class AuthHelper {
