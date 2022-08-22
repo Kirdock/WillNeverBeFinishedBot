@@ -1,15 +1,15 @@
-export const KEnvironmentVariables: (keyof IRequiredEnvironmentVariables)[] = [
-    'CLIENT_TOKEN',
-    'CLIENT_SECRET',
-    'HOST',
-    'PORT',
-    'PREFIXES',
-    'SCOPE',
-    'DATABASE_NAME',
-    'DATABASE_USER',
-    'DATABASE_PASSWORD',
-    'WEBTOKEN_SECRET',
-]
+const requiredEnvironmentVariableKeys: { [key in keyof IRequiredEnvironmentVariables]: boolean } = {
+    CLIENT_TOKEN: true,
+    CLIENT_SECRET: true,
+    HOST: true,
+    PORT: true,
+    PREFIXES: true,
+    SCOPE: true,
+    DATABASE_NAME: true,
+    DATABASE_USER: true,
+    DATABASE_PASSWORD: true,
+    WEBTOKEN_SECRET: true,
+}
 
 export interface IRequiredEnvironmentVariables {
     CLIENT_TOKEN: string;
@@ -36,3 +36,5 @@ export interface IEnvironmentVariables extends IRequiredEnvironmentVariables {
     MAX_RECORD_TIME_MINUTES: string;
     LOG_LEVEL: string;
 }
+
+export const KEnvironmentVariables: (keyof IRequiredEnvironmentVariables)[] = Object.keys(requiredEnvironmentVariableKeys) as (keyof IRequiredEnvironmentVariables)[];

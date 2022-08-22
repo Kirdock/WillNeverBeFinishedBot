@@ -2,32 +2,29 @@ import express from 'express';
 import { DiscordBot } from './discordServer/DiscordBot';
 import { AuthHelper } from './services/authHelper';
 import { DatabaseHelper } from './services/databaseHelper';
-import { FileHelper } from './services/fileHelper';
-import { Logger } from './services/logger';
-import { Router } from './webserver/routes';
-import { WebServer } from './webserver/server';
+import { registerRoutes } from './webserver/routes';
 import { IEnvironmentVariables, IRequiredEnvironmentVariables, KEnvironmentVariables } from './interfaces/environment-variables';
+import { startServer } from './webserver/server';
+import { defaultLogLevel, logger } from './services/logHelper';
 
-const defaultLogLevel = 'debug';
-const logger: Logger = new Logger(process.env.LOG_LEVEL || defaultLogLevel);
+const env = process.env as Record<string, string | undefined>;
 
-if (checkRequiredEnvironmentVariables(process.env)) {
-    const config = setDefaultOptionalEnvironmentVariables(process.env);
+if (checkRequiredEnvironmentVariables(env)) {
+    const config = setDefaultOptionalEnvironmentVariables(env);
     start(config);
 }
 
 async function start(config: IEnvironmentVariables): Promise<void> {
     try {
-        const fileHelper: FileHelper = new FileHelper(logger);
-        const databaseHelper = new DatabaseHelper(logger, fileHelper, config);
+        const databaseHelper = new DatabaseHelper(config);
         await databaseHelper.run(config);
-        const discordBot: DiscordBot = new DiscordBot(databaseHelper, fileHelper, logger, config);
-        const authHelper = new AuthHelper(logger, databaseHelper, discordBot, config);
+        const discordBot: DiscordBot = new DiscordBot(databaseHelper, config);
+        const authHelper = new AuthHelper(databaseHelper, discordBot, config);
         const router = express.Router();
-        new Router(discordBot, router, fileHelper, databaseHelper, logger, authHelper);
-        new WebServer(router, authHelper, fileHelper, logger, config);
+        registerRoutes(discordBot, router, databaseHelper, authHelper);
+        startServer(router, authHelper, logger, config);
     } catch (e) {
-        logger.error(e, 'Server start');
+        logger.error(e as Error, 'Server start');
         process.exit(1);
     }
 }

@@ -1,6 +1,5 @@
 import { EndBehaviorType, VoiceConnection } from '@discordjs/voice';
 import { Snowflake } from 'discord.js';
-import { Logger } from './logger';
 import ffmpeg from 'fluent-ffmpeg';
 import { ReadStream } from 'fs';
 import { join } from 'path';
@@ -9,6 +8,7 @@ import { FileWriter } from 'wav';
 import { ReplayReadable } from '../models/replay-readable';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { AudioExportType } from '../../../shared/models/types';
+import { logger } from './logHelper';
 
 interface UserStreams {
     [userId: string]: {
@@ -29,7 +29,7 @@ export class RecordVoiceHelper {
         }
     } = {};
 
-    constructor(private logger: Logger, private readonly fileHelper: FileHelper, config: IEnvironmentVariables) {
+    constructor(config: IEnvironmentVariables) {
         const recordTime = +config.MAX_RECORD_TIME_MINUTES;
         this.maxRecordTimeMs = (!recordTime || isNaN(recordTime) ? 10 : Math.abs(recordTime)) * 60 * 1_000;
     }
@@ -39,31 +39,35 @@ export class RecordVoiceHelper {
         if (!this.writeStreams[serverId]) {
             const listener = (userId: string) => {
                 //check if already listening to user
-                if (!this.writeStreams[serverId].userStreams[userId]) {
-                    const out = new ReplayReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, {highWaterMark: this.maxUserRecordingLength, length: this.maxUserRecordingLength});
-                    const opusStream = connection.receiver.subscribe(userId, {
-                        end: {
-                            behavior: EndBehaviorType.AfterSilence,
-                            duration: this.maxRecordTimeMs,
-                        },
-                    }) as unknown as ReadStream;
-
-
-                    opusStream.on('end', () => {
-                        delete this.writeStreams[serverId].userStreams[userId];
-                    });
-                    opusStream.on('error', (error: Error) => {
-                        this.logger.error(error, 'Error while recording voice');
-                        delete this.writeStreams[serverId].userStreams[userId];
-                    });
-
-                    opusStream.pipe(out);
-
-                    this.writeStreams[serverId].userStreams[userId] = {
-                        source: opusStream,
-                        out
-                    };
+                if (this.writeStreams[serverId].userStreams[userId]) {
+                    return;
                 }
+                const out = new ReplayReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, () => connection.receiver.speaking.users.get(userId), {
+                    highWaterMark: this.maxUserRecordingLength,
+                    length: this.maxUserRecordingLength
+                });
+                const opusStream = connection.receiver.subscribe(userId, {
+                    end: {
+                        behavior: EndBehaviorType.AfterSilence,
+                        duration: this.maxRecordTimeMs,
+                    },
+                }) as unknown as ReadStream;
+
+
+                opusStream.on('end', () => {
+                    delete this.writeStreams[serverId].userStreams[userId];
+                });
+                opusStream.on('error', (error: Error) => {
+                    logger.error(error, 'Error while recording voice');
+                    delete this.writeStreams[serverId].userStreams[userId];
+                });
+
+                opusStream.pipe(out);
+
+                this.writeStreams[serverId].userStreams[userId] = {
+                    source: opusStream,
+                    out
+                };
             }
             this.writeStreams[serverId] = {
                 userStreams: {},
@@ -76,6 +80,7 @@ export class RecordVoiceHelper {
     public stopRecording(connection: VoiceConnection): void {
         const serverId = connection.joinConfig.guildId;
         const serverStreams = this.writeStreams[serverId];
+        // @ts-ignore
         connection.receiver.speaking.removeListener('start', serverStreams.listener);
 
         for (const userId in serverStreams.userStreams) {
@@ -88,7 +93,7 @@ export class RecordVoiceHelper {
 
     public async getRecordedVoice(serverId: Snowflake, exportType: AudioExportType = 'audio', minutes: number = 10): Promise<string | undefined> {
         if (!this.writeStreams[serverId]) {
-            this.logger.warn(`server with id ${serverId} does not have any streams`, 'Record voice');
+            logger.warn(`server with id ${serverId} does not have any streams`, 'Record voice');
             return;
         }
         const recordDurationMs = Math.min(Math.abs(minutes) * 60 * 1_000, this.maxRecordTimeMs)
@@ -105,11 +110,11 @@ export class RecordVoiceHelper {
                             let path;
                             if (exportType === 'audio') {
                                 path = resultPath;
-                                await this.fileHelper.deleteFilesByPath(createdFiles);
+                                await FileHelper.deleteFilesByPath(createdFiles);
                             } else {
                                 const files = [resultPath, ...createdFiles];
                                 path = await this.toMKV(files, endTime);
-                                await this.fileHelper.deleteFilesByPath(files);
+                                await FileHelper.deleteFilesByPath(files);
                             }
                             resolve(path);
                         })
@@ -184,7 +189,7 @@ export class RecordVoiceHelper {
                 amixStrings.push(`[${createdFiles.length}:a]`);
                 createdFiles.push(filePath);
             } catch (e) {
-                this.logger.error(e, 'Error while saving user recording');
+                logger.error(e as Error, 'Error while saving user recording');
             }
         }
 
@@ -214,7 +219,7 @@ export class RecordVoiceHelper {
                 resolve();
             });
             writeStream.on('error', (error: Error) => {
-                this.logger.error(error, 'Error while saving user recording');
+                logger.error(error, 'Error while saving user recording');
                 reject(error);
             });
         });

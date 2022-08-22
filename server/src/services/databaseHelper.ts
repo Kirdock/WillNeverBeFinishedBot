@@ -1,16 +1,19 @@
 import { Snowflake } from 'discord.js';
-import { ServerSettings } from '../models/ServerSettings';
-import { SoundMeta } from '../models/SoundMeta';
+import { createServerSettings } from '../models/ServerSettings';
 import { UserToken } from '../models/UserToken';
-import { Db, DeleteWriteOpResultObject, FilterQuery, FindOneOptions, InsertOneWriteOpResult, InsertWriteOpResult, MongoClient, ObjectID, UpdateWriteOpResult } from 'mongodb';
+import { Collection, Db, DeleteResult, Document, Filter, FindOptions, InsertManyResult, InsertOneResult, MongoClient, ObjectId, UpdateFilter, UpdateResult } from 'mongodb';
 import { FileHelper } from './fileHelper';
-import { Logger } from './logger';
-import { User } from '../models/User';
+import { createUser } from '../models/User';
 import { ErrorTypes } from './ErrorTypes';
-import { Log } from '../models/Log';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { IDatabaseMetadata } from '../interfaces/database-metadata';
 import { MigratorHelper } from './migratorHelper';
+import { createLog } from '../models/Log';
+import { ILog } from '../interfaces/log';
+import { IServerSettings } from '../../../shared/interfaces/server-settings';
+import { IUser } from '../interfaces/user';
+import { ISoundMeta } from '../interfaces/sound-meta';
+import { createSoundMeta } from '../models/SoundMeta';
 
 export class DatabaseHelper {
     private client: MongoClient;
@@ -23,34 +26,33 @@ export class DatabaseHelper {
     private readonly soundMetaCollectionName: string = 'sounds';
     private readonly logCollectionName: string = 'logs';
 
-    constructor(private logger: Logger, private fileHelper: FileHelper, config: IEnvironmentVariables) {
+    constructor(config: IEnvironmentVariables) {
         this.version = config.VERSION;
-        this.migratorHelper = new MigratorHelper(this, logger, this.version);
-        this.client = new MongoClient(`mongodb://${config.DATABASE_USER}:${config.DATABASE_PASSWORD}@${config.DATABASE_CONTAINER_NAME}:27017?retryWrites=true`,
+        this.migratorHelper = new MigratorHelper(this, this.version);
+        this.client = new MongoClient(`mongodb://${config.DATABASE_USER}:${config.DATABASE_PASSWORD}@${config.DATABASE_CONTAINER_NAME}:27017`,
             {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                writeConcern: 'majority',
+                retryWrites: true,
+                w: 'majority',
             });
     }
 
-    private get userCollection() {
+    private get userCollection(): Collection<IUser> {
         return this.database.collection(this.userCollectionName);
     }
 
-    private get soundMetaCollection() {
+    private get soundMetaCollection(): Collection<ISoundMeta> {
         return this.database.collection(this.soundMetaCollectionName);
     }
 
-    private get serverInfoCollection() {
+    private get serverInfoCollection(): Collection<IServerSettings> {
         return this.database.collection(this.serverInfoCollectionName);
     }
 
-    private get logCollection() {
+    private get logCollection(): Collection<ILog> {
         return this.database.collection(this.logCollectionName);
     }
 
-    private get metadataCollection() {
+    private get metadataCollection(): Collection<IDatabaseMetadata> {
         return this.database.collection(this.metadataCollectionName);
     }
 
@@ -83,27 +85,27 @@ export class DatabaseHelper {
     }
 
     private async getDatabaseMetadata(): Promise<IDatabaseMetadata> {
-        return await this.metadataCollection.findOne<IDatabaseMetadata>({}) ?? {
+        return await this.metadataCollection.findOne({}) ?? {
             version: '0.1.0'
         };
     }
 
-    private timeToObjectID(time: number): ObjectID {
-        return new ObjectID(Math.floor(time / 1000).toString(16) + "0000000000000000");
+    private timeToObjectID(time: number): ObjectId {
+        return new ObjectId(Math.floor(time / 1000).toString(16) + "0000000000000000");
     }
 
     public async getUserToken(userId: string): Promise<UserToken> {
-        const user = await this.userCollection.findOne<User>({id: userId}, {projection: {token: 1, id: 1, _id: 1}});
+        const user = await this.userCollection.findOne<IUser>({id: userId}, {projection: {token: 1, id: 1, _id: 1}});
         if (!user?.token) {
-            throw ErrorTypes.TOKEN_NOT_FOUND;
+            throw new Error(ErrorTypes.TOKEN_NOT_FOUND);
         }
 
         return {...user.token, userId: user.id, _id: user._id};
     }
 
-    public async updateUserToken(userId: Snowflake, info: UserToken): Promise<ObjectID> {
+    public async updateUserToken(userId: Snowflake, info: UserToken): Promise<ObjectId | undefined> {
         info.time = new Date().getTime();
-        return (await this.userCollection.findOneAndUpdate({id: userId}, {$set: {token: info}},
+        return (await this.userCollection.findOneAndUpdate({id: userId}, {$set: {'token': info}},
             {
                 upsert: true,
                 returnDocument: 'after',
@@ -111,15 +113,17 @@ export class DatabaseHelper {
                     _id: 1
                 }
             }
-        )).value._id;
+        )).value?._id;
     }
 
-    async setIntro(userId: Snowflake, soundId: ObjectID, serverId: Snowflake): Promise<UpdateWriteOpResult> {
-        return this.userCollection.updateOne({id: userId}, {$set: {[`intros.${serverId}`]: soundId}}, {upsert: true});
+    public setIntro(userId: Snowflake, soundId: ObjectId, serverId: Snowflake): Promise<UpdateResult> {
+        // @ts-ignore
+        const updateFilter: UpdateFilter<IUser> = {$set: {[`intros.${serverId}`]: soundId}};
+        return this.userCollection.updateOne({id: userId}, updateFilter, {upsert: true});
     }
 
     async getIntro(userId: Snowflake, serverId: Snowflake): Promise<string | undefined> {
-        const projection: FindOneOptions<User> =
+        const projection: FindOptions<IUser> =
             {
                 projection: {
                     intros: {
@@ -129,65 +133,66 @@ export class DatabaseHelper {
                 }
             };
 
-        const user = await this.userCollection.findOne<User>({id: userId}, projection);
-        return user?.intros?.[serverId];
+        const user = await this.userCollection.findOne<IUser>({id: userId}, projection);
+        return user?.intros?.[serverId]?.toString();
     }
 
-    async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<SoundMeta[]> {
-        const preparedFiles: Express.Multer.File[] = this.fileHelper.getFiles(files);
-        await this.fileHelper.normalizeFiles(preparedFiles);
-        const soundsMeta: SoundMeta[] = preparedFiles.map(file => new SoundMeta(file.path, this.fileHelper.getFileName(file.originalname), category, userId, serverId));
+    async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta[]> {
+        const preparedFiles: Express.Multer.File[] = FileHelper.getFiles(files);
+        await FileHelper.normalizeFiles(preparedFiles);
+        const soundsMeta: ISoundMeta[] = preparedFiles.map(file => createSoundMeta(file.path, FileHelper.getFileName(file.originalname), category, userId, serverId));
         this.logSoundUpload(soundsMeta);
         await this.soundMetaCollection.insertMany(soundsMeta);
         this.mapTime(soundsMeta);
         return soundsMeta;
     }
 
-    async addSoundMeta(id: ObjectID, filePath: string, fileName: string, userId: Snowflake, category: string, serverId: Snowflake): Promise<SoundMeta> {
-        const soundMeta = new SoundMeta(filePath, fileName, category, userId, serverId);
-        soundMeta._id = id;
-        await this.soundMetaCollection.insertOne(soundMeta);
-        this.mapTime([soundMeta]);
-        return soundMeta;
+    async addSoundMeta(id: ObjectId, filePath: string, fileName: string, userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta> {
+        const ISoundMeta = createSoundMeta(filePath, fileName, category, userId, serverId);
+        ISoundMeta._id = id;
+        await this.soundMetaCollection.insertOne(ISoundMeta);
+        this.mapTime([ISoundMeta]);
+        return ISoundMeta;
     }
 
-    async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<SoundMeta[]> {
-        const query: FilterQuery<SoundMeta> = {
+    async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<ISoundMeta[]> {
+        const query: Filter<ISoundMeta> = {
             serverId: {$in: servers},
             ...(fromTime && {_id: {$gt: this.timeToObjectID(fromTime)}})
         };
-        const soundsMeta: SoundMeta[] = await this.soundMetaCollection.find(query).toArray();
+        const soundsMeta = await this.soundMetaCollection.find<ISoundMeta>(query).toArray();
         this.mapTime(soundsMeta);
         return soundsMeta;
     }
 
-    async getSoundMeta(id: string): Promise<SoundMeta | undefined> {
-        const soundMeta: SoundMeta | undefined = await this.soundMetaCollection.findOne({_id: new ObjectID(id)});
-        if (soundMeta) {
-            this.mapTime([soundMeta]);
+    async getSoundMeta(id: string): Promise<ISoundMeta | undefined> {
+        const ISoundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({_id: new ObjectId(id)});
+        if (ISoundMeta) {
+            this.mapTime([ISoundMeta]);
         }
-        return soundMeta;
+        return ISoundMeta ?? undefined;
     }
 
-    async getSoundMetaByName(fileName: string): Promise<SoundMeta | undefined> {
-        const soundMeta: SoundMeta | undefined = await this.soundMetaCollection.findOne({fileName});
-        if (soundMeta) {
-            this.mapTime([soundMeta]);
+    async getSoundMetaByName(fileName: string): Promise<ISoundMeta | undefined> {
+        const ISoundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({fileName});
+        if (ISoundMeta) {
+            this.mapTime([ISoundMeta]);
         }
-        return soundMeta;
+        return ISoundMeta ?? undefined;
     }
 
     async getSoundCategories(): Promise<string[]> {
         return (await this.soundMetaCollection.distinct('category')).sort((a, b) => a.localeCompare(b));
     }
 
-    async removeSoundMeta(id: string): Promise<DeleteWriteOpResultObject> {
-        return this.soundMetaCollection.deleteOne({_id: new ObjectID(id)});
+    async removeSoundMeta(id: string): Promise<DeleteResult> {
+        return this.soundMetaCollection.deleteOne({_id: new ObjectId(id)});
     }
 
-    async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<User[]> {
-        const usersWithoutInfo: User[] = [];
-        const userInfos: User[] = await this.userCollection.find(
+    async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<IUser[]> {
+        const usersWithoutInfo: IUser[] = [];
+        const userInfos: IUser[] = await this.userCollection.find(
+            // @ts-ignore
             {
                 id:
                     {
@@ -206,7 +211,7 @@ export class DatabaseHelper {
 
         for (const userId of users) {
             if (!userInfos.some(u => u.id === userId)) {
-                const newUser = new User(userId);
+                const newUser = createUser(userId);
                 usersWithoutInfo.push(newUser);
             }
         }
@@ -214,32 +219,32 @@ export class DatabaseHelper {
         return userInfos;
     }
 
-    private logSound(userId: Snowflake, meta: SoundMeta, message: string) {
-        return this.log(new Log(meta.serverId, userId, message, {fileName: meta.fileName, id: meta._id}));
+    private logSound(userId: Snowflake, meta: ISoundMeta, message: string): Promise<InsertOneResult<ILog>> {
+        return this.log(createLog(meta.serverId, userId, message, {fileName: meta.fileName, id: meta._id}));
     }
 
-    async logPlaySound(userId: Snowflake, meta: SoundMeta): Promise<InsertOneWriteOpResult<Log>> {
+    async logPlaySound(userId: Snowflake, meta: ISoundMeta): Promise<InsertOneResult<ILog>> {
         return this.logSound(userId, meta, 'Play Sound');
     }
 
-    private async logSoundUpload(soundMetas: SoundMeta[]): Promise<InsertWriteOpResult<any>> {
-        const logs = soundMetas.map(meta => new Log(meta.serverId, meta.userId, 'Sound Upload', {fileName: meta.fileName, id: meta._id}));
+    private async logSoundUpload(soundMetas: ISoundMeta[]): Promise<InsertManyResult<Document>> {
+        const logs = soundMetas.map(meta => createLog(meta.serverId, meta.userId, 'Sound Upload', {fileName: meta.fileName, id: meta._id}));
         return this.logCollection.insertMany(logs);
     }
 
-    async logSoundDelete(userId: Snowflake, soundMeta: SoundMeta): Promise<InsertOneWriteOpResult<Log>> {
-        return this.logSound(userId, soundMeta, 'Sound Delete');
+    async logSoundDelete(userId: Snowflake, ISoundMeta: ISoundMeta): Promise<InsertOneResult<ILog>> {
+        return this.logSound(userId, ISoundMeta, 'Sound Delete');
     }
 
-    async log(log: Log): Promise<InsertOneWriteOpResult<Log>> {
+    async log(log: ILog): Promise<InsertOneResult<ILog>> {
         return this.logCollection.insertOne(log);
     }
 
-    async getLogs(serverId: string, pageSize: number, pageKey: number, fromTime: number): Promise<Log[]> {
-        const findQuery: FilterQuery<Log> = {
+    async getLogs(serverId: string, pageSize: number, pageKey: number, fromTime: number): Promise<ILog[]> {
+        const findQuery: Filter<ILog> = {
             serverId
         };
-        const query: FindOneOptions<Log> = {
+        const query: FindOptions<ILog> = {
             ...(pageSize && pageKey && pageSize > 0 && pageKey >= 0 &&
                 {
                     limit: pageSize,
@@ -249,33 +254,33 @@ export class DatabaseHelper {
             ...(fromTime && {time: {$gte: fromTime}})
         };
 
-        return await this.logCollection.find<Log>(
+        return await this.logCollection.find<ILog>(
             findQuery,
             query
         ).toArray();
     }
 
-    async getServerSettings(serverId: Snowflake): Promise<ServerSettings> {
-        let result: ServerSettings | null = await this.serverInfoCollection.findOne<ServerSettings>({id: serverId},
+    async getServerSettings(serverId: Snowflake): Promise<IServerSettings> {
+        let result: IServerSettings | null = await this.serverInfoCollection.findOne({id: serverId},
             {
                 projection: {
                     _id: 0
                 }
             });
         if (!result) {
-            result = new ServerSettings(serverId);
+            result = createServerSettings(serverId);
         }
         return result;
     }
 
-    async updateServerSettings(serverInfo: ServerSettings): Promise<UpdateWriteOpResult> {
+    async updateServerSettings(serverInfo: IServerSettings): Promise<UpdateResult> {
         const {id, ...data} = serverInfo;
         return this.serverInfoCollection.updateOne({id}, {$set: {...data}}, {upsert: true});
     }
 
-    private mapTime(soundsMeta: { time?: number, _id: ObjectID }[]): void {
-        for (const soundMeta of soundsMeta) {
-            soundMeta.time = soundMeta._id.getTimestamp().getTime();
+    private mapTime(soundsMeta: { time?: number, _id: ObjectId }[]): void {
+        for (const ISoundMeta of soundsMeta) {
+            ISoundMeta.time = ISoundMeta._id.getTimestamp().getTime();
         }
     }
 }

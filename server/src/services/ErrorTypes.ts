@@ -1,4 +1,5 @@
 export enum ErrorTypes {
+    DEFAULT_ERROR = 'Something went wrong :(',
     AUTH_FAILED = 'You are not Authenticated',
     CHANNEL_ID_NOT_FOUND = 'Channel id not found',
     CHANNEL_JOIN_FAILED = 'Could not join channel',

@@ -1,18 +1,17 @@
 import { Message, VoiceChannel } from 'discord.js';
 import { DiscordBot } from '../discordServer/DiscordBot';
 import { ErrorTypes } from './ErrorTypes';
-import { Logger } from './logger';
 import { joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
 import { DatabaseHelper } from './databaseHelper';
 import { RecordVoiceHelper } from './record-voice-helper';
-import { FileHelper } from './fileHelper';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
+import { logger } from './logHelper';
 
 export class VoiceHelper {
     public readonly recordHelper: RecordVoiceHelper;
 
-    constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, private logger: Logger, fileHelper: FileHelper, config: IEnvironmentVariables) {
-        this.recordHelper = new RecordVoiceHelper(logger, fileHelper, config);
+    constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, config: IEnvironmentVariables) {
+        this.recordHelper = new RecordVoiceHelper(config);
     }
 
     /**
@@ -26,7 +25,7 @@ export class VoiceHelper {
         if (message.member?.voice.channel) {
             connection = await this.joinVoiceChannelById(message.member.guild.id, message.member.voice.channel.id);
         } else {
-            throw ErrorTypes.CHANNEL_JOIN_FAILED;
+            throw new Error(ErrorTypes.CHANNEL_JOIN_FAILED);
         }
         return connection;
     }
@@ -43,7 +42,7 @@ export class VoiceHelper {
         if (server) {
             const channel = await server.channels.fetch(clientId);
             if (!channel) {
-                throw ErrorTypes.CHANNEL_ID_NOT_FOUND;
+                throw new Error(ErrorTypes.CHANNEL_ID_NOT_FOUND);
             } else if (channel instanceof VoiceChannel) {
                 try {
                     const conn = joinVoiceChannel({
@@ -59,19 +58,19 @@ export class VoiceHelper {
                     }
 
                     conn.on('error', reason => {
-                        this.logger.error(reason, {serverId, clientId});
+                        logger.error(reason, {serverId, clientId});
                         conn.disconnect();
                     });
                     return conn;
                 } catch (e) {
-                    this.logger.error(e, {serverId, clientId});
-                    throw ErrorTypes.CHANNEL_JOIN_FAILED;
+                    logger.error(e as Error, {serverId, clientId});
+                    throw new Error(ErrorTypes.CHANNEL_JOIN_FAILED);
                 }
             } else {
-                throw ErrorTypes.CHANNEL_NOT_VOICE;
+                throw new Error(ErrorTypes.CHANNEL_NOT_VOICE);
             }
         } else {
-            throw ErrorTypes.SERVER_ID_NOT_FOUND;
+            throw new Error(ErrorTypes.SERVER_ID_NOT_FOUND);
         }
     }
 
@@ -110,7 +109,7 @@ export class VoiceHelper {
         if (connection) {
             connection.disconnect();
         } else {
-            throw ErrorTypes.CONNECTION_NOT_FOUND;
+            throw new Error(ErrorTypes.CONNECTION_NOT_FOUND);
         }
     }
 }

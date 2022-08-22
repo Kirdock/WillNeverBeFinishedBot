@@ -1,74 +1,72 @@
 import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { basename, extname, join } from 'path';
-import { Logger } from './logger';
 import ffmpeg from 'fluent-ffmpeg';
 import { rename, unlink } from 'fs/promises';
+import { logger } from './logHelper';
 
-export class FileHelper {
-    public static readonly rootDir: string = join(__dirname, '/../../../');
-    public static readonly baseDir: string = join(FileHelper.rootDir, 'server', 'shared');
-    public readonly soundFolder: string = join(FileHelper.baseDir, 'sounds');
-    public readonly certFolder: string = join(FileHelper.baseDir, 'cert');
-    public static readonly recordingsDir = join(FileHelper.baseDir, 'recordings');
-    private readonly workFolder: string = join(this.soundFolder, 'work');
+export namespace FileHelper {
+    export const rootDir: string = join(__dirname, '/../../../');
+    export const baseDir: string = join(rootDir, 'server', 'shared');
+    export const soundFolder: string = join(baseDir, 'sounds');
+    export const certFolder: string = join(baseDir, 'cert');
+    export const recordingsDir = join(baseDir, 'recordings');
+    export const workFolder: string = join(soundFolder, 'work');
 
-    constructor(private logger: Logger) {
-        this.checkAndCreateFolderSystem();
-    }
+    checkAndCreateFolderSystem();
 
-    private checkAndCreateFolderSystem() {
-        for (const folder of [FileHelper.baseDir, this.soundFolder, this.workFolder, FileHelper.recordingsDir]) {
-            this.checkAndCreateFolder(folder);
+    function checkAndCreateFolderSystem() {
+        for (const folder of [baseDir, soundFolder, workFolder, recordingsDir]) {
+            checkAndCreateFolder(folder);
         }
     }
 
-    private checkAndCreateFolder(folder: string): void {
+    function checkAndCreateFolder(folder: string): void {
         if (!existsSync(folder)) {
             mkdirSync(folder);
         }
     }
 
-    public existsFile(path: string): boolean {
+    export function existsFile(path: string): boolean {
         return existsSync(path);
     }
 
-    public async deleteFile(path: string): Promise<boolean> {
+    export async function deleteFile(path: string): Promise<boolean> {
         let deleted = false;
-        if (this.existsFile(path)) {
+        if (existsFile(path)) {
             try {
                 await unlink(path);
                 deleted = true;
             } catch (e) {
-                this.logger.error(e, {path});
+                logger.error(e as Error, {path});
             }
         }
 
         return deleted;
     }
 
-    public async deleteFilesByPath(files: string[]): Promise<boolean> {
+    export async function deleteFilesByPath(files: string[]): Promise<boolean> {
         let status = true;
 
         for (const file of files) {
-            const stat = await this.deleteFile(file);
+            const stat = await deleteFile(file);
             status &&= stat;
 
         }
         return status;
     }
 
-    public async deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
+    export async function deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
         let status = true;
-        const files: Express.Multer.File[] = this.getFiles(fileArray);
+        const files: Express.Multer.File[] = getFiles(fileArray);
 
         for await (const file of files) {
-            const stat = await this.deleteFile(file.path);
+            const stat = await deleteFile(file.path);
             status &&= stat;
         }
         return status;
     }
 
-    public getFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Express.Multer.File[] {
+    export function getFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Express.Multer.File[] {
         let files: Express.Multer.File[] = [];
         if (fileArray instanceof Array) {
             files = fileArray as Express.Multer.File[];
@@ -81,23 +79,23 @@ export class FileHelper {
         return files;
     }
 
-    public getFileName(filePath: string): string {
+    export function getFileName(filePath: string): string {
         return basename(filePath, extname(filePath));
     }
 
-    public readFile(filePath: string): Buffer {
+    export function readFile(filePath: string): Buffer {
         return readFileSync(filePath);
     }
 
-    public async normalizeFiles(files: Express.Multer.File[]): Promise<void> {
+    export async function normalizeFiles(files: Express.Multer.File[]): Promise<void> {
         for (const file of files) {
             await new Promise(resolve => {
-                const newFileName = this.getFileName(file.filename) + '.mp3';
-                const tempPath = join(this.workFolder, newFileName);
+                const newFileName = getFileName(file.filename) + '.mp3';
+                const tempPath = join(workFolder, newFileName);
                 ffmpeg(file.path)
                     .audioFilter('loudnorm')
                     .on('error', (e) => {
-                        this.logger.error(e, 'Normalize files');
+                        logger.error(e, 'Normalize files');
                         resolve(e);
                     })
                     .on('end', async () => {
@@ -107,7 +105,7 @@ export class FileHelper {
                             await rename(tempPath, newPath);
                             file.path = newPath;
                         } catch {
-                            await this.deleteFile(tempPath);
+                            await deleteFile(tempPath);
                         }
                         resolve(true);
                     })

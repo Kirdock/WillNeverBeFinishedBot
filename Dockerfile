@@ -7,7 +7,7 @@ COPY client/ ./
 RUN yarn run build
 
 
-FROM node:17 AS main-build
+FROM node:18.7 AS main-build
 WORKDIR /app/bot
 COPY --from=client-build /app/client/dist ./client/dist
 COPY shared/ ./shared
@@ -45,5 +45,6 @@ ENV WEBTOKEN_SECRET=$webtoken_secret
 RUN apt-get -y update\
     && apt-get -y upgrade\
     && apt-get install -y ffmpeg
+RUN yarn run build
 EXPOSE $port
-CMD [ "yarn", "run", "start"]
+CMD [ "yarn", "run", "start:production"]

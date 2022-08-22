@@ -1,13 +1,14 @@
-import { ObjectID } from 'bson';
 import { Snowflake } from 'discord.js';
+import { ObjectId } from 'mongodb';
+import { ISoundMeta } from '../interfaces/sound-meta';
 
-export class SoundMeta {
-    public _id: ObjectID;
-    public userName?: string;
-    public time?: number;
-
-    constructor(public path: string, public fileName: string, public category: string, public userId: Snowflake, public serverId: Snowflake) {
-        // consider if only id or id and username should be saved
-        this._id = new ObjectID();
+export function createSoundMeta(path: string, fileName: string, category: string, userId: Snowflake, serverId: Snowflake): ISoundMeta {
+    return {
+        _id: new ObjectId(),
+        path,
+        fileName,
+        userId,
+        serverId,
+        category
     }
 }

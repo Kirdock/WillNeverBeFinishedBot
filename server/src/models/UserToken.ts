@@ -1,7 +1,7 @@
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 
 export class UserToken {
-    public _id!: ObjectID;
+    public _id!: ObjectId;
     public userId!: string;
     public access_token!: string;
     public token_type!: string;

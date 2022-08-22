@@ -1,11 +1,14 @@
 import { Snowflake } from 'discord.js';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
+import { ILog } from '../interfaces/log';
 
-export class Log {
-    public _id: ObjectID = new ObjectID();
-    public time: number = new Date().getTime();
-
-    constructor(public serverId: Snowflake, public userId: Snowflake, public action: string, public file?: {fileName: string, id: ObjectID}){
-
+export function createLog(serverId: Snowflake, userId: Snowflake, action: string, file?: { fileName: string, id: ObjectId }): ILog {
+    return {
+        _id: new ObjectId(),
+        time: new Date().getTime(),
+        serverId,
+        userId,
+        action,
+        file,
     }
 }
