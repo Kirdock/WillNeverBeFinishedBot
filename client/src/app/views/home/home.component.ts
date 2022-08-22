@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
@@ -123,7 +123,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public downloadRecordedVoice(serverId: string, asMKV: boolean): void {
     this.dataService.downloadRecordedVoice(serverId, asMKV ? 'mkv' : 'audio', this.recordVoiceMinutes).subscribe((response) => {
       if (response.body) {
-        this.downloadFileByBlob(response);
+        this.downloadFileByBlob(response.body, response.headers);
       } else {
         this.toast.error('Konnst du ma bitte sogn, warum i jetz nix hinta kriag hob?', ToastTitles.ERROR);
       }
@@ -196,7 +196,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (!sound.fileInfo) {
       this.dataService.downloadSound(sound._id).subscribe(response => {
         try {
-          const responseData = this.getResponseData(response);
+          if (!response.body) {
+            this.toast.error(`Response is null O.o`, ToastTitles.ERROR);
+            return;
+          }
+          const responseData = this.getResponseData(response.body, response.headers);
           sound.setFileInfo(responseData.src, responseData.fullName);
           audioElement.load();
           audioElement.play();
@@ -213,7 +217,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     } else {
       this.dataService.downloadSound(sound._id).subscribe(response => {
         if (response.body) {
-          const responseData = this.getResponseData(response);
+          const responseData = this.getResponseData(response.body, response.headers);
           if (sound.setFileInfo(responseData.src, responseData.fullName)) {
             this.downloadFile(sound.fileInfo.src, sound.fileInfo.fullName);
           }
@@ -224,10 +228,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getResponseData(response: HttpResponse<Blob>): FileInfo {
+  private getResponseData(data: Blob, headers: HttpHeaders): FileInfo {
     return {
-      src: URL.createObjectURL(response.body),
-      fullName: this.getFileNameOutOfHeader(response.headers),
+      src: URL.createObjectURL(data),
+      fullName: this.getFileNameOutOfHeader(headers),
     };
   }
 
@@ -257,8 +261,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     link.remove();
   }
 
-  private downloadFileByBlob(response: HttpResponse<Blob>): void {
-    this.downloadFile(URL.createObjectURL(response.body), this.getFileNameOutOfHeader(response.headers));
+  private downloadFileByBlob(data: Blob, headers: HttpHeaders): void {
+    this.downloadFile(URL.createObjectURL(data), this.getFileNameOutOfHeader(headers));
   }
 
   public stopPlaying(serverId: string): void {
@@ -292,5 +296,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.destroyed$.next();
     this.destroyed$.complete();
+  }
+
+  public getSoundIdentifier(_index: number, sound: SoundMeta): string {
+    return sound._id;
   }
 }

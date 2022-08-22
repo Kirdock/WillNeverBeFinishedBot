@@ -11,7 +11,7 @@
                         </optgroup>
                     </select>
                 </div>
-                <a [routerLink]="" (click)="updateIntro(selectedServer.id)" (focus)="cacheIntroBefore = userIntro" title="Intro zurücksetzen">
+                <a [routerLink]="[]" (click)="updateIntro(selectedServer.id)" (focus)="cacheIntroBefore = userIntro" title="Intro zurücksetzen">
                     <i class="fas fa-undo"></i>
                 </a>
             </div>

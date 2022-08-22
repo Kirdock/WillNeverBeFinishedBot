@@ -89,11 +89,11 @@
           </tr>
           </thead>
           <tbody>
-          <tr *ngFor="let sound of filteredSounds(sounds)">
+          <tr *ngFor="let sound of filteredSounds(sounds); trackBy: getSoundIdentifier">
             <td [textContent]="sound.fileName"></td>
             <td [textContent]="sound.username"></td>
             <td>
-              <a *ngIf="!sound.fileInfo" [routerLink]="" (click)="playFile(sound, audioControl)" title="Laden">
+              <a *ngIf="!sound.fileInfo" [routerLink]="[]" (click)="playFile(sound, audioControl)" title="Laden">
                 <i class="fas fa-file-export"></i>
               </a>
               <audio controls [title]="sound.fileInfo?.fullName" #audioControl>
@@ -101,19 +101,19 @@
               </audio>
             </td>
             <td>
-              <a [routerLink]="" *ngIf="server.isAdmin || isOwner" (click)="playSound(server.id, sounds, sound._id, true)" title="Abspielen ohne Unterbrechung">
+              <a [routerLink]="[]" *ngIf="server.isAdmin || isOwner" (click)="playSound(server.id, sounds, sound._id, true)" title="Abspielen ohne Unterbrechung">
                 <i class="fa fa-play"></i>
               </a>
-              <a [routerLink]="" (click)="playSound(server.id, sounds, sound._id, false)" title="Abspielen">
+              <a [routerLink]="[]" (click)="playSound(server.id, sounds, sound._id, false)" title="Abspielen">
                 <i class="far fa-play-circle"></i>
               </a>
-              <a [routerLink]="" (click)="downloadSound(sound)" title="Herunterladen">
+              <a [routerLink]="[]" (click)="downloadSound(sound)" title="Herunterladen">
                 <i class="fas fa-download"></i>
               </a>
-              <a [routerLink]="" (click)="setIntro(server.id, sound._id)" title="Als Intro festlegen">
+              <a [routerLink]="[]" (click)="setIntro(server.id, sound._id)" title="Als Intro festlegen">
                 <i class="fas fa-save"></i>
               </a>
-              <a [routerLink]="" (click)="deleteSound(sound._id, sounds)" title="Löschen" [class.disabled]="!(userId === sound.userId || server.isAdmin || isOwner)">
+              <a [routerLink]="[]" (click)="deleteSound(sound._id, sounds)" title="Löschen" [class.disabled]="!(userId === sound.userId || server.isAdmin || isOwner)">
                 <i class="fas fa-trash-alt"></i>
               </a>
             </td>
