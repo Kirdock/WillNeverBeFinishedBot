@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ApplicationCommandType, ChannelType, Client, GatewayIntentBits, Guild, GuildMember, Message, PermissionFlagsBits, Permissions, Snowflake, User, VoiceChannel, VoiceState } from 'discord.js';
-import { UserObject } from '../models/UserObject';
+import { IUserObject } from '../interfaces/UserObject';
 import { IUserServerInformation } from '../interfaces/IUserServerInformation';
 import { PlayCommand } from '../modules/playSound';
 import { QuestionCommand } from '../modules/question';
@@ -55,7 +55,7 @@ export class DiscordBot {
         });
     }
 
-    public async fetchUserData(tokenData: { token_type: string, access_token: string }): Promise<UserObject> {
+    public async fetchUserData(tokenData: { token_type: string, access_token: string }): Promise<IUserObject> {
         const {data} = await axios.get('https://discord.com/api/users/@me', {
             headers: {
                 authorization: `${tokenData.token_type} ${tokenData.access_token}`

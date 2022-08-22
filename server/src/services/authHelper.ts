@@ -2,12 +2,13 @@ import { sign, verify } from 'jsonwebtoken';
 import axios from 'axios';
 import { DatabaseHelper } from './databaseHelper';
 import { DiscordBot } from '../discordServer/DiscordBot';
-import { UserPayload } from '../models/UserPayload';
 import { Express, NextFunction, Request, Response } from 'express';
-import { UserToken } from '../models/UserToken';
+import { IUserToken } from '../interfaces/UserToken';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { logger } from './logHelper';
 import { FileHelper } from './fileHelper';
+import { createUserPayload } from '../models/UserPayload';
+import { IUserPayload } from '../interfaces/user-payload';
 
 export class AuthHelper {
     private readonly secret: string;
@@ -39,17 +40,17 @@ export class AuthHelper {
         const response = await axios.post('https://discord.com/api/oauth2/token', formData,
             {headers: {'content-type': 'application/x-www-form-urlencoded'}}
         );
-        const userToken: UserToken = response.data;
+        const userToken: IUserToken = response.data;
         const user = await this.discordBot.fetchUserData(userToken);
         const _id = await this.databaseHelper.updateUserToken(user.id, userToken);
         if (!_id) {
             throw new Error('Updating user token did not work');
         }
-        const payload: UserPayload = new UserPayload(_id.toHexString(), user.id, user.username, this.discordBot.isSuperAdmin(user.id));
+        const payload = createUserPayload(_id.toHexString(), user.id, user.username, this.discordBot.isSuperAdmin(user.id));
         return sign(JSON.stringify(payload), this.secret);
     }
 
-    private async refreshToken(refresh_token: string, scope: string): Promise<UserToken> {
+    private async refreshToken(refresh_token: string, scope: string): Promise<IUserToken> {
         const formData = new URLSearchParams();
         formData.append('client_id', this.discordBot.id);
         formData.append('client_secret', this.clientSecret);
@@ -93,11 +94,11 @@ export class AuthHelper {
      * @throws exception if token is invalid
      * @returns Payload (decoded Token)
      */
-    private getPayload(authToken: string): UserPayload {
-        return verify(authToken, this.secret) as UserPayload;
+    private getPayload(authToken: string): IUserPayload {
+        return verify(authToken, this.secret) as IUserPayload;
     }
 
-    private async checkTokenExpired(payload: UserPayload, userToken: UserToken): Promise<void> {
+    private async checkTokenExpired(payload: IUserPayload, userToken: IUserToken): Promise<void> {
         const timeBegin = userToken.time;
         const expire = userToken.expires_in;
         const timeNow = new Date().getTime();
@@ -126,7 +127,7 @@ export class AuthHelper {
             await this.checkFiles(req);
             return;
         }
-        
+
         if (await this.auth(req.headers.authorization.split(' ')[1], res)) {
             next();
             return;

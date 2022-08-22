@@ -1,5 +1,12 @@
+import { IUserPayload } from '../interfaces/user-payload';
 import { Snowflake } from 'discord.js';
 
-export class UserPayload {
-    constructor(public _id: string, public id: Snowflake, public username: string, public isSuperAdmin = false){}
+
+export function createUserPayload(_id: string, id: Snowflake, username: string, isSuperAdmin = false): IUserPayload {
+    return {
+        _id,
+        id,
+        username,
+        isSuperAdmin
+    };
 }

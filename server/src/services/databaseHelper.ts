@@ -1,6 +1,6 @@
 import { Snowflake } from 'discord.js';
 import { createServerSettings } from '../models/ServerSettings';
-import { UserToken } from '../models/UserToken';
+import { IUserToken } from '../interfaces/UserToken';
 import { Collection, Db, DeleteResult, Document, Filter, FindOptions, InsertManyResult, InsertOneResult, MongoClient, ObjectId, UpdateFilter, UpdateResult } from 'mongodb';
 import { FileHelper } from './fileHelper';
 import { createUser } from '../models/User';
@@ -94,8 +94,8 @@ export class DatabaseHelper {
         return new ObjectId(Math.floor(time / 1000).toString(16) + "0000000000000000");
     }
 
-    public async getUserToken(userId: string): Promise<UserToken> {
-        const user = await this.userCollection.findOne<IUser>({id: userId}, {projection: {token: 1, id: 1, _id: 1}});
+    public async getUserToken(userId: string): Promise<IUserToken> {
+        const user = await this.userCollection.findOne({id: userId}, {projection: {token: 1, id: 1, _id: 1}});
         if (!user?.token) {
             throw new Error(ErrorTypes.TOKEN_NOT_FOUND);
         }
@@ -103,7 +103,7 @@ export class DatabaseHelper {
         return {...user.token, userId: user.id, _id: user._id};
     }
 
-    public async updateUserToken(userId: Snowflake, info: UserToken): Promise<ObjectId | undefined> {
+    public async updateUserToken(userId: Snowflake, info: IUserToken): Promise<ObjectId | undefined> {
         info.time = new Date().getTime();
         return (await this.userCollection.findOneAndUpdate({id: userId}, {$set: {'token': info}},
             {
@@ -254,23 +254,20 @@ export class DatabaseHelper {
             ...(fromTime && {time: {$gte: fromTime}})
         };
 
-        return await this.logCollection.find<ILog>(
+        return await this.logCollection.find(
             findQuery,
             query
         ).toArray();
     }
 
     async getServerSettings(serverId: Snowflake): Promise<IServerSettings> {
-        let result: IServerSettings | null = await this.serverInfoCollection.findOne({id: serverId},
+        const result: IServerSettings | null = await this.serverInfoCollection.findOne({id: serverId},
             {
                 projection: {
                     _id: 0
                 }
             });
-        if (!result) {
-            result = createServerSettings(serverId);
-        }
-        return result;
+        return result ?? createServerSettings(serverId);
     }
 
     async updateServerSettings(serverInfo: IServerSettings): Promise<UpdateResult> {

@@ -6,7 +6,6 @@ import { Request, Response, Router as rs } from 'express';
 import { DiscordBot } from '../discordServer/DiscordBot';
 import { DatabaseHelper } from '../services/databaseHelper';
 import { AuthHelper } from '../services/authHelper';
-import { UserPayload } from '../models/UserPayload';
 import { ErrorTypes } from '../services/ErrorTypes';
 import { GuildMember } from 'discord.js';
 import { AudioExportType } from '../../../shared/models/types';
@@ -15,6 +14,7 @@ import { IServerSettings } from '../../../shared/interfaces/server-settings';
 import { ILog } from '../interfaces/log';
 import { getResponseMessage } from '../services/localeService';
 import { IResponseMessages } from '../interfaces/response-messages';
+import { IUserPayload } from '../interfaces/user-payload';
 
 export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelper: DatabaseHelper, authHelper: AuthHelper) {
     const storage = multer.diskStorage({
@@ -42,7 +42,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
 
     router.route('/metadata').get((req: Request, res: Response) => {
         try {
-            const result: UserPayload = getPayload(res);
+            const result = getPayload(res);
             // TODO: permission service
             //  should have "hasPermission" function with serverId and optionally a role (hasPermission(role = admin))
             res.json({
@@ -58,7 +58,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/logs/:serverId')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 if (!discordBot.isSuperAdmin(result.id) && !(await discordBot.isUserAdminInServer(result.id, req.params.serverId))) {
                     notAdmin(res, req);
                     return;
@@ -75,7 +75,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/servers')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const servers = await discordBot.getUserServers(result.id, true);
                 res.status(200).json(servers);
             } catch (e) {
@@ -86,7 +86,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/serverSettings')
         .post(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const settings: IServerSettings = req.body.serverSettings;
                 const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, settings.id);
                 if (!valid) {
@@ -112,7 +112,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/serverSettings/:serverId')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId)
                 if (!valid) {
                     notAdmin(res, req);
@@ -127,7 +127,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/stopPlaying/:serverId')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const status: boolean = await discordBot.isUserInServer(result.id, req.params.serverId);
                 if (!status) {
                     notInServer(res, result.id, req.params.serverId, req);
@@ -161,7 +161,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/sound/:soundId')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const meta = await databaseHelper.getSoundMeta(req.params.soundId);
 
                 if (!meta || !(await discordBot.isUserInServer(result.id, meta.serverId))) {
@@ -178,7 +178,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/recordVoice/:serverId')
         .get(async (req: Request, res: Response) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
 
                 if (!(await discordBot.isUserInServer(result.id, req.params.serverId))) {
                     res.statusMessage = getResponseMessage(req, 'SERVER_NOT_FOUND');
@@ -204,7 +204,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/sounds/:serverId')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const status = await discordBot.isUserInServer(result.id, req.params.serverId);
                 if (!status) {
                     notInServer(res, result.id, req.params.serverId, req);
@@ -231,7 +231,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/playSound') //TODO: serverId as path parameter
         .post(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const status = await discordBot.isUserInServer(result.id, req.body.serverId);
                 if (status) {
                     req.body.volume = Math.abs(req.body.volume); //negative values should not be possible
@@ -274,7 +274,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/deleteSound/:id')
         .delete(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const meta = await databaseHelper.getSoundMeta(req.params.id);
                 if (meta && (meta.userId === result.id || discordBot.isSuperAdmin(result.id))) {
                     const filePath = meta.path;
@@ -306,7 +306,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/channels/:serverId')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const status = await discordBot.isUserInServer(result.id, req.params.serverId);
                 if (status) {
                     const channels = await discordBot.getVoiceChannelsOfServer(req.params.serverId);
@@ -334,7 +334,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 if (!req.files) {
                     return;
                 }
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const status = await discordBot.isUserInServer(result.id, req.body.serverId);
                 if (status) {
                     try {
@@ -362,7 +362,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/userIntro')
         .post(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const meta = await databaseHelper.getSoundMeta(req.body.soundId);
                 const soundId = meta?._id ?? req.body.soundId;
                 let id: string;
@@ -391,7 +391,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/userIntro/:serverId')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const intro = await databaseHelper.getIntro(result.id, req.params.serverId);
                 res.status(200).json(intro);
             } catch (e) {
@@ -402,7 +402,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
     router.route('/hasAdminServers')
         .get(async (req, res) => {
             try {
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 const status = await discordBot.hasUserAdminServers(result.id);
                 res.status(200).json(status);
             } catch (e) {
@@ -414,7 +414,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
         .get(async (req, res) => {
             try {
                 const serverId = req.params.serverId;
-                const result: UserPayload = getPayload(res);
+                const result = getPayload(res);
                 let users: GuildMember[];
                 if (discordBot.isSuperAdmin(result.id)) {
                     users = await discordBot.getUsers(serverId);
@@ -441,7 +441,7 @@ function notAdmin(res: Response, req: Request) {
     res.status(403).end();
 }
 
-function getPayload(res: Response): UserPayload {
+function getPayload(res: Response): IUserPayload {
     return res.locals.payload;
 }
 
