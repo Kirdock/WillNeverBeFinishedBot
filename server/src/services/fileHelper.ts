@@ -3,9 +3,10 @@ import { basename, extname, join } from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 import { rename, unlink } from 'fs/promises';
 import { logger } from './logHelper';
+import { EnvironmentConfig } from './config';
 
 export namespace FileHelper {
-    export const rootDir: string = join(__dirname, '/../../../');
+    export const rootDir: string = EnvironmentConfig?.ROOT_DIR || join(__dirname, '/../../../');
     export const baseDir: string = join(rootDir, 'server', 'shared');
     export const soundFolder: string = join(baseDir, 'sounds');
     export const certFolder: string = join(baseDir, 'cert');

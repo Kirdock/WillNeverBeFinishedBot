@@ -17,6 +17,8 @@ COPY server/package.json server/yarn.lock ./
 RUN yarn install
 COPY server/ shared/ ./
 
+ARG rootDir="/app/bot"
+ENV ROOT_DIR=$rootDir
 ARG logLevel="debug"
 ENV LOG_LEVEL=$logLevel
 ARG version="develop"

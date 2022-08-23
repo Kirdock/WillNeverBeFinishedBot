@@ -27,6 +27,7 @@ export interface IRequiredEnvironmentVariables {
     VERSION?: string;
     DATABASE_CONTAINER_NAME?: string;
     MAX_RECORD_TIME_MINUTES?: string;
+    ROOT_DIR?: string;
 }
 
 export interface IEnvironmentVariables extends IRequiredEnvironmentVariables {
