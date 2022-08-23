@@ -40,7 +40,7 @@
                 <option *ngFor="let sound of sounds[item.key]" [value]="sound._id" [textContent]="sound.fileName"></option>
               </optgroup>
             </select>
-            <a [routerLink]="" (click)="serverSettings.defaultIntro = ''; updateServerInfo(serverSettings)" title="Intro zurücksetzen">
+            <a [routerLink]="[]" (click)="serverSettings.defaultIntro = ''; updateServerInfo(serverSettings)" title="Intro zurücksetzen">
               <i class="fas fa-undo"></i>
             </a>
           </div>
@@ -59,7 +59,7 @@
                 <option *ngFor="let sound of sounds[item.key]" [value]="sound._id" [textContent]="sound.fileName"></option>
               </optgroup>
             </select>
-            <a [routerLink]="" (click)="serverSettings.defaultOutro = ''; updateServerInfo(serverSettings)" title="Outro zurücksetzen">
+            <a [routerLink]="[]" (click)="serverSettings.defaultOutro = ''; updateServerInfo(serverSettings)" title="Outro zurücksetzen">
               <i class="fas fa-undo"></i>
             </a>
           </div>

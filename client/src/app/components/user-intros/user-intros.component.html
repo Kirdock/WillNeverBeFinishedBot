@@ -24,7 +24,7 @@
                                         <option *ngFor="let sound of sounds[item.key]" [value]="sound._id" [textContent]="sound.fileName"></option>
                                     </optgroup>
                                 </select>
-                                <a [routerLink]="" (click)="updateIntro(user, selectedServer.id, undefined)" (focus)="cacheIntroBefore = user.intros[selectedServer.id]" title="Intro zurücksetzen">
+                                <a [routerLink]="[]" (click)="updateIntro(user, selectedServer.id, undefined)" (focus)="cacheIntroBefore = user.intros[selectedServer.id]" title="Intro zurücksetzen">
                                     <i class="fas fa-undo"></i>
                                 </a>
                             </div>

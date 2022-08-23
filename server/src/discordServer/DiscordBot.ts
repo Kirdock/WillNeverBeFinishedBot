@@ -1,16 +1,15 @@
 import axios from 'axios';
-import { Client, Guild, GuildMember, Intents, Message, Permissions, Snowflake, User, VoiceChannel, VoiceState } from 'discord.js';
-import { ServerSettings } from '../models/ServerSettings';
-import { UserObject } from '../models/UserObject';
+import { ApplicationCommandType, ChannelType, Client, GatewayIntentBits, Guild, GuildMember, Message, PermissionFlagsBits, Permissions, Snowflake, User, VoiceChannel, VoiceState } from 'discord.js';
+import { IUserObject } from '../interfaces/UserObject';
 import { IUserServerInformation } from '../interfaces/IUserServerInformation';
 import { PlayCommand } from '../modules/playSound';
 import { QuestionCommand } from '../modules/question';
 import { DatabaseHelper } from '../services/databaseHelper';
-import { FileHelper } from '../services/fileHelper';
-import { Logger } from '../services/logger';
 import { VoiceHelper } from '../services/voiceHelper';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { getVoiceConnection, VoiceConnection } from '@discordjs/voice';
+import { logger } from '../services/logHelper';
+import { IServerSettings } from '../../../shared/interfaces/server-settings';
 
 export class DiscordBot {
     private readonly client: Client;
@@ -25,16 +24,16 @@ export class DiscordBot {
         return this.client.user!.id;
     }
 
-    constructor(private databaseHelper: DatabaseHelper, private fileHelper: FileHelper, private logger: Logger, config: IEnvironmentVariables) {
+    constructor(private databaseHelper: DatabaseHelper, config: IEnvironmentVariables) {
         this.prefixes = config.PREFIXES.split(',');
         this.hostUrl = config.HOST;
         this.client = new Client({
             intents: [
-                Intents.FLAGS.GUILDS,
-                Intents.FLAGS.GUILD_VOICE_STATES,
-                Intents.FLAGS.GUILD_MEMBERS,
-                Intents.FLAGS.GUILD_INTEGRATIONS,
-                Intents.FLAGS.GUILD_MESSAGES,
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildVoiceStates,
+                GatewayIntentBits.GuildMembers,
+                GatewayIntentBits.GuildIntegrations,
+                GatewayIntentBits.GuildMessages,
             ],
         });
         const admins = [...config.OWNERS.split(','), this.client.application?.owner?.id].map(owner => owner?.trim());
@@ -43,9 +42,9 @@ export class DiscordBot {
         this.setVoiceStateUpdate();
         this.setOnMessage();
         this.client.login(config.CLIENT_TOKEN);
-        this.voiceHelper = new VoiceHelper(this, databaseHelper, logger, this.fileHelper, config);
-        this.playSoundCommand = new PlayCommand(logger, this.voiceHelper, databaseHelper, this.fileHelper);
-        this.questionCommand = new QuestionCommand(logger, this.voiceHelper, this.databaseHelper, this.fileHelper);
+        this.voiceHelper = new VoiceHelper(this, databaseHelper, config);
+        this.playSoundCommand = new PlayCommand(this.voiceHelper, databaseHelper);
+        this.questionCommand = new QuestionCommand(this.voiceHelper, this.databaseHelper);
     }
 
     private setReady() {
@@ -56,7 +55,7 @@ export class DiscordBot {
         });
     }
 
-    public async fetchUserData(tokenData: { token_type: string, access_token: string }): Promise<UserObject> {
+    public async fetchUserData(tokenData: { token_type: string, access_token: string }): Promise<IUserObject> {
         const {data} = await axios.get('https://discord.com/api/users/@me', {
             headers: {
                 authorization: `${tokenData.token_type} ${tokenData.access_token}`
@@ -86,7 +85,7 @@ export class DiscordBot {
 
     private setVoiceStateUpdate() {
         this.client.on('voiceStateUpdate', async (oldState: VoiceState, newState: VoiceState) => {
-            const serverInfo: ServerSettings = await this.databaseHelper.getServerSettings(newState.guild.id);
+            const serverInfo: IServerSettings = await this.databaseHelper.getServerSettings(newState.guild.id);
 
             if (!serverInfo) {
                 return;
@@ -258,7 +257,7 @@ export class DiscordBot {
                 id: guild.id,
                 name: guild.name,
                 icon: guild.icon,
-                isAdmin: member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)
+                isAdmin: member.permissions.has(PermissionFlagsBits.Administrator)
             };
         } else if (isOwner) {
             server = {
@@ -294,7 +293,7 @@ export class DiscordBot {
         try {
             const guild = await this.client.guilds.fetch(serverId);
             const member = await this.getGuildMember(guild, userId);
-            status = member?.permissions.has('ADMINISTRATOR') ?? false;
+            status = member?.permissions.has(PermissionFlagsBits.Administrator) ?? false;
         } catch {
             status = false;
         }
@@ -317,7 +316,7 @@ export class DiscordBot {
 
     public async getVoiceChannelsOfServer(serverId: string): Promise<{ id: Snowflake, name: string }[]> {
         const guild = await this.getServer(serverId);
-        return guild?.channels.cache.filter((channel): channel is VoiceChannel => channel.type === 'GUILD_VOICE')
+        return guild?.channels.cache.filter((channel): channel is VoiceChannel => channel.type === ChannelType.GuildVoice)
             .sort((channel1, channel2) => channel1.rawPosition - channel2.rawPosition)
             .map(item => {
                 return {
@@ -388,35 +387,42 @@ export class DiscordBot {
         return result;
     }
 
-    public async mapUsernames(array: any[], key: string) {
+    public async mapUsernames<T extends Record<U, string> & { username?: string }, U extends keyof T>(array: T[], key: U) {
         for (const userObject of array) {
             userObject.username = (await this.getSingleUser(userObject[key]))?.username;
         }
-        array.sort((a, b) => a.username.localeCompare(b.username));
+        return true;
     }
 
     private async setMessageContextMenu(): Promise<void> {
-        if (this.client.application) {
-            const openSteamCommandName = 'Gib Steam Link';
-
-            for (const guild of this.client.guilds.cache.values()) {
-                await this.client.application.commands.create({
-                    type: 'MESSAGE',
-                    name: openSteamCommandName,
-                    defaultPermission: true,
-                }, guild.id);
-            }
-            this.client.on('interactionCreate', async (interaction) => {
-                if (!interaction.isMessageContextMenu()) return;
-                if (interaction.commandName === openSteamCommandName) {
-                    const steamLink = this.buildSteamLinkOutOfMessage(interaction.targetMessage.content);
-                    await interaction.reply({
-                        content: steamLink || 'Hob kan Steam Link gfundn!',
-                        ephemeral: true
-                    });
-                }
-            });
+        if (!this.client.application) {
+            return;
         }
+        // TODO: instead of clearing save all interaction IDs and the name
+        //  validate if the ID exists and the name is the same. Additionally delete commands that are not found
+        const openSteamCommandName = 'Gib Steam Link';
+
+        for (const guild of this.client.guilds.cache.values()) {
+            try {
+                await this.client.application.commands.create({
+                    type: ApplicationCommandType.Message,
+                    name: openSteamCommandName,
+                    default_permission: true,
+                }, guild.id);
+            } catch (e) {
+                logger.error(e as Error, `Can't create slash-command for guild ${guild.id}`);
+            }
+        }
+        this.client.on('interactionCreate', async (interaction) => {
+            if (!interaction.isMessageContextMenuCommand()) return;
+            if (interaction.commandName === openSteamCommandName) {
+                const steamLink = this.buildSteamLinkOutOfMessage(interaction.targetMessage.content);
+                await interaction.reply({
+                    content: steamLink || 'Hob kan Steam Link gfundn!',
+                    ephemeral: true
+                });
+            }
+        });
     }
 
     private buildSteamLinkOutOfMessage(content: string): string | undefined {

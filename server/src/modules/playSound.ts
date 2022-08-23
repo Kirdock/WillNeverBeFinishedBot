@@ -2,9 +2,11 @@ import { Message, Snowflake, VoiceState } from 'discord.js';
 import { Command } from './Command';
 import { ErrorTypes } from '../services/ErrorTypes';
 import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, StreamType, VoiceConnection } from '@discordjs/voice';
-import { ServerSettings } from '../models/ServerSettings';
 import { stream as youtubeStream } from 'play-dl';
 import { createReadStream } from 'fs';
+import { FileHelper } from '../services/fileHelper';
+import { logger } from '../services/logHelper';
+import { IServerSettings } from '../../../shared/interfaces/server-settings';
 
 export class PlayCommand extends Command {
     protected commandText = 'play';
@@ -31,16 +33,16 @@ export class PlayCommand extends Command {
             try {
                 await this.playSound(message.guild.id, message.member?.voice.channelId, path);
             } catch (e) {
-                this.logger.error(e, {message: message.content});
+                logger.error(e as Error, {message: message.content});
             }
         }
     }
 
     public async requestSound(path: string, serverId: string, channelId: string, volumeMultiplier: number, forcePlay: boolean): Promise<void> {
-        if (this.fileHelper.existsFile(path)) {
+        if (FileHelper.existsFile(path)) {
             await this.playSound(serverId, channelId, path, volumeMultiplier, undefined, forcePlay);
         } else {
-            throw ErrorTypes.FILE_NOT_FOUND;
+            throw new Error(ErrorTypes.FILE_NOT_FOUND);
         }
     }
 
@@ -67,12 +69,12 @@ export class PlayCommand extends Command {
         }
         if (resource) {
             resource.volume?.setVolume(volumeMultiplier);
-            this.logger.debug(`${file ?? url} starts playing. Player State: ${player.state.status}`, 'playSound');
+            logger.debug(`${file ?? url} starts playing. Player State: ${player.state.status}`, 'playSound');
             player.play(resource);
         }
     }
 
-    private getAudioPlayer(serverId: Snowflake, serverInfo?: ServerSettings): AudioPlayer {
+    private getAudioPlayer(serverId: Snowflake, serverInfo?: IServerSettings): AudioPlayer {
         if (!this.audioPlayers[serverId]) {
             const player = createAudioPlayer();
             player.on(AudioPlayerStatus.Idle, (oldState: AudioPlayerState) => {
@@ -82,7 +84,7 @@ export class PlayCommand extends Command {
                 }
             });
             player.on('error', (error: AudioPlayerError) => {
-                this.logger.error(error, 'PlaySound');
+                logger.error(error, 'PlaySound');
                 this.removeLock(serverId);
             });
             this.audioPlayers[serverId] = player;
@@ -115,10 +117,10 @@ export class PlayCommand extends Command {
                 const player = this.getAudioPlayer(serverId);
                 player.stop(true);
             } else {
-                throw ErrorTypes.SERVER_ID_NOT_FOUND;
+                throw new Error(ErrorTypes.SERVER_ID_NOT_FOUND);
             }
         } else {
-            throw ErrorTypes.PLAY_NOT_ALLOWED;
+            throw new Error(ErrorTypes.PLAY_NOT_ALLOWED);
         }
     }
 

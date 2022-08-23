@@ -5,6 +5,7 @@
 dist/
 tmp/
 out-tsc/
+/client/.angular/cache/
 
 # dependencies
 node_modules/

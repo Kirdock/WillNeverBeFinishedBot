@@ -1,5 +1,5 @@
-import { Readable, Writable, WritableOptions } from 'stream';
 import { OpusEncoder } from '@discordjs/opus';
+import { Readable, Writable, WritableOptions } from 'stream';
 import Timeout = NodeJS.Timeout;
 
 type BufferArrayElement = [Buffer, BufferEncoding, number, number]; // chunk, encoding, startTime (time chunk received), endTime (time chunk pushed to array)
@@ -21,7 +21,7 @@ export class ReplayReadable extends Writable {
     private readonly chunkTimeMs: number;
 
     // lifeTime in milliseconds
-    constructor(lifeTime: number, sampleRate: number, numChannels: number, options?: ReadWriteOptions) {
+    constructor(lifeTime: number, sampleRate: number, numChannels: number, private getUserStartTime: () => number | undefined, options?: ReadWriteOptions) {
         const adjustedOptions = Object.assign({
             length: 1048576, // 2^20 = 1 MB
             highWaterMark: 32,
@@ -36,7 +36,7 @@ export class ReplayReadable extends Writable {
         this._encoder = new OpusEncoder(this.sampleRate, this.numChannels);
         this.currentOffset = 0;
         this.chunkTimeMs = 20;
-        this.chunkSize = (this.chunkTimeMs / 1000) * this.sampleRate * this.numChannels * Buffer.BYTES_PER_ELEMENT * 2; // 20ms per chunk; I don't know why times 2 but without the time is not correct
+        this.chunkSize = (this.chunkTimeMs / 1000) * this.sampleRate * this.numChannels * Uint8Array.BYTES_PER_ELEMENT * 2; // 20ms per chunk; I don't know why times 2 but without the time is not correct
 
         this._highWaterMark = adjustedOptions.highWaterMark ?? 32;
         this._bufArrLength = adjustedOptions.length;
@@ -67,7 +67,7 @@ export class ReplayReadable extends Writable {
 
     public _write(chunk: Buffer, encoding: BufferEncoding, callback: (error?: Error | null) => void) {
         // encoding is 'buffer'... whatever...
-        const addTime = Date.now();
+        const addTime = Date.now(); // this.getUserStartTime(); only for start. Re-think recording logic
 
         chunk = this.decodeChunk(chunk); // always 1280 bytes; 40 ms or 20 ms
         const startTimeOfChunk = this.getStartTimeOfChunk(chunk, addTime);
@@ -135,8 +135,6 @@ export class ReplayReadable extends Writable {
                     }
                 }
 
-
-
                 ret.push(null);
             }
         });
@@ -182,7 +180,7 @@ export class ReplayReadable extends Writable {
         const silenceTimeSec = isSeconds ? stopTime : this.getSilentSeconds(stopTime);
         if (silenceTimeSec) {
             const totalSamples = silenceTimeSec * this.sampleRate;
-            return totalSamples * this.numChannels * Buffer.BYTES_PER_ELEMENT * 2; // I don't know why 2, but without it, we only have half of the silent bytes needed
+            return totalSamples * this.numChannels * Uint8Array.BYTES_PER_ELEMENT * 2; // I don't know why 2, but without it, we only have half of the silent bytes needed
         } else {
             return 0;
         }
@@ -207,7 +205,7 @@ export class ReplayReadable extends Writable {
     }
 
     private getChunkTimeMs(chunk: Buffer): number {
-        const bytesPerSample = Buffer.BYTES_PER_ELEMENT;
+        const bytesPerSample = Uint8Array.BYTES_PER_ELEMENT;
         const totalSamples = chunk.byteLength / bytesPerSample / this.numChannels;
         return (totalSamples / this.sampleRate / 2) * 1_000;
     }

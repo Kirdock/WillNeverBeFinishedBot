@@ -7,66 +7,44 @@ import { Logger } from '../services/logger';
 import { join } from 'path';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 
-export class WebServer {
-    private readonly baseUrl = '/api';
+const baseUrl = '/api';
 
-    constructor(router: express.Router, private authHelper: AuthHelper, private fileHelper: FileHelper, private logger: Logger, config: IEnvironmentVariables) {
-        const port: number = +config.PORT;
-        const app = express();
-        const staticFileMiddleware = express.static(join(FileHelper.rootDir, 'client', 'dist'));
+export function startServer(router: express.Router, authHelper: AuthHelper, logger: Logger, config: IEnvironmentVariables) {
+    const port: number = +config.PORT;
+    const app = express();
+    const staticFileMiddleware = express.static(join(FileHelper.rootDir, 'client', 'dist'));
+    const privateKeyPath = join(FileHelper.certFolder, 'privkey.pem');
+    const certPath = join(FileHelper.certFolder, 'cert.pem');
 
-        app.use(this.cors);
-        app.use(express.json({limit: '20mb'}));
-        app.use(staticFileMiddleware);
-        app.use(history());
-        app.use(staticFileMiddleware);
-        app.use((req, res, next) => this.authentication(req, res, next));
-        app.use(this.baseUrl, router);
+    app.use(cors);
+    app.use(express.json({limit: '20mb'}));
+    app.use(staticFileMiddleware);
+    app.use(history());
+    app.use(staticFileMiddleware);
+    authHelper.registerAuthentication(app, baseUrl);
+    app.use(baseUrl, router);
 
-        if (!this.fileHelper.existsFile(join(this.fileHelper.certFolder, 'privkey.pem'))) {
-            console.log('start local');
-            app.listen(port);
-        } else {
-            https.createServer({
-                key: this.fileHelper.readFile(join(this.fileHelper.certFolder, 'privkey.pem')),
-                cert: this.fileHelper.readFile(join(this.fileHelper.certFolder, 'cert.pem'))
-            }, app)
-                .listen(port);
-        }
+    if (!FileHelper.existsFile(privateKeyPath)) {
+        console.log('start local');
+        app.listen(port);
+    } else {
+        https.createServer({
+            key: FileHelper.readFile(privateKeyPath),
+            cert: FileHelper.readFile(certPath)
+        }, app)
+            .listen(port);
     }
+}
 
-    private cors(req: Request, res: Response, next: NextFunction) {
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+function cors(req: Request, res: Response, next: NextFunction) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
 
-        // intercept OPTIONS method
-        if ('OPTIONS' === req.method) {
-            res.sendStatus(200);
-        } else {
-            next();
-        }
-    }
-
-    private async authentication(req: Request, res: Response, next: NextFunction) {
-        if (req.url === `${this.baseUrl}/login`) {
-            next();
-        } else {
-            if (!req.headers.authorization) {
-                res.redirect('/Login');
-                await this.checkFiles(req);
-            } else if (await this.authHelper.auth(req.headers.authorization.split(' ')[1], res)) {
-                next();
-            } else {
-                res.sendStatus(401);
-                await this.checkFiles(req);
-            }
-        }
-    }
-
-    private async checkFiles(req: Request) {
-        if (req.files?.length) {
-            await this.fileHelper.deleteFiles(req.files);
-        }
+    // intercept OPTIONS method
+    if ('OPTIONS' === req.method) {
+        res.sendStatus(200);
+    } else {
+        next();
     }
 }

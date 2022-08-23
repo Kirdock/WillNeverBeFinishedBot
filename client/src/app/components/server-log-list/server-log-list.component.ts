@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { of, Subject, timer } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
-import { Log } from 'src/app/models/Log';
+import { ILog } from 'src/app/interfaces/Log';
 import { DataService } from 'src/app/services/data.service';
 
 @Component({
@@ -10,7 +10,7 @@ import { DataService } from 'src/app/services/data.service';
   styleUrls: ['./server-log-list.component.scss']
 })
 export class ServerLogListComponent implements OnInit, OnDestroy {
-  public logs: Log[] = [];
+  public logs: ILog[] = [];
   public pageKey = 0;
   public readonly pageSize = 50;
   private readonly logInterval = 30 * 1000;
@@ -41,8 +41,8 @@ export class ServerLogListComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroyed$)
       ).subscribe(logs => {
-        this.logs = logs;
-      })
+      this.logs = logs;
+    })
   }
 
   public ngOnDestroy(): void {

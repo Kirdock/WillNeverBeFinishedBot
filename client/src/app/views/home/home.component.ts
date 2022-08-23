@@ -1,20 +1,21 @@
-import { HttpErrorResponse, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
 import { Observable, Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { Category } from 'src/app/models/Category';
-import { Channel } from 'src/app/models/Channel';
-import { HomeSettings } from 'src/app/models/HomeSettings';
-import { PlaySoundRequest } from 'src/app/models/PlaySoundRequest';
+import { ICategory } from 'src/app/interfaces/Category';
+import { IChannel } from 'src/app/interfaces/Channel';
 import { IServer } from 'src/app/interfaces/IServer';
-import { FileInfo, SoundMeta } from 'src/app/models/SoundMeta';
-import { Sounds } from 'src/app/models/Sounds';
 import { ToastTitles } from 'src/app/models/ToastTitles';
 import { AuthService } from 'src/app/services/auth.service';
 import { DataService } from 'src/app/services/data.service';
 import { StorageService } from 'src/app/services/storage.service';
+import { IHomeSettings } from '../../interfaces/home-settings';
+import { createHomeSettings } from '../../utils/HomeSettings';
+import { IPlaySoundRequest } from '../../interfaces/play-sound-request';
+import { FileInfo, ISoundMeta, ISounds } from '../../interfaces/sound-meta';
+import { setFileInfo } from '../../utils/SoundMeta';
 
 @Component({
   selector: 'app-home',
@@ -22,14 +23,14 @@ import { StorageService } from 'src/app/services/storage.service';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  public readonly sounds$: Observable<Sounds | undefined>;
+  public readonly sounds$: Observable<ISounds | undefined>;
   public readonly selectedServer$: Observable<IServer | undefined>;
-  public channels: Channel[] = [];
-  public soundCategories: Category[] = [];
+  public channels: IChannel[] = [];
+  public soundCategories: ICategory[] = [];
   public selectedCategory?: string;
   public youtubeUrl = '';
   public searchText = '';
-  public settings: HomeSettings = new HomeSettings();
+  public settings: IHomeSettings = createHomeSettings();
   public soundPollingInterval = 30_000;
   private destroyed$: Subject<void> = new Subject<void>();
 
@@ -81,8 +82,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     return this.isOwner ? 1000 : 1;
   }
 
-  public filteredSoundCategories(sounds: Sounds): Category[] {
-    return this.soundCategories.filter((category: Category) => {
+  public filteredSoundCategories(sounds: ISounds): ICategory[] {
+    return this.soundCategories.filter((category: ICategory) => {
       return this.filteredSounds(sounds[category.name]).length !== 0;
     });
   }
@@ -114,7 +115,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntil(this.destroyed$)
     ).subscribe(channels => {
       this.channels = channels;
-      if (!this.selectedChannelId || !this.channels.some((channel: Channel) => channel.id === this.selectedChannelId)) {
+      if (!this.selectedChannelId || !this.channels.some((channel: IChannel) => channel.id === this.selectedChannelId)) {
         this.selectedChannelId = channels.find(_ => true)?.id;
       }
     });
@@ -123,22 +124,22 @@ export class HomeComponent implements OnInit, OnDestroy {
   public downloadRecordedVoice(serverId: string, asMKV: boolean): void {
     this.dataService.downloadRecordedVoice(serverId, asMKV ? 'mkv' : 'audio', this.recordVoiceMinutes).subscribe((response) => {
       if (response.body) {
-        this.downloadFileByBlob(response);
+        this.downloadFileByBlob(response.body, response.headers);
       } else {
         this.toast.error('Konnst du ma bitte sogn, warum i jetz nix hinta kriag hob?', ToastTitles.ERROR);
       }
     });
   }
 
-  private updateSoundCategories(sounds: Sounds | undefined): void {
+  private updateSoundCategories(sounds: ISounds | undefined): void {
     this.soundCategories = sounds ? Object.keys(sounds).map((category: string) => {
       return {
         name: category,
         show: this.soundCategories.find(cat => cat.name === category)?.show ?? true
       };
     }) : [];
-    this.soundCategories.sort((catA: Category, catB: Category) => catA.name.localeCompare(catB.name));
-    if (!this.selectedCategory || !this.soundCategories.some((category: Category) => category.name === this.selectedCategory)) {
+    this.soundCategories.sort((catA: ICategory, catB: ICategory) => catA.name.localeCompare(catB.name));
+    if (!this.selectedCategory || !this.soundCategories.some((category: ICategory) => category.name === this.selectedCategory)) {
       this.selectedCategory = this.soundCategories.find(_ => true)?.name;
     }
   }
@@ -169,17 +170,17 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  public playSound(serverId: string, sounds?: SoundMeta[], soundId?: string, forcePlay = false): void {
+  public playSound(serverId: string, sounds?: ISoundMeta[], soundId?: string, forcePlay = false): void {
     if (this.selectedChannelId && (soundId || this.youtubeUrl)) {
-      const request = new PlaySoundRequest(
+      const request: IPlaySoundRequest = {
         soundId,
         forcePlay,
         serverId,
-        this.selectedChannelId,
-        this.volume,
-        this.joinUser,
-        this.youtubeUrl
-      );
+        channelId: this.selectedChannelId,
+        volume: this.volume,
+        joinUser: this.joinUser,
+        url: this.youtubeUrl,
+      }
       this.dataService.playSound(request).subscribe(() => {
       }, (error: HttpErrorResponse) => {
         if (error.status === 404 && sounds && soundId) {
@@ -192,12 +193,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  public playFile(sound: SoundMeta, audioElement: HTMLAudioElement): void {
+  public playFile(sound: ISoundMeta, audioElement: HTMLAudioElement): void {
     if (!sound.fileInfo) {
       this.dataService.downloadSound(sound._id).subscribe(response => {
         try {
-          const responseData = this.getResponseData(response);
-          sound.setFileInfo(responseData.src, responseData.fullName);
+          if (!response.body) {
+            this.toast.error(`Response is null O.o`, ToastTitles.ERROR);
+            return;
+          }
+          const responseData = this.getResponseData(response.body, response.headers);
+          setFileInfo(sound, responseData.src, responseData.fullName);
           audioElement.load();
           audioElement.play();
         } catch {
@@ -207,14 +212,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  public downloadSound(sound: SoundMeta): void {
+  public downloadSound(sound: ISoundMeta): void {
     if (sound.fileInfo) {
       this.downloadFile(sound.fileInfo.src, sound.fileInfo.fullName);
     } else {
       this.dataService.downloadSound(sound._id).subscribe(response => {
         if (response.body) {
-          const responseData = this.getResponseData(response);
-          if (sound.setFileInfo(responseData.src, responseData.fullName)) {
+          const responseData = this.getResponseData(response.body, response.headers);
+          if (setFileInfo(sound, responseData.src, responseData.fullName)) {
             this.downloadFile(sound.fileInfo.src, sound.fileInfo.fullName);
           }
         } else {
@@ -224,10 +229,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getResponseData(response: HttpResponse<Blob>): FileInfo {
+  private getResponseData(data: Blob, headers: HttpHeaders): FileInfo {
     return {
-      src: URL.createObjectURL(response.body),
-      fullName: this.getFileNameOutOfHeader(response.headers),
+      src: URL.createObjectURL(data),
+      fullName: this.getFileNameOutOfHeader(headers),
     };
   }
 
@@ -257,8 +262,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     link.remove();
   }
 
-  private downloadFileByBlob(response: HttpResponse<Blob>): void {
-    this.downloadFile(URL.createObjectURL(response.body), this.getFileNameOutOfHeader(response.headers));
+  private downloadFileByBlob(data: Blob, headers: HttpHeaders): void {
+    this.downloadFile(URL.createObjectURL(data), this.getFileNameOutOfHeader(headers));
   }
 
   public stopPlaying(serverId: string): void {
@@ -269,17 +274,17 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.dataService.updateIntro(soundId, serverId).subscribe();
   }
 
-  public deleteSound(soundId: string, soundMeta: SoundMeta[]): void {
+  public deleteSound(soundId: string, ISoundMeta: ISoundMeta[]): void {
     this.dataService.deleteSound(soundId).subscribe(() => {
-      const index = soundMeta.findIndex(sound => sound._id === soundId);
+      const index = ISoundMeta.findIndex(sound => sound._id === soundId);
       if (index >= 0) {
-        soundMeta.splice(index, 1);
+        ISoundMeta.splice(index, 1);
       }
     });
   }
 
-  public filteredSounds(sounds: SoundMeta[]): SoundMeta[] {
-    let filteredSounds: SoundMeta[];
+  public filteredSounds(sounds: ISoundMeta[]): ISoundMeta[] {
+    let filteredSounds: ISoundMeta[];
     if (this.searchText.length > 0) {
       const re = new RegExp(this.searchText, 'i');
       filteredSounds = sounds.filter(sound => re.test(sound.fileName) || (sound.username && re.test(sound.username)));
@@ -292,5 +297,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.destroyed$.next();
     this.destroyed$.complete();
+  }
+
+  public getSoundIdentifier(_index: number, sound: ISoundMeta): string {
+    return sound._id;
   }
 }
