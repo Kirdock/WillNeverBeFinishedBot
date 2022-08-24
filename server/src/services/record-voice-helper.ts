@@ -1,4 +1,4 @@
-import { AudioReceiveStream, EndBehaviorType, VoiceConnection } from '@discordjs/voice';
+import { AudioReceiveStream, EndBehaviorType, SpeakingMap, VoiceConnection } from '@discordjs/voice';
 import { Snowflake } from 'discord.js';
 import ffmpeg from 'fluent-ffmpeg';
 import { join } from 'path';
@@ -39,35 +39,24 @@ export class RecordVoiceHelper {
             return;
         }
         const listener = (userId: string) => {
-            //check if already listening to user
-            if (this.writeStreams[serverId].userStreams[userId]) {
-                return;
-            }
-            const out = new ReplayReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, () => connection.receiver.speaking.users.get(userId), {
-                highWaterMark: this.maxUserRecordingLength,
-                length: this.maxUserRecordingLength
-            });
+            const recordStream = this.getRecordStreamOfUser(serverId, userId);
             const opusStream = connection.receiver.subscribe(userId, {
                 end: {
                     behavior: EndBehaviorType.AfterSilence,
-                    duration: this.maxRecordTimeMs,
+                    duration: SpeakingMap.DELAY,
                 },
             });
 
-
-            opusStream.on('end', () => {
-                delete this.writeStreams[serverId].userStreams[userId];
-            });
+            recordStream.startTimeOfNextChunk = connection.receiver.speaking.users.get(userId);
             opusStream.on('error', (error: Error) => {
-                logger.error(error, 'Error while recording voice');
-                delete this.writeStreams[serverId].userStreams[userId];
+                logger.error(error, `Error while recording voice for user ${userId} in server: ${serverId}`);
             });
 
-            opusStream.pipe(out);
+            opusStream.pipe(recordStream);
 
             this.writeStreams[serverId].userStreams[userId] = {
                 source: opusStream,
-                out
+                out: recordStream
             };
         }
         this.writeStreams[serverId] = {
@@ -75,6 +64,15 @@ export class RecordVoiceHelper {
             listener,
         };
         connection.receiver.speaking.on('start', listener);
+    }
+
+    private getRecordStreamOfUser(serverId: string, userId: string): ReplayReadable {
+        let recordStream = this.writeStreams[serverId].userStreams[userId]?.out;
+
+        return recordStream || new ReplayReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, {
+            highWaterMark: this.maxUserRecordingLength,
+            length: this.maxUserRecordingLength
+        });
     }
 
     public stopRecording(connection: VoiceConnection): void {
