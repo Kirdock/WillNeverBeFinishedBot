@@ -52,7 +52,7 @@ export class RecordVoiceHelper {
                 logger.error(error, `Error while recording voice for user ${userId} in server: ${serverId}`);
             });
 
-            opusStream.pipe(recordStream);
+            opusStream.pipe(recordStream, {end: false});
 
             this.writeStreams[serverId].userStreams[userId] = {
                 source: opusStream,
@@ -215,7 +215,6 @@ export class RecordVoiceHelper {
                 resolve();
             });
             writeStream.on('error', (error: Error) => {
-                logger.error(error, 'Error while saving user recording');
                 reject(error);
             });
         });

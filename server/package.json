@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "ts-node-dev ./src/index.ts",
+    "dev": "CHOKIDAR_USEPOLLING=true ts-node-dev ./src/index.ts",
     "start:production": "node dist/server/src/index.js",
     "build": "tsc --build"
   },
