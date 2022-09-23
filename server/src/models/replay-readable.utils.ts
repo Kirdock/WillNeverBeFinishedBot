@@ -5,7 +5,7 @@ export function addSilentTime(bufArr: IBufferArrayElement[], timeMs: number, enc
     if (timeMs <= 0 || !endTimeBefore) {
         return;
     }
-    const silentBuffers = secondsToBuffer(timeMs / 1_000, options); // millisecondsToBufferWithTolerance(timeMs, options, tolerance);
+    const silentBuffers = secondsToBuffer(timeMs / 1_000, options);
     if (!silentBuffers.length) {
         return;
     }

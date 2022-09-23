@@ -76,21 +76,7 @@ export class ReplayReadable extends Writable {
             ? addTime
             : getLastStopTime(this._bufArr)
             || getStartTimeOfChunk(chunk, addTime, this.encodingOptions.sampleRate, this.encodingOptions.numChannels);
-        // if (isCorrectStartTime) {
-        //     startTimeOfNewChunk = addTime;
-        //     // syncStream takes care of the delay; no need to for further manipulation
-        //
-        //
-        //     // const lastStopTime = getLastStopTime(this._bufArr);
-        //     // if (lastStopTime) {
-        //     //     const timeMs = startTimeOfNewChunk - lastStopTime;
-        //     //     addSilentTime(this._bufArr, timeMs, encoding, this.encodingOptions)
-        //     // }
-        // } else {
-        //     startTimeOfNewChunk =
-        //         getLastStopTime(this._bufArr)
-        //         || getStartTimeOfChunk(chunk, addTime, this.encodingOptions.sampleRate, this.encodingOptions.numChannels);
-        // }
+
         this._bufArr.push({
             chunk,
             encoding,
@@ -102,13 +88,6 @@ export class ReplayReadable extends Writable {
     }
 
     public _writev(chunks: Array<ChunkArrayItem>, callback: (error?: Error | null) => void) {
-        // const startTime = Date.now();
-        // this._bufArr.push(...chunks.map(({chunk, encoding}: ChunkArrayItem) => {
-        //     chunk = this.decodeChunk(chunk);
-        //     const startTimeOfChunk = getStartTimeOfChunk(chunk, startTime, this.encodingOptions.sampleRate, this.encodingOptions.numChannels);
-        //     return {chunk, encoding, startTime: startTimeOfChunk, stopTime: Date.now()};
-        // }));
-        // this.checkAndDrop(callback);
         this.emit('wrote');
     }
 
