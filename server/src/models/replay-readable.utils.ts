@@ -21,10 +21,13 @@ export function secondsToBuffer(seconds: number, options: IEncodingOptions): Buf
     return bytesToBuffer(bytes, options.chunkSize);
 }
 
-export function getStartTimeOfChunk(chunk: Buffer, addTime: number, sampleRate: number, numChannels: number): number {
-    return addTime - getChunkTimeMs(chunk, sampleRate, numChannels);
-}
-
+/**
+ * Silent padding will be added if the stream is missing time (if asynchronous or when the user didn't speak for a while). Then it will be synchronous again
+ * @param bufArr
+ * @param chunkStartTimeBefore
+ * @param chunkStartTimeNew
+ * @param encodingOptions
+ */
 export function syncStream(bufArr: IBufferArrayElement[], chunkStartTimeBefore: number, chunkStartTimeNew: number, encodingOptions: IEncodingOptions): void {
     const timeFromStartToStart = chunkStartTimeNew - chunkStartTimeBefore;
     const recordTime = getRecordTimeTillEnd(bufArr, chunkStartTimeBefore, encodingOptions.sampleRate, encodingOptions.numChannels);

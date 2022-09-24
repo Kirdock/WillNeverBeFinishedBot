@@ -1,7 +1,7 @@
 import { OpusEncoder } from '@discordjs/opus';
 import { Readable, Writable, WritableOptions } from 'stream';
 import { ChunkArrayItem, IBufferArrayElement, IEncodingOptions } from '../interfaces/replay-readable';
-import { getChunkTimeMs, getLastStopTime, getStartTimeOfChunk, secondsToBuffer, syncStream } from './replay-readable.utils';
+import { getChunkTimeMs, getLastStopTime, secondsToBuffer, syncStream } from './replay-readable.utils';
 import Timeout = NodeJS.Timeout;
 
 type ReadWriteOptions = { length?: number } & WritableOptions;
@@ -18,7 +18,13 @@ export class ReplayReadable extends Writable {
     private _startTimeOfNextChunk?: number;
     private _startTimeOfChunkBefore?: number;
 
-    // lifeTime in milliseconds
+    /**
+     *
+     * @param lifeTimeMs max record time in milliseconds. Older chunks get deleted
+     * @param sampleRate
+     * @param numChannels
+     * @param options
+     */
     constructor(lifeTimeMs: number, sampleRate: number, numChannels: number, options?: ReadWriteOptions) {
         const adjustedOptions = Object.assign({
             length: 1048576, // 2^20 = 1 MB
@@ -72,10 +78,7 @@ export class ReplayReadable extends Writable {
         const addTime = this.getStartTimeOfNextChunk();
 
         chunk = this.decodeChunk(chunk); // always 1280 bytes; 40 ms or 20 ms
-        const startTimeOfNewChunk = isCorrectStartTime
-            ? addTime
-            : getLastStopTime(this._bufArr)
-            || getStartTimeOfChunk(chunk, addTime, this.encodingOptions.sampleRate, this.encodingOptions.numChannels);
+        const startTimeOfNewChunk = isCorrectStartTime ? addTime : getLastStopTime(this._bufArr) as number; // there must be an element because isCorrectStartTime is true before it starts recording
 
         this._bufArr.push({
             chunk,
@@ -103,46 +106,49 @@ export class ReplayReadable extends Writable {
     }
 
     public rewind(startTime: number, stopTime: number): Readable {
-        return this.tail(startTime, stopTime);
-    }
-
-    public tail(startTime: number, stopTime: number): Readable {
         const ret: Readable = new Readable({
             highWaterMark: this._readableOptions.highWaterMark,
             read: () => {
-
-                let i;
-                // write delay or skip time
-                for (i = 0; i < this._bufArr.length; ++i) {
-                    const element = this._bufArr[i];
-
-                    if (element.startTime >= startTime) {
-                        // add delay time till start time of user
-                        const delayTimeSec = (element.startTime - startTime) / 1_000;
-                        if (delayTimeSec > 0) {
-                            const buffers = secondsToBuffer(delayTimeSec, this.encodingOptions);
-                            for (const buffer of buffers) {
-                                ret.push(buffer, this._bufArr[0].encoding);
-                            }
-                        }
-                        break;
-                    } // else skipTime
-                }
-
                 // continue to write the user stream within the time frame
-                for (i; i < this._bufArr.length && this._bufArr[i].startTime < stopTime; ++i) {
+                for (let i = this.writeSkipAndDelay(ret, startTime); i < this._bufArr.length && this._bufArr[i].startTime < stopTime; ++i) {
                     const element = this._bufArr[i];
-                    const resp = ret.push(element.chunk, element.encoding); // push to readable
+                    const resp = ret.push(element.chunk, element.encoding);
                     if (!resp) { // until there's not willing to read
                         break;
                     }
                 }
 
-                ret.push(null);
+                ret.push(null); // null = end of stream
             }
         });
 
         return ret;
+    }
+
+    /**
+     * Skips the user stream up to the start of the record time or adds a delay until the start time
+     * @param ret
+     * @param startTime
+     * @private
+     * @return index of the next buffer element that can be processed
+     */
+    private writeSkipAndDelay(ret: Readable, startTime: number): number {
+        for (let i = 0; i < this._bufArr.length; ++i) {
+            const element = this._bufArr[i];
+
+            if (element.startTime >= startTime) {
+                // add delay time till start time of user
+                const delayTimeSec = (element.startTime - startTime) / 1_000;
+                if (delayTimeSec > 0) {
+                    const buffers = secondsToBuffer(delayTimeSec, this.encodingOptions);
+                    for (const buffer of buffers) {
+                        ret.push(buffer, this._bufArr[0].encoding);
+                    }
+                }
+                return i;
+            } // else skipTime
+        }
+        return this._bufArr.length;
     }
 
     private checkAndDrop(callback: (error?: Error | null) => void): void {
@@ -155,13 +161,13 @@ export class ReplayReadable extends Writable {
     }
 
     private getStartTimeOfNextChunk(): number {
-        const time = this.startTimeOfNextChunk || getLastStopTime(this._bufArr) || Date.now(); // ||  Date.now() instead of getLastStopTime
+        const time = this.startTimeOfNextChunk || getLastStopTime(this._bufArr) || Date.now();
         this._startTimeOfNextChunk = undefined;
         return time;
     }
 
     private decodeChunk(chunk: Buffer): Buffer {
-        return this._encoder.decode(chunk); // TODO: seems like the noise is either related to decode or it's wrongly received in the first place
+        return this._encoder.decode(chunk);
     }
 
     private fadeOutCheck(lifeTime: number): void {
