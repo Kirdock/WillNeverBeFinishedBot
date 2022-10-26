@@ -60,14 +60,15 @@ export function getChunkTimeMs(chunk: Buffer, sampleRate: number, numChannels: n
 }
 
 function getRecordTimeTillEnd(bufArr: IBufferArrayElement[], startTime: number, sampleRate: number, numChannels: number): number {
-    let found = false;
-    return bufArr.reduce((time: number, bufferElement: IBufferArrayElement) => {
-        if (!found && bufferElement.startTime === startTime) {
-            found = true;
-        }
-        if (found) {
-            time += getChunkTimeMs(bufferElement.chunk, sampleRate, numChannels);
-        }
-        return time;
-    }, 0);
+    let i = 0, time = 0;
+    // go till startTime
+    while (bufArr[i].startTime < startTime) {
+        ++i;
+    }
+
+    // after start time calculate time till end
+    for (i; i < bufArr.length; ++i) {
+        time += getChunkTimeMs(bufArr[i].chunk, sampleRate, numChannels);
+    }
+    return time;
 }

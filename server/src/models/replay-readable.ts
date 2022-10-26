@@ -66,7 +66,7 @@ export class ReplayReadable extends Writable {
         this._startTimeOfNextChunk = this._startTimeOfChunkBefore = time;
     }
 
-    public get startTime(): number {
+    public get startTimeMs(): number {
         return this._bufArr[0]?.startTime ?? Date.now();
     }
 

@@ -147,7 +147,7 @@ export class RecordVoiceHelper {
     private getMinStartTime(serverId: string): number | undefined {
         let minStartTime: number | undefined;
         for (const userId in this.writeStreams[serverId].userStreams) {
-            const startTime = this.writeStreams[serverId].userStreams[userId].out.startTime;
+            const startTime = this.writeStreams[serverId].userStreams[userId].out.startTimeMs;
 
             if (!minStartTime || (startTime < minStartTime)) {
                 minStartTime = startTime;
@@ -156,30 +156,18 @@ export class RecordVoiceHelper {
         return minStartTime;
     }
 
-    private async getFfmpegSpecs(streams: UserStreams, minStartTime: number, endTime: number, recordDurationMs: number) {
-        const maxRecordTime = endTime - recordDurationMs;
-        const startRecordTime = Math.max(minStartTime, maxRecordTime);
-
-        /*
-        ------|----------------------|----------------|-------------------------------|-------
-        ------|----------------------|----------------|-------------------------------|-------
-             user1 Start      startRecordTime    user2 Start                        endTime
-              |<-----skipTime------->|<---delayTime-->|
-
-         delayTime = userStartTime - startRecordTime  // valid if > 0
-         skipTime = startRecordTime - userStartTime   // valid if > 0
-         */
-
-        // length of the result recording would be endTime - startRecordTime
+    private async getFfmpegSpecs(streams: UserStreams, minStartTimeMs: number, endTimeMs: number, recordDurationMs: number) {
+        const maxRecordTime = endTimeMs - recordDurationMs;
+        const startRecordTime = Math.max(minStartTimeMs, maxRecordTime);
         let ffmpegOptions = ffmpeg();
         let amixStrings = [];
         const createdFiles: string[] = [];
 
         for (const userId in streams) {
             const stream = streams[userId].out;
-            const filePath = join(FileHelper.recordingsDir, `${endTime}-${userId}.wav`);
+            const filePath = join(FileHelper.recordingsDir, `${endTimeMs}-${userId}.wav`);
             try {
-                await this.saveFile(stream, filePath, startRecordTime, endTime);
+                await this.saveFile(stream, filePath, startRecordTime, endTimeMs);
                 ffmpegOptions = ffmpegOptions.addInput(filePath);
 
                 amixStrings.push(`[${createdFiles.length}:a]`);

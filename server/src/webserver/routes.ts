@@ -185,7 +185,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                     res.status(404).end();
                     return;
                 }
-                const filePath = await discordBot.voiceHelper.recordHelper.getRecordedVoice(req.params.serverId, req.query.recordType?.toString() as AudioExportType, req.query.minutes ? +(req.query.minutes.toString()) : undefined);
+                const filePath = await discordBot.voiceHelper.recordHelper.getRecordedVoice(req.params.serverId, req.query.recordType?.toString() as AudioExportType | undefined, req.query.minutes ? +(req.query.minutes.toString()) : undefined);
                 if (!filePath) {
                     res.statusMessage = getResponseMessage(req, 'RECORDING_NOT_FOUND');
                     res.status(404).end();
@@ -233,38 +233,38 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
             try {
                 const result = getPayload(res);
                 const status = await discordBot.isUserInServer(result.id, req.body.serverId);
-                if (status) {
-                    req.body.volume = Math.abs(req.body.volume); //negative values should not be possible
-                    if (!discordBot.isSuperAdmin(result.id) && req.body.volume > 1) {
-                        req.body.volume = 1;
-                    }
-
-                    const channelId = await discordBot.getChannelIdThroughUser(req.body.joinUser, req.body.serverId, req.body.channelId, result.id);
-                    if (channelId) {
-                        if (req.body.soundId) {
-                            const meta = await databaseHelper.getSoundMeta(req.body.soundId);
-                            if (meta) {
-                                databaseHelper.logPlaySound(result.id, meta);
-                                const forcePlay = req.body.forcePlay ? await discordBot.isUserAdminInServer(result.id, req.body.serverId) : false;
-
-                                await discordBot.playSoundCommand.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, forcePlay);
-                                res.statusMessage = getResponseMessage(req, 'SOUND_PLAY_TRIGGERED');
-                                res.status(200).end();
-                            } else {
-                                res.statusMessage = getResponseMessage(req, 'SOUND_NOT_FOUND');
-                                res.status(404).end();
-                            }
-                        } else if (req.body.url) {
-                            await discordBot.playSoundCommand.playSound(req.body.serverId, channelId, undefined, req.body.volume, req.body.url);
-                            res.statusMessage = getResponseMessage(req, 'SOUND_PLAY_TRIGGERED');
-                            res.status(200).end();
-                        }
-                    } else {
-                        res.statusMessage = getResponseMessage(req, 'USER_NOT_IN_VOICE_CHANNEL');
-                        res.status(400).end();
-                    }
-                } else {
+                if (!status) {
                     notInServer(res, result.id, req.body.serverId, req);
+                    return;
+                }
+                req.body.volume = Math.abs(req.body.volume); //negative values should not be possible
+                if (!discordBot.isSuperAdmin(result.id) && req.body.volume > 1) {
+                    req.body.volume = 1;
+                }
+
+                const channelId = await discordBot.getChannelIdThroughUser(req.body.joinUser, req.body.serverId, req.body.channelId, result.id);
+                if (!channelId) {
+                    res.statusMessage = getResponseMessage(req, 'USER_NOT_IN_VOICE_CHANNEL');
+                    res.status(400).end();
+                    return;
+                }
+                if (req.body.soundId) {
+                    const meta = await databaseHelper.getSoundMeta(req.body.soundId);
+                    if (!meta) {
+                        res.statusMessage = getResponseMessage(req, 'SOUND_NOT_FOUND');
+                        res.status(404).end();
+                        return;
+                    }
+                    databaseHelper.logPlaySound(result.id, meta);
+                    const forcePlay = req.body.forcePlay && await discordBot.isUserAdminInServer(result.id, req.body.serverId);
+
+                    await discordBot.playSoundCommand.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, forcePlay);
+                    res.statusMessage = getResponseMessage(req, 'SOUND_PLAY_TRIGGERED');
+                    res.status(200).end();
+                } else if (req.body.url) {
+                    await discordBot.playSoundCommand.playSound(req.body.serverId, channelId, undefined, req.body.volume, req.body.url);
+                    res.statusMessage = getResponseMessage(req, 'SOUND_PLAY_TRIGGERED');
+                    res.status(200).end();
                 }
             } catch (e) {
                 defaultError(e as Error, res, req);
