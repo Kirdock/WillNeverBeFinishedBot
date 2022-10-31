@@ -12,6 +12,7 @@ import net, { Server } from 'net';
 import { randomUUID } from 'crypto';
 import { PassThrough, Readable, Writable } from 'stream';
 import archiver from 'archiver';
+import { DiscordBot } from '../discordServer/DiscordBot';
 
 interface IUserStreams {
     [userId: string]: {
@@ -33,7 +34,7 @@ export class RecordVoiceHelper {
         }
     } = {};
 
-    constructor(config: IEnvironmentVariables) {
+    constructor(config: IEnvironmentVariables, private discordBot: DiscordBot) {
         const recordTime = +config.MAX_RECORD_TIME_MINUTES;
         this.maxRecordTimeMs = (!recordTime || isNaN(recordTime) ? 10 : Math.abs(recordTime)) * 60 * 1_000;
     }
@@ -141,8 +142,9 @@ export class RecordVoiceHelper {
         const archive = archiver('zip');
         for (const userId in userStreams) {
             const passThroughStream = this.getUserRecordingStream(userStreams[userId].out.rewind(startRecordTime, endTime), userId, serverSettings.userSettings);
+            const {username} = await this.discordBot.getSingleUser(userId)
             archive.append(passThroughStream, {
-                name: `${userId}.mp3`
+                name: `${username}.mp3`
             });
         }
 

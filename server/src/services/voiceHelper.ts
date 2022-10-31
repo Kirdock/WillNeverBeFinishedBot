@@ -11,7 +11,7 @@ export class VoiceHelper {
     public readonly recordHelper: RecordVoiceHelper;
 
     constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, config: IEnvironmentVariables) {
-        this.recordHelper = new RecordVoiceHelper(config);
+        this.recordHelper = new RecordVoiceHelper(config, discordBot);
     }
 
     /**

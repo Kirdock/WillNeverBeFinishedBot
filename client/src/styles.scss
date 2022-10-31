@@ -34,8 +34,18 @@ $WillNeverBeFinishedBot-theme: mat.define-dark-theme((
 
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+$pulseSize: 35px;
+$pulseTiming: 1.2s;
+
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 
 .pointer {
   cursor: pointer;
@@ -46,6 +56,7 @@ a i {
   font-size: 40px;
   padding-right: 10px;
 }
+
 a.disabled {
   pointer-events: none;
   cursor: default;
@@ -58,4 +69,24 @@ a.disabled {
 
 .display-none {
   display: none;
+}
+
+.pulseLoader {
+  width: $pulseSize;
+  height: $pulseSize;
+  border-radius: $pulseSize;
+  background-color: white;
+  outline: 1px solid transparent;
+  animation: pulseanim $pulseTiming ease-in-out infinite;
+}
+
+@keyframes pulseanim {
+  0% {
+    transform: scale(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
 }

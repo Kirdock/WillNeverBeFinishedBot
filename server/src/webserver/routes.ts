@@ -232,16 +232,12 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 }
                 const serverSettings = await databaseHelper.getServerSettings(serverId);
                 const exportType = req.query.recordType?.toString() as AudioExportType | undefined;
+                const fileName = new Date().toISOString().split('.')[0].replace(/:/g, '-').replace(/T/g, ' ');
                 if (exportType === 'audio') {
-                    res.writeHead(200, {
-                        'Content-Disposition': `attachment; filename="download.mp3"`,
-                        'Content-Type': 'audio/mp3'
-                    });
+                    res.type('audio/mp3').attachment(`${fileName}.mp3`);
+
                 } else {
-                    res.writeHead(200, {
-                        'content-disposition': 'attachment;filename=userStreams.zip',
-                        'Content-Type': 'application/zip',
-                    });
+                    res.type('application/zip').attachment(`${fileName}-all-streams.zip`);
                 }
                 const succeeded = await discordBot.voiceHelper.recordHelper.getRecordedVoice(serverId, exportType, req.query.minutes ? +(req.query.minutes.toString()) : undefined, serverSettings, res);
 

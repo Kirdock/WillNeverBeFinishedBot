@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
 import { Observable, Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { filter, finalize, takeUntil } from 'rxjs/operators';
 import { ICategory } from 'src/app/interfaces/Category';
 import { IChannel } from 'src/app/interfaces/Channel';
 import { IServer } from 'src/app/interfaces/IServer';
@@ -31,6 +31,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public youtubeUrl = '';
   public searchText = '';
   public settings: IHomeSettings = createHomeSettings();
+  public recordingLoading = false;
   public soundPollingInterval = 30_000;
   private destroyed$: Subject<void> = new Subject<void>();
 
@@ -122,7 +123,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   public downloadRecordedVoice(serverId: string, asMKV: boolean): void {
-    this.dataService.downloadRecordedVoice(serverId, asMKV ? 'mkv' : 'audio', this.recordVoiceMinutes).subscribe((response) => {
+    this.recordingLoading = true;
+    this.dataService
+      .downloadRecordedVoice(serverId, asMKV ? 'mkv' : 'audio', this.recordVoiceMinutes)
+      .pipe(finalize(() => {
+        this.recordingLoading = false;
+      })).subscribe((response) => {
       if (response.body) {
         this.downloadFileByBlob(response.body, response.headers);
       } else {

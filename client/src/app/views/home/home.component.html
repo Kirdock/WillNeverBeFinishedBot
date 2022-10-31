@@ -8,6 +8,7 @@
           <div class="input-group">
             <input class="form-control col-md-1" type="number" [(ngModel)]="recordVoiceMinutes" step="1" min="1">
             <button type="button" class="btn btn-primary" (click)="downloadRecordedVoice(server.id, voiceRecordingType.checked)">Download</button>
+            <span class="pulseLoader" *ngIf="recordingLoading"></span>
           </div>
           <div class="form-check-inline">
             <input type="checkbox" class="form-check-input" id="voiceRecordingType" #voiceRecordingType>
