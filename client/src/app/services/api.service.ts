@@ -9,6 +9,7 @@ import { IServerSettings } from '../../../../shared/interfaces/server-settings';
 import { AudioExportType } from '../../../../shared/models/types';
 import { IPlaySoundRequest } from '../interfaces/play-sound-request';
 import { ISoundMeta } from '../interfaces/sound-meta';
+import { IUserVoiceSettings } from '../../../../shared/interfaces/user-voice-settings';
 
 @Injectable({
   providedIn: 'root'
@@ -40,6 +41,16 @@ export class ApiService {
 
   public getUserIntro(serverId: string): Observable<string> {
     return this.http.get<string>(`userIntro/${serverId}`);
+  }
+
+  public getUserVoiceSettings(serverId: string): Observable<IUserVoiceSettings[]> {
+    return this.http.get<IUserVoiceSettings[]>(`voiceRecorder/server/${serverId}/userSettings`);
+  }
+
+  public updateUserVolume(serverId: string, userId: string, volume: number): Observable<unknown> {
+    return this.http.post(`voiceRecorder/server/${serverId}/userSettings/user/${userId}`, {
+      volume
+    })
   }
 
   public getServers(): Observable<IServer[]> {

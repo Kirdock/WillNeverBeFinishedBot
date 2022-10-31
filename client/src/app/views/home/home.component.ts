@@ -246,6 +246,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         fileName = matches[1].replace(/['"]/g, '');
       }
     }
+    console.log(headers, disposition, fileName)
     return fileName;
   }
 

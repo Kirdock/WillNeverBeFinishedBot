@@ -1,15 +1,19 @@
 import { AudioReceiveStream, EndBehaviorType, SpeakingMap, VoiceConnection } from '@discordjs/voice';
 import { Snowflake } from 'discord.js';
-import ffmpeg from 'fluent-ffmpeg';
-import { join } from 'path';
-import { FileHelper } from './fileHelper';
-import { FileWriter } from 'wav';
+import ffmpeg, { FfmpegCommand } from 'fluent-ffmpeg';
+import { resolve } from 'path';
 import { ReplayReadable } from '../models/replay-readable';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { AudioExportType } from '../../../shared/models/types';
 import { logger } from './logHelper';
+import { IServerSettings, IServerUserSettings } from '../../../shared/interfaces/server-settings';
+import { getOrCreateUserVoiceSetting } from '../utils/User';
+import net, { Server } from 'net';
+import { randomUUID } from 'crypto';
+import { PassThrough, Readable, Writable } from 'stream';
+import archiver from 'archiver';
 
-interface UserStreams {
+interface IUserStreams {
     [userId: string]: {
         source: AudioReceiveStream,
         out: ReplayReadable,
@@ -21,9 +25,10 @@ export class RecordVoiceHelper {
     private readonly channelCount = 2;
     private readonly sampleRate = 16_000;
     private readonly maxUserRecordingLength = 100 * 1024 * 1024; // 100 MB
+    private static readonly PCM_FORMAT = 's16le';
     private writeStreams: {
         [serverId: string]: {
-            userStreams: UserStreams,
+            userStreams: IUserStreams,
             listener: (userId: string) => void;
         }
     } = {};
@@ -88,60 +93,85 @@ export class RecordVoiceHelper {
         delete this.writeStreams[serverId];
     }
 
-    public async getRecordedVoice(serverId: Snowflake, exportType: AudioExportType = 'audio', minutes: number = 10): Promise<string | undefined> {
+    public async getRecordedVoice<T extends Writable>(serverId: Snowflake, exportType: AudioExportType = 'audio', minutes: number = 10, serverSettings: IServerSettings, writeStream: T): Promise<boolean> {
         if (!this.writeStreams[serverId]) {
             logger.warn(`server with id ${serverId} does not have any streams`, 'Record voice');
-            return;
+            return false;
         }
+        const minStartTimeMs = this.getMinStartTime(serverId);
+
+        if (!minStartTimeMs) {
+            return false;
+        }
+
         const recordDurationMs = Math.min(Math.abs(minutes) * 60 * 1_000, this.maxRecordTimeMs)
-        const endTime = Date.now();
-        return new Promise(async (resolve, reject) => {
-            const minStartTime = this.getMinStartTime(serverId);
+        const endTimeMs = Date.now();
+        const maxRecordTime = endTimeMs - recordDurationMs;
+        const startRecordTime = Math.max(minStartTimeMs, maxRecordTime);
 
-            if (!minStartTime) {
-                return resolve(undefined);
-            }
+        if (exportType === 'audio') {
+            await this.generateMergedRecording(this.writeStreams[serverId].userStreams, startRecordTime, endTimeMs, serverSettings, writeStream);
+        } else {
+            await this.generateSplitRecording(this.writeStreams[serverId].userStreams, startRecordTime, endTimeMs, serverSettings, writeStream);
+        }
+        return true;
+    }
 
-            const {command, createdFiles} = await this.getFfmpegSpecs(this.writeStreams[serverId].userStreams, minStartTime, endTime, recordDurationMs);
-            if (!createdFiles.length) {
-                return resolve(undefined);
+    private generateMergedRecording(userStreams: IUserStreams, startRecordTime: number, endTime: number, serverSettings: IServerSettings, writeStream: Writable): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const {command, openServers} = this.getFfmpegSpecs(userStreams, startRecordTime, endTime, serverSettings);
+            if (!openServers.length) {
+                return resolve();
             }
-            const resultPath = join(FileHelper.recordingsDir, `${endTime}.wav`);
             command
                 .on('end', async () => {
-                    let path;
-                    if (exportType === 'audio') {
-                        path = resultPath;
-                        await FileHelper.deleteFilesByPath(createdFiles);
-                    } else {
-                        const files = [resultPath, ...createdFiles];
-                        path = await this.toMKV(files, endTime);
-                        await FileHelper.deleteFilesByPath(files);
-                    }
-                    resolve(path);
+                    openServers.forEach(server => server.close());
+                    resolve();
                 })
-                .on('error', reject)
-                .saveToFile(resultPath);
+                .on('error', (error) => {
+                    openServers.forEach(server => server.close());
+                    reject(error);
+                })
+                .outputFormat('mp3')
+                .pipe(writeStream, {end: true});
         });
     }
 
-    private toMKV(files: string[], endTime: number): Promise<string> {
+    private async generateSplitRecording(userStreams: IUserStreams, startRecordTime: number, endTime: number, serverSettings: IServerSettings, writeStream: Writable): Promise<void> {
+        const archive = archiver('zip');
+        for (const userId in userStreams) {
+            const passThroughStream = this.getUserRecordingStream(userStreams[userId].out.rewind(startRecordTime, endTime), userId, serverSettings.userSettings);
+            archive.append(passThroughStream, {
+                name: `${userId}.mp3`
+            });
+        }
+
         return new Promise((resolve, reject) => {
-            let options = ffmpeg();
-            const outputOptions: string[] = [];
-            const filePath = join(FileHelper.recordingsDir, `${endTime}.mkv`);
-            for (let i = 0; i < files.length; ++i) {
-                options = options.addInput(files[i]);
-                outputOptions.push(`-map ${i}`);
-            }
-            options
-                .outputOptions(outputOptions)
-                .on('end', () => {
-                    resolve(filePath);
-                })
+            archive
+                .on('end', resolve)
                 .on('error', reject)
-                .saveToFile(filePath);
-        })
+                .pipe(writeStream);
+            archive.finalize();
+        });
+    }
+
+    private getUserRecordingStream(stream: Readable, userId: string, userSettings: IServerUserSettings[] | undefined): PassThrough {
+        const userSetting = getOrCreateUserVoiceSetting(userSettings, userId);
+        const passThroughStream = new PassThrough({allowHalfOpen: false});
+
+        ffmpeg(stream)
+            .inputOptions([`-f ${RecordVoiceHelper.PCM_FORMAT}`, `-ar ${this.sampleRate}`, `-ac ${this.channelCount}`])
+            .audioFilters([
+                    {
+                        filter: 'volume',
+                        options: (userSetting.recordVolume / 100).toString()
+                    }
+                ]
+            )
+            .outputFormat('mp3')
+            .output(passThroughStream, {end: true})
+            .run();
+        return passThroughStream;
     }
 
     private getMinStartTime(serverId: string): number | undefined {
@@ -156,22 +186,31 @@ export class RecordVoiceHelper {
         return minStartTime;
     }
 
-    private async getFfmpegSpecs(streams: UserStreams, minStartTimeMs: number, endTimeMs: number, recordDurationMs: number) {
-        const maxRecordTime = endTimeMs - recordDurationMs;
-        const startRecordTime = Math.max(minStartTimeMs, maxRecordTime);
+    private getFfmpegSpecs(streams: IUserStreams, startRecordTime: number, endTimeMs: number, serverSettings: IServerSettings): { command: FfmpegCommand, openServers: Server[] } {
         let ffmpegOptions = ffmpeg();
         let amixStrings = [];
-        const createdFiles: string[] = [];
+        const volumeFilter = [];
+        const openServers: Server[] = [];
 
         for (const userId in streams) {
             const stream = streams[userId].out;
-            const filePath = join(FileHelper.recordingsDir, `${endTimeMs}-${userId}.wav`);
+            const userSettings = getOrCreateUserVoiceSetting(serverSettings.userSettings, userId);
             try {
-                await this.saveFile(stream, filePath, startRecordTime, endTimeMs);
-                ffmpegOptions = ffmpegOptions.addInput(filePath);
+                const output: string = `[s${volumeFilter.length}]`;
+                const {server, url} = this.serveStream(stream, startRecordTime, endTimeMs);
 
-                amixStrings.push(`[${createdFiles.length}:a]`);
-                createdFiles.push(filePath);
+                ffmpegOptions = ffmpegOptions
+                    .addInput(url)
+                    .inputOptions([`-f ${RecordVoiceHelper.PCM_FORMAT}`, `-ar ${this.sampleRate}`, `-ac ${this.channelCount}`]);
+
+                volumeFilter.push({
+                    filter: 'volume',
+                    options: [(userSettings.recordVolume / 100).toString()],
+                    inputs: `${volumeFilter.length}:0`,
+                    outputs: output,
+                });
+                openServers.push(server)
+                amixStrings.push(output);
             } catch (e) {
                 logger.error(e as Error, 'Error while saving user recording');
             }
@@ -179,32 +218,25 @@ export class RecordVoiceHelper {
 
         return {
             command: ffmpegOptions.complexFilter([
+                ...volumeFilter,
                 {
-                    filter: `amix=inputs=${createdFiles.length}[a]`,
+                    filter: `amix=inputs=${volumeFilter.length}`,
                     inputs: amixStrings.join(''),
                 }
-            ]).map('[a]'),
-            createdFiles
+            ]),
+            openServers,
         }
     }
 
-    private async saveFile(stream: ReplayReadable, filePath: string, startTime: number, endTime: number): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const writeStream = new FileWriter(filePath, {
-                channels: this.channelCount,
-                sampleRate: this.sampleRate
-            });
-
-            const readStream = stream.rewind(startTime, endTime);
-
-            readStream.pipe(writeStream);
-
-            writeStream.on('done', () => {
-                resolve();
-            });
-            writeStream.on('error', (error: Error) => {
-                reject(error);
-            });
-        });
+    private serveStream(stream: ReplayReadable, startRecordTime: number, endTimeMs: number): { url: string, server: Server } {
+        const socketPath = resolve('/tmp/', randomUUID() + '.sock');
+        const url = 'unix:' + socketPath;
+        const server = net.createServer((socket) => stream.rewind(startRecordTime, endTimeMs).pipe(socket));
+        server.listen(socketPath);
+        // complex filters are probably reading the files several times. Therefore, the server can't be closed after the stream is read.
+        return {
+            url,
+            server
+        };
     }
 }

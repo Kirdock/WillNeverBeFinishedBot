@@ -13,7 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { HttpSuccessInterceptor } from './interceptors/http-success.interceptor';
 import { HttpDefaultInterceptor } from './interceptors/http-default.interceptor';
 import { HttpErrorInterceptor } from './interceptors/http-error.interceptor';
@@ -22,6 +22,8 @@ import { ServerLogListComponent } from './components/server-log-list/server-log-
 import { ServerSettingsComponent } from './components/server-settings/server-settings.component';
 import { FlexModule } from '@angular/flex-layout';
 import { MatInputModule } from '@angular/material/input';
+import { VoiceRecordingSettingsComponent } from './components/voice-recording-settings/voice-recording-settings.component';
+import { MatTableModule } from '@angular/material/table';
 
 @NgModule({
   declarations: [
@@ -33,23 +35,25 @@ import { MatInputModule } from '@angular/material/input';
     UserIntrosComponent,
     ServerLogListComponent,
     ServerSettingsComponent,
+    VoiceRecordingSettingsComponent,
   ],
-    imports: [
-      BrowserModule,
-      HttpClientModule,
-      AppRoutingModule,
-      FormsModule,
-      ToastrModule.forRoot({
-          timeOut: 5000
-      }),
-      BrowserAnimationsModule,
-      MatTabsModule,
-      MatAutocompleteModule,
-      MatMenuModule,
-      MatButtonModule,
-      FlexModule,
-      MatInputModule
-    ],
+  imports: [
+    BrowserModule,
+    HttpClientModule,
+    AppRoutingModule,
+    FormsModule,
+    ToastrModule.forRoot({
+      timeOut: 5000
+    }),
+    BrowserAnimationsModule,
+    MatTabsModule,
+    MatAutocompleteModule,
+    MatMenuModule,
+    MatButtonModule,
+    FlexModule,
+    MatInputModule,
+    MatTableModule
+  ],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,
@@ -69,4 +73,5 @@ import { MatInputModule } from '@angular/material/input';
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+}

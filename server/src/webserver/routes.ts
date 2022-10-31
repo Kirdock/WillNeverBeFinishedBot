@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { basename, extname } from 'path';
+import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { FileHelper } from '../services/fileHelper';
 import { Request, Response, Router as rs } from 'express';
@@ -15,6 +15,8 @@ import { ILog } from '../interfaces/log';
 import { getResponseMessage } from '../services/localeService';
 import { IResponseMessages } from '../interfaces/response-messages';
 import { IUserPayload } from '../interfaces/user-payload';
+import { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
+import { createUserVoiceSetting } from '../utils/User';
 
 export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelper: DatabaseHelper, authHelper: AuthHelper) {
     const storage = multer.diskStorage({
@@ -175,27 +177,79 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
             }
         });
 
+    router.route('voiceRecorder/server/:serverId/userSettings')
+        .get(async (req: Request, res: Response) => {
+            try {
+                const result = getPayload(res);
+                const serverId = req.params.serverId;
+                if (!(await discordBot.isUserAdminInServer(result.id, serverId))) {
+                    res.statusMessage = getResponseMessage(req, 'NOT_ADMIN');
+                    res.status(404).end();
+                    return;
+                }
+                const userSettings = await databaseHelper.getUsersRecordVolume(serverId);
+
+                await discordBot.addMissingUsers(userSettings, serverId, createUserVoiceSetting);
+                await discordBot.mapUsernames(userSettings, 'id');
+                res.json(userSettings as IUserVoiceSettings[]);
+            } catch (e) {
+                defaultError(e as Error, res, req);
+            }
+        })
+
+    router.route('voiceRecorder/server/:serverId/userSettings/user/:userId')
+        .get(async (req: Request, res: Response) => {
+            try {
+                const result = getPayload(res);
+                const {serverId, userId} = req.params;
+                const volume = +req.body.volume;
+                if (!(await discordBot.isUserAdminInServer(result.id, serverId))) {
+                    res.statusMessage = getResponseMessage(req, 'NOT_ADMIN');
+                    res.status(404).end();
+                    return;
+                }
+                if (!volume || isNaN(volume)) {
+                    res.status(400).end();
+                    return;
+                }
+                await databaseHelper.updateUserRecordVolume(serverId, userId, volume);
+                res.status(200).end();
+            } catch (e) {
+                defaultError(e as Error, res, req);
+            }
+        })
+
     router.route('/recordVoice/:serverId')
         .get(async (req: Request, res: Response) => {
             try {
                 const result = getPayload(res);
+                const {serverId} = req.params;
 
-                if (!(await discordBot.isUserInServer(result.id, req.params.serverId))) {
+                if (!(await discordBot.isUserInServer(result.id, serverId))) {
                     res.statusMessage = getResponseMessage(req, 'SERVER_NOT_FOUND');
                     res.status(404).end();
                     return;
                 }
-                const filePath = await discordBot.voiceHelper.recordHelper.getRecordedVoice(req.params.serverId, req.query.recordType?.toString() as AudioExportType | undefined, req.query.minutes ? +(req.query.minutes.toString()) : undefined);
-                if (!filePath) {
+                const serverSettings = await databaseHelper.getServerSettings(serverId);
+                const exportType = req.query.recordType?.toString() as AudioExportType | undefined;
+                if (exportType === 'audio') {
+                    res.writeHead(200, {
+                        'Content-Disposition': `attachment; filename="download.mp3"`,
+                        'Content-Type': 'audio/mp3'
+                    });
+                } else {
+                    res.writeHead(200, {
+                        'content-disposition': 'attachment;filename=userStreams.zip',
+                        'Content-Type': 'application/zip',
+                    });
+                }
+                const succeeded = await discordBot.voiceHelper.recordHelper.getRecordedVoice(serverId, exportType, req.query.minutes ? +(req.query.minutes.toString()) : undefined, serverSettings, res);
+
+                if (!succeeded) {
                     res.statusMessage = getResponseMessage(req, 'RECORDING_NOT_FOUND');
                     res.status(404).end();
                     return;
                 }
-
-                res.on('finish', () => {
-                    FileHelper.deleteFile(filePath);
-                })
-                res.status(200).download(filePath, basename(filePath));
             } catch (e) {
                 defaultError(e as Error, res, req);
             }

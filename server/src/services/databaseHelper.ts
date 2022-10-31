@@ -14,6 +14,7 @@ import { IServerSettings } from '../../../shared/interfaces/server-settings';
 import { IUser } from '../interfaces/user';
 import { ISoundMeta } from '../interfaces/sound-meta';
 import { createSoundMeta } from '../utils/SoundMeta';
+import { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
 
 export class DatabaseHelper {
     private client: MongoClient;
@@ -117,7 +118,6 @@ export class DatabaseHelper {
     }
 
     public setIntro(userId: Snowflake, soundId: ObjectId, serverId: Snowflake): Promise<UpdateResult> {
-        // @ts-ignore
         const updateFilter: UpdateFilter<IUser> = {$set: {[`intros.${serverId}`]: soundId}};
         return this.userCollection.updateOne({id: userId}, updateFilter, {upsert: true});
     }
@@ -192,7 +192,6 @@ export class DatabaseHelper {
     async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<IUser[]> {
         const usersWithoutInfo: IUser[] = [];
         const userInfos: IUser[] = await this.userCollection.find(
-            // @ts-ignore
             {
                 id:
                     {
@@ -275,9 +274,38 @@ export class DatabaseHelper {
         return this.serverInfoCollection.updateOne({id}, {$set: {...data}}, {upsert: true});
     }
 
+    public async getUsersRecordVolume(serverId: string): Promise<Omit<IUserVoiceSettings, 'username'>[]> {
+        const serverSettings = await this.serverInfoCollection.findOne(
+            {
+                id: serverId
+            },
+            {
+                projection:
+                    {
+                        userSettings: 1,
+                        id: 1,
+                        _id: 0
+                    }
+            });
+        return serverSettings?.userSettings ?? [];
+    }
+
+    public async updateUserRecordVolume(serverId: string, userId: string, volume: number): Promise<void> {
+        await this.serverInfoCollection.updateOne({
+            id: serverId,
+            'userSettings.id': userId
+        }, {
+            $set: {
+                'userSettings.$.volume': volume
+            }
+        }, {
+            upsert: true
+        })
+    }
+
     private mapTime(soundsMeta: { time?: number, _id: ObjectId }[]): void {
-        for (const ISoundMeta of soundsMeta) {
-            ISoundMeta.time = ISoundMeta._id.getTimestamp().getTime();
+        for (const soundMeta of soundsMeta) {
+            soundMeta.time = soundMeta._id.getTimestamp().getTime();
         }
     }
 }
