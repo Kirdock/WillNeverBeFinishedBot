@@ -20,6 +20,6 @@ export function createUserVoiceSetting(id: string): IUserVoiceSettingsWithoutUse
     }
 }
 
-export function getOrCreateUserVoiceSetting(userSettings: IServerUserSettings[] | undefined, userId: string): IUserVoiceSettingsWithoutUsername {
+export function getOrCreateUserVoiceSetting(userSettings: IServerUserSettings[], userId: string): IUserVoiceSettingsWithoutUsername {
     return userSettings?.find(userSetting => userSetting.id === userId) ?? createUserVoiceSetting(userId)
 }

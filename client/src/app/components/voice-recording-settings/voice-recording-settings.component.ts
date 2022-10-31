@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { IUserVoiceSettings } from '../../../../../shared/interfaces/user-voice-settings';
 import { DataService } from '../../services/data.service';
-import { map, switchMap } from 'rxjs/operators';
+import { finalize, map, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 
 @Component({
@@ -12,6 +12,8 @@ import { Observable, of } from 'rxjs';
 export class VoiceRecordingSettingsComponent {
   public readonly dataSource: Observable<IUserVoiceSettings[]>;
   public readonly selectedServerId$: Observable<string | undefined>;
+  public readonly columns: string[] = ['username', 'volume'];
+  public readonly updatingUserVolumes: Record<string, undefined | boolean> = {};
 
   constructor(private readonly dataService: DataService) {
     this.selectedServerId$ = dataService.selectedServer.pipe(map(server => server?.id));
@@ -25,7 +27,10 @@ export class VoiceRecordingSettingsComponent {
   }
 
   public updateUserVolume(serverId: string, userId: string, volume: number): void {
-    this.dataService.updateUserVolume(serverId, userId, volume).subscribe(() => {
+    this.updatingUserVolumes[userId] = true;
+    this.dataService.updateUserVolume(serverId, userId, volume).pipe(finalize(() => {
+      this.updatingUserVolumes[userId] = false;
+    })).subscribe(() => {
 
     });
   }

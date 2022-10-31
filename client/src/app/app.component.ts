@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Observable, Subject, timer } from 'rxjs';
-import { filter, map, skipWhile, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, skipWhile, takeUntil } from 'rxjs/operators';
 import { IServer } from './interfaces/IServer';
 import { IUserPayload } from './interfaces/UserPayload';
 import { AuthService } from './services/auth.service';
@@ -58,16 +58,12 @@ export class AppComponent implements OnInit, OnDestroy {
     });
     this.dataService.selectedServer
       .pipe(
-        takeUntil(this.destroyed$),
         filter((server?: IServer): server is IServer => !!server),
         map(server => server.id),
         skipWhile(() => !this.isLoggedIn),
-        tap(serverId => this.dataService.loadSounds(serverId)),
-        switchMap(serverId => timer(this._updateInterval, this._updateInterval).pipe(map((() => serverId)))),
-        skipWhile(() => !this.isLoggedIn),
         takeUntil(this.destroyed$)
       ).subscribe(serverId => {
-      this.dataService.loadSounds(serverId, true);
+      this.dataService.loadSounds(serverId);
     });
 
     timer(0, this._updateInterval)

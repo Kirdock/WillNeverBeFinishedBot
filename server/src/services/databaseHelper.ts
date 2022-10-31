@@ -7,7 +7,6 @@ import { createUser } from '../utils/User';
 import { ErrorTypes } from './ErrorTypes';
 import { IEnvironmentVariables } from '../interfaces/environment-variables';
 import { IDatabaseMetadata } from '../interfaces/database-metadata';
-import { MigratorHelper } from './migratorHelper';
 import { createLog } from '../models/Log';
 import { ILog } from '../interfaces/log';
 import { IServerSettings } from '../../../shared/interfaces/server-settings';
@@ -15,21 +14,23 @@ import { IUser } from '../interfaces/user';
 import { ISoundMeta } from '../interfaces/sound-meta';
 import { createSoundMeta } from '../utils/SoundMeta';
 import { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
+import { IDatabaseHelper } from '../interfaces/databaseHelper';
 
-export class DatabaseHelper {
-    private client: MongoClient;
+
+export class DatabaseHelper implements IDatabaseHelper {
+    protected client: MongoClient;
     private database!: Db;
-    private readonly migratorHelper: MigratorHelper;
     private readonly version: string;
     private readonly metadataCollectionName = 'metadata';
     private readonly userCollectionName: string = 'users';
     private readonly serverInfoCollectionName: string = 'servers';
     private readonly soundMetaCollectionName: string = 'sounds';
     private readonly logCollectionName: string = 'logs';
+    private readonly databaseName: string;
 
     constructor(config: IEnvironmentVariables) {
         this.version = config.VERSION;
-        this.migratorHelper = new MigratorHelper(this, this.version);
+        this.databaseName = config.DATABASE_NAME;
         this.client = new MongoClient(`mongodb://${config.DATABASE_USER}:${config.DATABASE_PASSWORD}@${config.DATABASE_CONTAINER_NAME}:27017`,
             {
                 retryWrites: true,
@@ -37,33 +38,32 @@ export class DatabaseHelper {
             });
     }
 
-    private get userCollection(): Collection<IUser> {
+    protected get userCollection(): Collection<IUser> {
         return this.database.collection(this.userCollectionName);
     }
 
-    private get soundMetaCollection(): Collection<ISoundMeta> {
+    protected get soundMetaCollection(): Collection<ISoundMeta> {
         return this.database.collection(this.soundMetaCollectionName);
     }
 
-    private get serverInfoCollection(): Collection<IServerSettings> {
+    protected get serverInfoCollection(): Collection<IServerSettings> {
         return this.database.collection(this.serverInfoCollectionName);
     }
 
-    private get logCollection(): Collection<ILog> {
+    protected get logCollection(): Collection<ILog> {
         return this.database.collection(this.logCollectionName);
     }
 
-    private get metadataCollection(): Collection<IDatabaseMetadata> {
+    protected get metadataCollection(): Collection<IDatabaseMetadata> {
         return this.database.collection(this.metadataCollectionName);
     }
 
-    public async run(config: IEnvironmentVariables): Promise<void> {
+    public async run(): Promise<void> {
         await this.client.connect();
-        this.database = this.client.db(config.DATABASE_NAME);
+        this.database = this.client.db(this.databaseName);
         await this.soundMetaCollection.createIndex({'category': 1});
         await this.userCollection.createIndex({'id': 1});
         await this.serverInfoCollection.createIndex({'id': 1});
-        await this.migratorHelper.migrateCheck();
     }
 
     public async getVersion(): Promise<string> {
@@ -291,16 +291,28 @@ export class DatabaseHelper {
     }
 
     public async updateUserRecordVolume(serverId: string, userId: string, volume: number): Promise<void> {
-        await this.serverInfoCollection.updateOne({
+        const result = await this.serverInfoCollection.updateOne({
             id: serverId,
             'userSettings.id': userId
         }, {
             $set: {
-                'userSettings.$.volume': volume
+                'userSettings.$.recordVolume': volume
             }
-        }, {
-            upsert: true
-        })
+        });
+        if (!result.matchedCount) {
+            // update not possible because no user configuration exists. Add it to the database
+
+            await this.serverInfoCollection.updateOne({
+                id: serverId,
+            }, {
+                $addToSet: {
+                    userSettings: {
+                        id: userId,
+                        recordVolume: volume,
+                    }
+                }
+            });
+        }
     }
 
     private mapTime(soundsMeta: { time?: number, _id: ObjectId }[]): void {

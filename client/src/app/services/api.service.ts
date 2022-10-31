@@ -48,7 +48,7 @@ export class ApiService {
   }
 
   public updateUserVolume(serverId: string, userId: string, volume: number): Observable<unknown> {
-    return this.http.post(`voiceRecorder/server/${serverId}/userSettings/user/${userId}`, {
+    return this.http.put(`voiceRecorder/server/${serverId}/userSettings/user/${userId}`, {
       volume
     })
   }

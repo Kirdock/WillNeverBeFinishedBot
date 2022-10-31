@@ -157,7 +157,7 @@ export class RecordVoiceHelper {
         });
     }
 
-    private getUserRecordingStream(stream: Readable, userId: string, userSettings: IServerUserSettings[] | undefined): PassThrough {
+    private getUserRecordingStream(stream: Readable, userId: string, userSettings: IServerUserSettings[]): PassThrough {
         const userSetting = getOrCreateUserVoiceSetting(userSettings, userId);
         const passThroughStream = new PassThrough({allowHalfOpen: false});
 

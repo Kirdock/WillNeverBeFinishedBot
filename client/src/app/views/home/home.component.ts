@@ -32,7 +32,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public searchText = '';
   public settings: IHomeSettings = createHomeSettings();
   public recordingLoading = false;
-  public soundPollingInterval = 30_000;
+  public fileUploadRunning = false;
   private destroyed$: Subject<void> = new Subject<void>();
 
   public get isOwner(): boolean {
@@ -163,11 +163,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   public submitFile(files: FileList | null, serverId: string): void {
-    if (files && this.selectedCategory) {
-      this.dataService.submitFile(files, this.selectedCategory, serverId).subscribe(() => {
-        //maybe show a loading-spinner
-      });
+    if (!files || !this.selectedCategory) {
+      return;
     }
+    this.fileUploadRunning = true;
+    this.dataService.submitFile(files, this.selectedCategory, serverId)
+      .pipe(finalize(() => {
+        this.fileUploadRunning = false;
+      }))
+      .subscribe(() => {
+      });
   }
 
   public setCategoriesVisibility(status: boolean): void {
@@ -252,7 +257,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         fileName = matches[1].replace(/['"]/g, '');
       }
     }
-    console.log(headers, disposition, fileName)
     return fileName;
   }
 

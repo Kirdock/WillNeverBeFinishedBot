@@ -34,6 +34,7 @@
           <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
             <mat-option *ngFor="let category of soundCategories" [value]="category.name" [textContent]="category.name"></mat-option>
           </mat-autocomplete>
+          <span class="pulseLoader" *ngIf="fileUploadRunning"></span>
         </div>
       </div>
 

@@ -301,6 +301,10 @@ export class DiscordBot {
         return status;
     }
 
+    public async isUserAdminInServerOrSuperAdmin(userId: string, serverId: string): Promise<boolean> {
+        return (await this.isUserAdminInServer(userId, serverId)) || this.isSuperAdmin(userId)
+    }
+
     private async isUserAdminInServerThroughId(userId: string, serverId: string): Promise<boolean> {
         const guild = await this.client.guilds.fetch(serverId);
         let result = false;

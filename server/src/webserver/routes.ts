@@ -17,6 +17,7 @@ import { IResponseMessages } from '../interfaces/response-messages';
 import { IUserPayload } from '../interfaces/user-payload';
 import { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
 import { createUserVoiceSetting } from '../utils/User';
+import { sortUsers } from '../utils/sort';
 
 export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelper: DatabaseHelper, authHelper: AuthHelper) {
     const storage = multer.diskStorage({
@@ -177,33 +178,34 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
             }
         });
 
-    router.route('voiceRecorder/server/:serverId/userSettings')
+    router.route('/voiceRecorder/server/:serverId/userSettings')
         .get(async (req: Request, res: Response) => {
             try {
                 const result = getPayload(res);
                 const serverId = req.params.serverId;
-                if (!(await discordBot.isUserAdminInServer(result.id, serverId))) {
+
+                if (!(await discordBot.isUserAdminInServerOrSuperAdmin(result.id, serverId))) {
                     res.statusMessage = getResponseMessage(req, 'NOT_ADMIN');
                     res.status(404).end();
                     return;
                 }
                 const userSettings = await databaseHelper.getUsersRecordVolume(serverId);
-
                 await discordBot.addMissingUsers(userSettings, serverId, createUserVoiceSetting);
                 await discordBot.mapUsernames(userSettings, 'id');
-                res.json(userSettings as IUserVoiceSettings[]);
+
+                res.json(sortUsers(userSettings as IUserVoiceSettings[]));
             } catch (e) {
                 defaultError(e as Error, res, req);
             }
         })
 
-    router.route('voiceRecorder/server/:serverId/userSettings/user/:userId')
-        .get(async (req: Request, res: Response) => {
+    router.route('/voiceRecorder/server/:serverId/userSettings/user/:userId')
+        .put(async (req: Request, res: Response) => {
             try {
                 const result = getPayload(res);
                 const {serverId, userId} = req.params;
                 const volume = +req.body.volume;
-                if (!(await discordBot.isUserAdminInServer(result.id, serverId))) {
+                if (!(await discordBot.isUserAdminInServerOrSuperAdmin(result.id, serverId))) {
                     res.statusMessage = getResponseMessage(req, 'NOT_ADMIN');
                     res.status(404).end();
                     return;
@@ -213,6 +215,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                     return;
                 }
                 await databaseHelper.updateUserRecordVolume(serverId, userId, volume);
+                res.statusMessage = getResponseMessage(req, 'USER_VOLUME_UPDATED');
                 res.status(200).end();
             } catch (e) {
                 defaultError(e as Error, res, req);

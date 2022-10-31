@@ -97,7 +97,7 @@ export class DataService {
     }
     return this.apiService.uploadFile(formData).pipe(
       tap(() => {
-        this.loadSounds(serverId, true);
+        this.loadSounds(serverId);
       })
     );
   }
@@ -106,28 +106,25 @@ export class DataService {
     return this.apiService.playSound(data);
   }
 
-  public loadSounds(serverId: string, time = false) {
-    let fromTime: Date | undefined = undefined;
-    if (time) {
-      fromTime = this._soundFetchTime;
-    }
+  public loadSounds(serverId: string) {
     this._soundFetchTime = new Date();
-    this.apiService.getSounds(serverId, fromTime)
+    this.apiService.getSounds(serverId)
       .subscribe(newSounds => {
-        if (!fromTime || newSounds.length !== 0) {
-          const sounds: ISounds = newSounds.reduce((result: ISounds, sound: ISoundMeta) => {
-            if (!result[sound.category]) {
-              result[sound.category] = [];
-            }
-            result[sound.category].push(sound);
-
-            return result;
-          }, fromTime ? this._sounds.getValue() : {} as ISounds);
-          for (const category in sounds) {
-            sounds[category].sort((soundA, soundB) => soundA.fileName.localeCompare(soundB.fileName));
-          }
-          this._sounds.next(sounds);
+        if (newSounds.length === 0) {
+          return;
         }
+        const sounds: ISounds = newSounds.reduce((result: ISounds, sound: ISoundMeta) => {
+          if (!result[sound.category]) {
+            result[sound.category] = [];
+          }
+          result[sound.category].push(sound);
+
+          return result;
+        }, {} as ISounds);
+        for (const category in sounds) {
+          sounds[category].sort((soundA, soundB) => soundA.fileName.localeCompare(soundB.fileName));
+        }
+        this._sounds.next(sounds);
       });
   }
 

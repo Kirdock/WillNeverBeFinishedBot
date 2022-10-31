@@ -11,7 +11,7 @@ export interface IServerSettings {
     playIntroWhenUnmuted: boolean;
     leaveChannelAfterPlay: boolean;
     recordVoice: boolean;
-    userSettings?: IServerUserSettings[],
+    userSettings: IServerUserSettings[],
     defaultIntro?: string;
     defaultOutro?: string;
 }
