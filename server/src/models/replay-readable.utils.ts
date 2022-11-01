@@ -61,6 +61,9 @@ export function getChunkTimeMs(chunk: Buffer, sampleRate: number, numChannels: n
 
 function getRecordTimeTillEnd(bufArr: IBufferArrayElement[], startTime: number, sampleRate: number, numChannels: number): number {
     let i = 0, time = 0;
+    if (!bufArr[i]?.startTime) {
+        return 0;
+    }
     // go till startTime
     while (bufArr[i].startTime < startTime) {
         ++i;

@@ -126,7 +126,7 @@ export class RecordVoiceHelper {
                 return resolve(false);
             }
             command
-                .on('end', async () => {
+                .on('end', () => {
                     openServers.forEach(server => server.close());
                     resolve(true);
                 })
