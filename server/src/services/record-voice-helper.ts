@@ -114,7 +114,7 @@ export class RecordVoiceHelper {
         const endTimeMs = Date.now();
         const maxRecordTime = endTimeMs - recordDurationMs;
         const startRecordTime = Math.max(minStartTimeMs, maxRecordTime);
-        const recordMethod = (exportType === 'single' ? this.generateMergedRecording : this.generateSplitRecording);
+        const recordMethod = (exportType === 'single' ? this.generateMergedRecording : this.generateSplitRecording).bind(this);
 
         return recordMethod(this.writeStreams[serverId].userStreams, startRecordTime, endTimeMs, serverSettings, writeStream);
     }
