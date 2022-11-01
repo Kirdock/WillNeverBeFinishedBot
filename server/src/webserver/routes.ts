@@ -18,6 +18,7 @@ import { IUserPayload } from '../interfaces/user-payload';
 import { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
 import { createUserVoiceSetting } from '../utils/User';
 import { sortUsers } from '../utils/sort';
+import { getNormalizedDate } from '../utils/date';
 
 export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelper: DatabaseHelper, authHelper: AuthHelper) {
     const storage = multer.diskStorage({
@@ -235,8 +236,8 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 }
                 const serverSettings = await databaseHelper.getServerSettings(serverId);
                 const exportType = req.query.recordType?.toString() as AudioExportType | undefined;
-                const fileName = new Date().toISOString().split('.')[0].replace(/:/g, '-').replace(/T/g, ' ');
-                if (exportType === 'audio') {
+                const fileName = getNormalizedDate();
+                if (exportType === 'single') {
                     res.type('audio/mp3').attachment(`${fileName}.mp3`);
 
                 } else {

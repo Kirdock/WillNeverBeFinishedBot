@@ -21,6 +21,11 @@ interface IUserStreams {
     };
 }
 
+interface ISocketServerConfig {
+    url: string;
+    server: Server;
+}
+
 export class RecordVoiceHelper {
     private readonly maxRecordTimeMs: number; // 10 minutes
     private readonly channelCount = 2;
@@ -94,7 +99,7 @@ export class RecordVoiceHelper {
         delete this.writeStreams[serverId];
     }
 
-    public async getRecordedVoice<T extends Writable>(serverId: Snowflake, exportType: AudioExportType = 'audio', minutes: number = 10, serverSettings: IServerSettings, writeStream: T): Promise<boolean> {
+    public async getRecordedVoice<T extends Writable>(serverId: Snowflake, exportType: AudioExportType = 'single', minutes: number = 10, serverSettings: IServerSettings, writeStream: T): Promise<boolean> {
         if (!this.writeStreams[serverId]) {
             logger.warn(`server with id ${serverId} does not have any streams`, 'Record voice');
             return false;
@@ -109,25 +114,21 @@ export class RecordVoiceHelper {
         const endTimeMs = Date.now();
         const maxRecordTime = endTimeMs - recordDurationMs;
         const startRecordTime = Math.max(minStartTimeMs, maxRecordTime);
+        const recordMethod = (exportType === 'single' ? this.generateMergedRecording : this.generateSplitRecording);
 
-        if (exportType === 'audio') {
-            await this.generateMergedRecording(this.writeStreams[serverId].userStreams, startRecordTime, endTimeMs, serverSettings, writeStream);
-        } else {
-            await this.generateSplitRecording(this.writeStreams[serverId].userStreams, startRecordTime, endTimeMs, serverSettings, writeStream);
-        }
-        return true;
+        return recordMethod(this.writeStreams[serverId].userStreams, startRecordTime, endTimeMs, serverSettings, writeStream);
     }
 
-    private generateMergedRecording(userStreams: IUserStreams, startRecordTime: number, endTime: number, serverSettings: IServerSettings, writeStream: Writable): Promise<void> {
+    private generateMergedRecording(userStreams: IUserStreams, startRecordTime: number, endTime: number, serverSettings: IServerSettings, writeStream: Writable): Promise<boolean> {
         return new Promise((resolve, reject) => {
             const {command, openServers} = this.getFfmpegSpecs(userStreams, startRecordTime, endTime, serverSettings);
             if (!openServers.length) {
-                return resolve();
+                return resolve(false);
             }
             command
                 .on('end', async () => {
                     openServers.forEach(server => server.close());
-                    resolve();
+                    resolve(true);
                 })
                 .on('error', (error) => {
                     openServers.forEach(server => server.close());
@@ -138,9 +139,13 @@ export class RecordVoiceHelper {
         });
     }
 
-    private async generateSplitRecording(userStreams: IUserStreams, startRecordTime: number, endTime: number, serverSettings: IServerSettings, writeStream: Writable): Promise<void> {
+    private async generateSplitRecording(userStreams: IUserStreams, startRecordTime: number, endTime: number, serverSettings: IServerSettings, writeStream: Writable): Promise<boolean> {
         const archive = archiver('zip');
-        for (const userId in userStreams) {
+        const userIds = Object.keys(userStreams);
+        if (!userIds.length) {
+            return false;
+        }
+        for (const userId of userIds) {
             const passThroughStream = this.getUserRecordingStream(userStreams[userId].out.rewind(startRecordTime, endTime), userId, serverSettings.userSettings);
             const {username} = await this.discordBot.getSingleUser(userId)
             archive.append(passThroughStream, {
@@ -150,7 +155,7 @@ export class RecordVoiceHelper {
 
         return new Promise((resolve, reject) => {
             archive
-                .on('end', resolve)
+                .on('end', () => resolve(true))
                 .on('error', reject)
                 .pipe(writeStream);
             archive.finalize();
@@ -162,7 +167,7 @@ export class RecordVoiceHelper {
         const passThroughStream = new PassThrough({allowHalfOpen: false});
 
         ffmpeg(stream)
-            .inputOptions([`-f ${RecordVoiceHelper.PCM_FORMAT}`, `-ar ${this.sampleRate}`, `-ac ${this.channelCount}`])
+            .inputOptions(this.getRecordInputOptions())
             .audioFilters([
                     {
                         filter: 'volume',
@@ -203,7 +208,7 @@ export class RecordVoiceHelper {
 
                 ffmpegOptions = ffmpegOptions
                     .addInput(url)
-                    .inputOptions([`-f ${RecordVoiceHelper.PCM_FORMAT}`, `-ar ${this.sampleRate}`, `-ac ${this.channelCount}`]);
+                    .inputOptions(this.getRecordInputOptions());
 
                 volumeFilter.push({
                     filter: 'volume',
@@ -230,7 +235,11 @@ export class RecordVoiceHelper {
         }
     }
 
-    private serveStream(stream: ReplayReadable, startRecordTime: number, endTimeMs: number): { url: string, server: Server } {
+    private getRecordInputOptions(): string[] {
+        return [`-f ${RecordVoiceHelper.PCM_FORMAT}`, `-ar ${this.sampleRate}`, `-ac ${this.channelCount}`];
+    }
+
+    private serveStream(stream: ReplayReadable, startRecordTime: number, endTimeMs: number): ISocketServerConfig {
         const socketPath = resolve('/tmp/', randomUUID() + '.sock');
         const url = 'unix:' + socketPath;
         const server = net.createServer((socket) => stream.rewind(startRecordTime, endTimeMs).pipe(socket));

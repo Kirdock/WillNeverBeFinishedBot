@@ -1,1 +1,1 @@
-export type AudioExportType = 'audio' | 'mkv';
+export type AudioExportType = 'single' | 'separate';
