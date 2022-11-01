@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:stats": "ng build --stats-json",
+    "show:stats": "webpack-bundle-analyzer ./dist/stats.json"
   },
   "private": true,
   "dependencies": {
@@ -39,6 +41,7 @@
     "karma-coverage": "~2.0.3",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
-    "typescript": "~4.6.4"
+    "typescript": "~4.6.4",
+    "webpack-bundle-analyzer": "^4.7.0"
   }
 }
