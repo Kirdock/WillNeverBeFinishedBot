@@ -6,21 +6,23 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:stats": "ng build --stats-json",
+    "show:stats": "webpack-bundle-analyzer ./dist/stats.json"
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^14.1.3",
-    "@angular/cdk": "^14.1.3",
-    "@angular/common": "^14.1.3",
-    "@angular/compiler": "^14.1.3",
-    "@angular/core": "^14.1.3",
-    "@angular/flex-layout": "14.0.0-beta.40",
-    "@angular/forms": "^14.1.3",
-    "@angular/material": "^14.1.3",
-    "@angular/platform-browser": "^14.1.3",
-    "@angular/platform-browser-dynamic": "^14.1.3",
-    "@angular/router": "^14.1.3",
+    "@angular/animations": "^14.2.8",
+    "@angular/cdk": "^14.2.6",
+    "@angular/common": "^14.2.8",
+    "@angular/compiler": "^14.2.8",
+    "@angular/core": "^14.2.8",
+    "@angular/flex-layout": "14.0.0-beta.41",
+    "@angular/forms": "^14.2.8",
+    "@angular/material": "^14.2.6",
+    "@angular/platform-browser": "^14.2.8",
+    "@angular/platform-browser-dynamic": "^14.2.8",
+    "@angular/router": "^14.2.8",
     "@fortawesome/fontawesome-free": "6.1.2",
     "ngx-toastr": "15.0.0",
     "rxjs": "~6.6.0",
@@ -28,9 +30,9 @@
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^14.1.3",
-    "@angular/cli": "^14.1.3",
-    "@angular/compiler-cli": "^14.1.3",
+    "@angular-devkit/build-angular": "^14.2.7",
+    "@angular/cli": "^14.2.7",
+    "@angular/compiler-cli": "^14.2.8",
     "@types/jasmine": "~3.6.0",
     "@types/node": "16.11.53",
     "jasmine-core": "~3.7.0",
@@ -39,6 +41,7 @@
     "karma-coverage": "~2.0.3",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
-    "typescript": "~4.6.4"
+    "typescript": "~4.6.4",
+    "webpack-bundle-analyzer": "^4.7.0"
   }
 }

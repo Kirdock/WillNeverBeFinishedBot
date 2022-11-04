@@ -7,6 +7,7 @@ import { IEnvironmentVariables } from './interfaces/environment-variables';
 import { startServer } from './webserver/server';
 import { logger } from './services/logHelper';
 import { EnvironmentConfig } from './services/config';
+import { migrateCheck } from './services/migratorHelper';
 
 if (EnvironmentConfig) {
     start(EnvironmentConfig);
@@ -15,7 +16,8 @@ if (EnvironmentConfig) {
 async function start(config: IEnvironmentVariables): Promise<void> {
     try {
         const databaseHelper = new DatabaseHelper(config);
-        await databaseHelper.run(config);
+        await databaseHelper.run();
+        await migrateCheck(config, databaseHelper);
         const discordBot: DiscordBot = new DiscordBot(databaseHelper, config);
         const authHelper = new AuthHelper(databaseHelper, discordBot, config);
         const router = express.Router();

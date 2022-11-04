@@ -9,6 +9,7 @@ export function createServerSettings(serverId: Snowflake): IServerSettings {
         minUser: false,
         playIntroWhenUnmuted: false,
         leaveChannelAfterPlay: false,
+        userSettings: [],
         recordVoice: false,
     }
 }

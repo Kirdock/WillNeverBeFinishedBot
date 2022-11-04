@@ -5,6 +5,7 @@ export const LanguageDictAT: IResponseMessages = {
     DEFAULT_ERROR: 'Wos hostn jetzt gmocht? Der Bot hot sich aufghängt',
     NOT_IN_SERVER: 'Du host auf den Server kan Zugriff!!',
     USER_INTRO_SET: 'Dei Untergong is gsetzt wordn',
+    USER_VOLUME_UPDATED: 'Laustärke ongepasst',
     SOUND_UPLOADED: 'Gratuliere! Du hosts gschofft a Datei hochzulodn :thumbsup:',
     SOUND_DELETED: 'Datei wurde eliminiert',
     SOUND_PLAY_TRIGGERED: 'Sound sollt jetzt obgspült werdn',

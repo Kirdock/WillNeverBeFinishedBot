@@ -8,6 +8,7 @@ export interface IResponseMessages {
     SOUND_DELETED: string;
     SOUND_PLAY_TRIGGERED: string;
     USER_NOT_IN_VOICE_CHANNEL: string;
+    USER_VOLUME_UPDATED: string;
     SOUND_NOT_FOUND: string;
     SOUND_FETCH_FAILED: string;
     SOUND_PLAY_NOT_ALLOWED: string;

@@ -5,6 +5,7 @@ export const LanguageDictEN: IResponseMessages = {
     DEFAULT_ERROR: 'Something went wrong :(',
     NOT_IN_SERVER: "You don't have the permission to access this server",
     USER_INTRO_SET: 'Intro updated',
+    USER_VOLUME_UPDATED: 'Volume updated',
     SOUND_UPLOADED: 'Sound uploaded',
     SOUND_DELETED: 'Sound deleted',
     SOUND_PLAY_TRIGGERED: 'Sound play triggered',

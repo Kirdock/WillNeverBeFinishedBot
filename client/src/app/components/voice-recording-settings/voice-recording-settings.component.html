@@ -1,0 +1,22 @@
+<mat-table [dataSource]="dataSource" *ngIf="selectedServerId$ | async as selectedServerId">
+  <ng-container matColumnDef="username">
+    <mat-header-cell *matHeaderCellDef> User</mat-header-cell>
+    <mat-cell *matCellDef="let row"> {{toUser(row).username}} </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="volume">
+    <mat-header-cell mat-header-cell *matHeaderCellDef> Volume</mat-header-cell>
+    <mat-cell mat-cell *matCellDef="let row">
+      <div *ngIf="toUser(row) as user" fxLayout="row" fxLayoutAlign="start center">
+        <mat-form-field appearance="fill">
+          <mat-label>Lautstärke in Prozent</mat-label>
+          <input matInput type="number" [(ngModel)]="user.recordVolume" step="1" min="0" (change)="updateUserVolume(selectedServerId, user.id,  user.recordVolume)">
+        </mat-form-field>
+        <span class="pulseLoader" *ngIf="updatingUserVolumes[user.id]"></span>
+      </div>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="columns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: columns"></mat-row>
+</mat-table>

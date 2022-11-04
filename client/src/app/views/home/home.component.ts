@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
 import { Observable, Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { filter, finalize, takeUntil } from 'rxjs/operators';
 import { ICategory } from 'src/app/interfaces/Category';
 import { IChannel } from 'src/app/interfaces/Channel';
 import { IServer } from 'src/app/interfaces/IServer';
@@ -31,7 +31,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   public youtubeUrl = '';
   public searchText = '';
   public settings: IHomeSettings = createHomeSettings();
-  public soundPollingInterval = 30_000;
+  public recordingLoading = false;
+  public fileUploadRunning = false;
   private destroyed$: Subject<void> = new Subject<void>();
 
   public get isOwner(): boolean {
@@ -121,8 +122,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  public downloadRecordedVoice(serverId: string, asMKV: boolean): void {
-    this.dataService.downloadRecordedVoice(serverId, asMKV ? 'mkv' : 'audio', this.recordVoiceMinutes).subscribe((response) => {
+  public downloadRecordedVoice(serverId: string, asSeparate: boolean): void {
+    this.recordingLoading = true;
+    this.dataService
+      .downloadRecordedVoice(serverId, asSeparate ? 'separate' : 'single', this.recordVoiceMinutes)
+      .pipe(finalize(() => {
+        this.recordingLoading = false;
+      })).subscribe((response) => {
       if (response.body) {
         this.downloadFileByBlob(response.body, response.headers);
       } else {
@@ -157,11 +163,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   public submitFile(files: FileList | null, serverId: string): void {
-    if (files && this.selectedCategory) {
-      this.dataService.submitFile(files, this.selectedCategory, serverId).subscribe(() => {
-        //maybe show a loading-spinner
-      });
+    if (!files || !this.selectedCategory) {
+      return;
     }
+    this.fileUploadRunning = true;
+    this.dataService.submitFile(files, this.selectedCategory, serverId)
+      .pipe(finalize(() => {
+        this.fileUploadRunning = false;
+      }))
+      .subscribe(() => {
+      });
   }
 
   public setCategoriesVisibility(status: boolean): void {

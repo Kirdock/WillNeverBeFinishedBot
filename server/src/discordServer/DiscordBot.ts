@@ -301,6 +301,10 @@ export class DiscordBot {
         return status;
     }
 
+    public async isUserAdminInServerOrSuperAdmin(userId: string, serverId: string): Promise<boolean> {
+        return (await this.isUserAdminInServer(userId, serverId)) || this.isSuperAdmin(userId)
+    }
+
     private async isUserAdminInServerThroughId(userId: string, serverId: string): Promise<boolean> {
         const guild = await this.client.guilds.fetch(serverId);
         let result = false;
@@ -391,7 +395,30 @@ export class DiscordBot {
         for (const userObject of array) {
             userObject.username = (await this.getSingleUser(userObject[key]))?.username;
         }
-        return true;
+    }
+
+    /**
+     * The given user array is extended by the missing users (users not in the database but in the server).
+     * @param users
+     * @param serverId
+     * @param defaultValuesFunc
+     */
+    public async addMissingUsers<T extends Record<U, unknown> & { id: string }, U extends keyof T>(users: T[], serverId: string, defaultValuesFunc: (userId: string) => T): Promise<void> {
+        const discordUsers = await this.getUsers(serverId);
+        const userDict: Record<string, number | undefined> = users.reduce((dict, user, index) => {
+            dict[user.id] = index;
+            return dict;
+        }, {} as Record<string, number | undefined>);
+
+
+        for (const discordUser of discordUsers) {
+            if (userDict[discordUser.id] !== undefined) {
+                continue;
+            }
+
+            userDict[discordUser.id] = users.length;
+            users.push(defaultValuesFunc(discordUser.id));
+        }
     }
 
     private async setMessageContextMenu(): Promise<void> {

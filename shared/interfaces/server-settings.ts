@@ -1,3 +1,8 @@
+export interface IServerUserSettings {
+    id: string;
+    recordVolume: number
+}
+
 export interface IServerSettings {
     id: string;
     playIntro: boolean;
@@ -6,6 +11,7 @@ export interface IServerSettings {
     playIntroWhenUnmuted: boolean;
     leaveChannelAfterPlay: boolean;
     recordVoice: boolean;
+    userSettings: IServerUserSettings[],
     defaultIntro?: string;
     defaultOutro?: string;
 }

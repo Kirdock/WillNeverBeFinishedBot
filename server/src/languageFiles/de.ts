@@ -5,6 +5,7 @@ export const LanguageDictDE: IResponseMessages = {
     DEFAULT_ERROR: 'Auch nur ein Deutscher schafft es den Bot zum Absturz zu bringen',
     NOT_IN_SERVER: 'Du kommst hier nicht rein',
     USER_INTRO_SET: 'Auch du hast nun ein Intro',
+    USER_VOLUME_UPDATED: 'Laustärke wurde angepasst',
     SOUND_UPLOADED: 'Hätte mir nicht erwartet, dass du es schaffst etwas hochzuladen. gz',
     SOUND_DELETED: 'Danke dass du deinen Scheiß wieder löschst',
     SOUND_PLAY_TRIGGERED: 'Wird jetzt vielleicht abgespielt, wenn ich Lust dazu habe',

@@ -10,13 +10,12 @@ export namespace FileHelper {
     export const baseDir: string = join(rootDir, 'server', 'shared');
     export const soundFolder: string = join(baseDir, 'sounds');
     export const certFolder: string = join(baseDir, 'cert');
-    export const recordingsDir = join(baseDir, 'recordings');
     export const workFolder: string = join(soundFolder, 'work');
 
     checkAndCreateFolderSystem();
 
     function checkAndCreateFolderSystem() {
-        for (const folder of [baseDir, soundFolder, workFolder, recordingsDir]) {
+        for (const folder of [baseDir, soundFolder, workFolder]) {
             checkAndCreateFolder(folder);
         }
     }
