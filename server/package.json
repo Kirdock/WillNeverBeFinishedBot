@@ -20,7 +20,7 @@
   "homepage": "https://github.com/Kirdock/WillNeverBeFinishedBot#readme",
   "dependencies": {
     "@discordjs/opus": "^0.8.0",
-    "@discordjs/voice": "0.11.0",
+    "@discordjs/voice": "0.13.0",
     "archiver": "^5.3.1",
     "axios": "0.27.2",
     "bufferutil": "4.0.6",
