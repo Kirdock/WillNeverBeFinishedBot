@@ -34,6 +34,7 @@ export class DiscordBot {
                 GatewayIntentBits.GuildMembers,
                 GatewayIntentBits.GuildIntegrations,
                 GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.MessageContent
             ],
         });
         const admins = [...config.OWNERS.split(','), this.client.application?.owner?.id].map(owner => owner?.trim());
