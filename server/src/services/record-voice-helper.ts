@@ -1,4 +1,4 @@
-import { AudioReceiveStream, EndBehaviorType, SpeakingMap, VoiceConnection } from '@discordjs/voice';
+import { AudioReceiveStream, EndBehaviorType, VoiceConnection } from '@discordjs/voice';
 import { Snowflake } from 'discord.js';
 import ffmpeg, { FfmpegCommand } from 'fluent-ffmpeg';
 import { resolve } from 'path';
@@ -50,25 +50,7 @@ export class RecordVoiceHelper {
             return;
         }
         const listener = (userId: string) => {
-            const recordStream = this.getRecordStreamOfUser(serverId, userId);
-            const opusStream = connection.receiver.subscribe(userId, {
-                end: {
-                    behavior: EndBehaviorType.AfterSilence,
-                    duration: SpeakingMap.DELAY,
-                },
-            });
-
-            recordStream.startTimeOfNextChunk = connection.receiver.speaking.users.get(userId);
-            opusStream.on('error', (error: Error) => {
-                logger.error(error, `Error while recording voice for user ${userId} in server: ${serverId}`);
-            });
-
-            opusStream.pipe(recordStream, {end: false});
-
-            this.writeStreams[serverId].userStreams[userId] = {
-                source: opusStream,
-                out: recordStream
-            };
+            this.writeStreams[serverId].userStreams[userId] = this.getRecordStreamOfUser(serverId, userId, connection);
         }
         this.writeStreams[serverId] = {
             userStreams: {},
@@ -77,13 +59,33 @@ export class RecordVoiceHelper {
         connection.receiver.speaking.on('start', listener);
     }
 
-    private getRecordStreamOfUser(serverId: string, userId: string): ReplayReadable {
-        let recordStream = this.writeStreams[serverId].userStreams[userId]?.out;
-
-        return recordStream || new ReplayReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, {
+    private getRecordStreamOfUser(serverId: string, userId: string, connection: VoiceConnection): {out: ReplayReadable, source: AudioReceiveStream} {
+        const streams:  {source: AudioReceiveStream, out: ReplayReadable} | undefined = this.writeStreams[serverId].userStreams[userId];
+        if(streams) {
+            return streams;
+        }
+        const recordStream = new ReplayReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, connection, userId, {
             highWaterMark: this.maxUserRecordingLength,
             length: this.maxUserRecordingLength
         });
+        const opusStream = connection.receiver.subscribe(userId, {
+            end: {
+                behavior: EndBehaviorType.AfterSilence,
+                duration: this.maxRecordTimeMs,
+            },
+        });
+
+        opusStream.on('error', (error: Error) => {
+            logger.error(error, `Error while recording voice for user ${userId} in server: ${serverId}`);
+        });
+
+        opusStream.on('end', () => {
+            this.stopUserRecording(serverId, userId);
+        });
+
+        opusStream.pipe(recordStream, {end: false});
+
+        return { out: recordStream, source: opusStream };
     }
 
     public stopRecording(connection: VoiceConnection): void {
@@ -92,11 +94,17 @@ export class RecordVoiceHelper {
         connection.receiver.speaking.removeListener('start', serverStreams.listener);
 
         for (const userId in serverStreams.userStreams) {
-            const userStream = serverStreams.userStreams[userId];
-            userStream.source.destroy();
-            userStream.out.destroy();
+            this.stopUserRecording(serverId, userId);
         }
         delete this.writeStreams[serverId];
+    }
+
+    private stopUserRecording(serverId: string, userId: string): void {
+        const serverStreams = this.writeStreams[serverId];
+        const userStream = serverStreams.userStreams[userId];
+        userStream.source.destroy();
+        userStream.out.destroy();
+        delete serverStreams.userStreams[userId];
     }
 
     public async getRecordedVoice<T extends Writable>(serverId: Snowflake, exportType: AudioExportType = 'single', minutes: number = 10, serverSettings: IServerSettings, writeStream: T): Promise<boolean> {
