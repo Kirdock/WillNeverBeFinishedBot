@@ -50,7 +50,12 @@ export class RecordVoiceHelper {
             return;
         }
         const listener = (userId: string) => {
-            this.writeStreams[serverId].userStreams[userId] = this.getRecordStreamOfUser(serverId, userId, connection);
+            const streams:  {source: AudioReceiveStream, out: ReplayReadable} | undefined = this.writeStreams[serverId].userStreams[userId];
+            if(streams) {
+                // already listening
+                return;
+            }
+            this.startRecordStreamOfUser(serverId, userId, connection);
         }
         this.writeStreams[serverId] = {
             userStreams: {},
@@ -59,11 +64,7 @@ export class RecordVoiceHelper {
         connection.receiver.speaking.on('start', listener);
     }
 
-    private getRecordStreamOfUser(serverId: string, userId: string, connection: VoiceConnection): {out: ReplayReadable, source: AudioReceiveStream} {
-        const streams:  {source: AudioReceiveStream, out: ReplayReadable} | undefined = this.writeStreams[serverId].userStreams[userId];
-        if(streams) {
-            return streams;
-        }
+    private startRecordStreamOfUser(serverId: string, userId: string, connection: VoiceConnection): void {
         const recordStream = new ReplayReadable(this.maxRecordTimeMs, this.sampleRate, this.channelCount, connection, userId, {
             highWaterMark: this.maxUserRecordingLength,
             length: this.maxUserRecordingLength
@@ -85,7 +86,7 @@ export class RecordVoiceHelper {
 
         opusStream.pipe(recordStream, {end: false});
 
-        return { out: recordStream, source: opusStream };
+        this.writeStreams[serverId].userStreams[userId] = { out: recordStream, source: opusStream };
     }
 
     public stopRecording(connection: VoiceConnection): void {
