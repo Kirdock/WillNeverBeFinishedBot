@@ -57,6 +57,14 @@ export class VoiceHelper {
                         this.recordHelper.startRecording(conn);
                     }
 
+                    // temporary solution for region bug
+                    // https://github.com/discordjs/discord.js/issues/9185
+                    conn.on('stateChange', (oldState, newState)=> {
+                        if (oldState.status === VoiceConnectionStatus.Ready && newState.status === VoiceConnectionStatus.Connecting) {
+                            conn.configureNetworking();
+                        }
+                    });
+
                     conn.on('error', reason => {
                         logger.error(reason, {serverId, clientId});
                         conn.disconnect();
