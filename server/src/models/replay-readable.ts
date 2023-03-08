@@ -2,6 +2,7 @@ import { OpusEncoder } from '@discordjs/opus';
 import { Readable, Writable, WritableOptions } from 'stream';
 import { ChunkArrayItem, IBufferArrayElement, IEncodingOptions } from '../interfaces/replay-readable';
 import { getChunkTimeMs, getLastStopTime, secondsToBuffer, syncStream } from './replay-readable.utils';
+import { VoiceConnection } from '@discordjs/voice';
 import Timeout = NodeJS.Timeout;
 
 type ReadWriteOptions = { length?: number } & WritableOptions;
@@ -23,9 +24,10 @@ export class ReplayReadable extends Writable {
      * @param lifeTimeMs max record time in milliseconds. Older chunks get deleted
      * @param sampleRate
      * @param numChannels
+     * @param voiceConnection
      * @param options
      */
-    constructor(lifeTimeMs: number, sampleRate: number, numChannels: number, options?: ReadWriteOptions) {
+    constructor(lifeTimeMs: number, sampleRate: number, numChannels: number, private voiceConnection: VoiceConnection, private userId: string, options?: ReadWriteOptions) {
         const adjustedOptions = Object.assign({
             length: 1048576, // 2^20 = 1 MB
             highWaterMark: 32,
@@ -73,12 +75,17 @@ export class ReplayReadable extends Writable {
     public _write(chunk: Buffer, encoding: BufferEncoding, callback: (error?: Error | null) => void) {
         // encoding is 'buffer'... whatever...
 
-        const isCorrectStartTime = !!this.startTimeOfNextChunk;
+        const userStartedSpeaking =  this.voiceConnection.receiver.speaking.users.get(this.userId);
+        const userJustBeganSpeaking = userStartedSpeaking !== this._startTimeOfChunkBefore;
+        if(userJustBeganSpeaking) {
+            this.startTimeOfNextChunk = userStartedSpeaking;
+        }
+
         // start time of the user in the speaking map is probably the real start time and not the time the chunk is received. So it's probably not startTime - chunkTime
         const addTime = this.getStartTimeOfNextChunk();
 
         chunk = this.decodeChunk(chunk); // always 1280 bytes; 40 ms or 20 ms
-        const startTimeOfNewChunk = isCorrectStartTime ? addTime : getLastStopTime(this._bufArr) as number; // there must be an element because isCorrectStartTime is true before it starts recording
+        const startTimeOfNewChunk = userJustBeganSpeaking ? addTime : getLastStopTime(this._bufArr) as number; // there must be an element because isCorrectStartTime is true before it starts recording
 
         this._bufArr.push({
             chunk,

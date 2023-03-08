@@ -57,6 +57,17 @@ export class VoiceHelper {
                         this.recordHelper.startRecording(conn);
                     }
 
+                    // temporary solution for region bug
+                    // https://github.com/discordjs/discord.js/issues/9185
+                    const networkStateChangeHandler = (oldNetworkState: any, newNetworkState: any) => {
+                        const newUdp = Reflect.get(newNetworkState, 'udp');
+                        clearInterval(newUdp?.keepAliveInterval);
+                    }
+                    conn.on('stateChange', (oldState, newState) => {
+                        Reflect.get(oldState, 'networking')?.off('stateChange', networkStateChangeHandler);
+                        Reflect.get(newState, 'networking')?.on('stateChange', networkStateChangeHandler);
+                    });
+
                     conn.on('error', reason => {
                         logger.error(reason, {serverId, clientId});
                         conn.disconnect();

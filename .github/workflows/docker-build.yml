@@ -100,7 +100,6 @@ jobs:
           tags: |
             striessnigk/willneverbefinishedbot:latest-dev
             striessnigk/willneverbefinishedbot:${{ env.VERSION }}
-            striessnigk/willneverbefinishedbot:${{ env.VERSION }}.${{ env.DATETIME }}
           build-args: |
             version=${{ env.VERSION }}
             logLevel=info
