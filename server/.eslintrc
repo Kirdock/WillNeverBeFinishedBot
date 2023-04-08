@@ -25,6 +25,8 @@
                 "keyword-spacing": "error",
                 "comma-spacing": "error",
                 "space-before-blocks": "error",
+                "curly": "error",
+                "arrow-parens": "error",
                 "@typescript-eslint/no-unnecessary-condition": "error",
                 "@typescript-eslint/await-thenable": "error",
                 "@typescript-eslint/consistent-type-imports": "error",

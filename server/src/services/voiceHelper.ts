@@ -38,7 +38,7 @@ class VoiceHelper {
                     recordHelper.startRecording(conn);
                 }
 
-                conn.on('error', reason => {
+                conn.on('error', (reason) => {
                     logger.error(reason, { serverId, clientId });
                     conn.disconnect();
                 });

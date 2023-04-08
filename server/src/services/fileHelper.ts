@@ -94,7 +94,7 @@ class FileHelper {
 
     public async normalizeFiles(files: Express.Multer.File[]): Promise<void> {
         for (const file of files) {
-            await new Promise(resolve => {
+            await new Promise((resolve) => {
                 const newFileName = this.getFileName(file.filename) + '.mp3';
                 const tempPath = join(this.workFolder, newFileName);
                 ffmpeg(file.path)

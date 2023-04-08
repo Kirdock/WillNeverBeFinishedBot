@@ -18,7 +18,7 @@ let commands: Command[] = [];
 
 export async function readApplicationCommands(): Promise<void> {
     const commandsRead: Command[] = [];
-    const commandFiles = readdirSync(commandsPath).filter((file) => supportedExtensions.some(extension => extname(file) === extension));
+    const commandFiles = readdirSync(commandsPath).filter((file) => supportedExtensions.some((extension) => extname(file) === extension));
     for (const file of commandFiles) {
         const command: Command = (await import(join(commandsPath, file))).default;
         commandsRead.push(command);
@@ -132,7 +132,7 @@ export function handleInteractionError(error: unknown): string {
 }
 
 function normalizeChoices(choices: APIApplicationCommandOptionChoice[]): APIApplicationCommandOptionChoice[] {
-    return choices.map<APIApplicationCommandOptionChoice>(choice => (
+    return choices.map<APIApplicationCommandOptionChoice>((choice) => (
         {
             value: typeof choice.value === 'string' ? choice.value.substring(0, APPLICATION_COMMAND_CHOICE_VALUE) : choice.value,
             name: choice.name.substring(0, APPLICATION_COMMAND_CHOICE_NAME),

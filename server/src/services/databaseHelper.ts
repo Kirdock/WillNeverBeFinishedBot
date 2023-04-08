@@ -153,7 +153,7 @@ export class DatabaseHelper {
     public async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta[]> {
         const preparedFiles: Express.Multer.File[] = fileHelper.getFiles(files);
         await fileHelper.normalizeFiles(preparedFiles);
-        const soundsMeta: ISoundMeta[] = preparedFiles.map(file => createSoundMeta(file.path, fileHelper.getFileName(file.originalname), category, userId, serverId));
+        const soundsMeta: ISoundMeta[] = preparedFiles.map((file) => createSoundMeta(file.path, fileHelper.getFileName(file.originalname), category, userId, serverId));
         void this.logSoundUpload(soundsMeta);
         await this.soundMetaCollection.insertMany(soundsMeta);
         this.mapTime(soundsMeta);
@@ -230,7 +230,7 @@ export class DatabaseHelper {
             }).toArray();
 
         for (const userId of users) {
-            if (!userInfos.some(u => u.id === userId)) {
+            if (!userInfos.some((u) => u.id === userId)) {
                 const newUser = createUser(userId);
                 usersWithoutInfo.push(newUser);
             }
@@ -248,7 +248,7 @@ export class DatabaseHelper {
     }
 
     private async logSoundUpload(soundMetas: ISoundMeta[]): Promise<InsertManyResult<Document>> {
-        const logs = soundMetas.map(meta => createLog(meta.serverId, meta.userId, 'Sound Upload', { fileName: meta.fileName, id: meta._id }));
+        const logs = soundMetas.map((meta) => createLog(meta.serverId, meta.userId, 'Sound Upload', { fileName: meta.fileName, id: meta._id }));
         return this.logCollection.insertMany(logs);
     }
 

@@ -1,18 +1,6 @@
 import axios from 'axios';
-import type {
-    Guild,
-    GuildMember,
-    Snowflake,
-    User,
-    VoiceChannel
-} from 'discord.js';
-import {
-    ApplicationCommandType,
-    ChannelType,
-    Client,
-    GatewayIntentBits,
-    PermissionFlagsBits
-} from 'discord.js';
+import type { Guild, GuildMember, Snowflake, User, VoiceChannel } from 'discord.js';
+import { ApplicationCommandType, ChannelType, Client, GatewayIntentBits, PermissionFlagsBits } from 'discord.js';
 import type { IUserObject } from '../interfaces/UserObject';
 import type { IUserServerInformation } from '../interfaces/IUserServerInformation';
 import { databaseHelper } from '../services/databaseHelper';
@@ -57,7 +45,7 @@ export class DiscordBot {
             await this.setMessageContextMenu();
             await setupApplicationCommands(this.client);
 
-            const admins = [...EnvironmentConfig.OWNERS.split(','), this.client.application.owner?.id].map(owner => owner?.trim());
+            const admins = [...EnvironmentConfig.OWNERS.split(','), this.client.application.owner?.id].map((owner) => owner?.trim());
             this.superAdmins = admins.filter((owner: string | undefined, index: number): owner is string => !!owner && admins.indexOf(owner) === index);
         });
         await this.client.login(EnvironmentConfig.CLIENT_TOKEN);
@@ -185,7 +173,7 @@ export class DiscordBot {
         const guild = await this.getServer(serverId);
         return guild.channels.cache.filter((channel): channel is VoiceChannel => channel.type === ChannelType.GuildVoice)
             .sort((channel1, channel2) => channel1.rawPosition - channel2.rawPosition)
-            .map(item => {
+            .map((item) => {
                 return {
                     id: item.id,
                     name: item.name
@@ -295,7 +283,9 @@ export class DiscordBot {
             }
         }
         this.client.on('interactionCreate', async (interaction) => {
-            if (!interaction.isMessageContextMenuCommand()) return;
+            if (!interaction.isMessageContextMenuCommand()) {
+                return;
+            }
             if (interaction.commandName === openSteamCommandName) {
                 const steamLink = this.buildSteamLinkOutOfMessage(interaction.targetMessage.content);
                 await interaction.reply({

@@ -6,13 +6,13 @@ const command: Command = {
     data: new SlashCommandBuilder()
         .setName('bubble')
         .setDescription('Generate a bubble wrap')
-        .addIntegerOption(option =>
+        .addIntegerOption((option) =>
             option
                 .setName('rows')
                 .setDescription('How many rows your bubble wrap should have')
                 .setRequired(true)
         )
-        .addIntegerOption(option =>
+        .addIntegerOption((option) =>
             option
                 .setName('columns')
                 .setDescription('How many columns your bubble wrap should have')

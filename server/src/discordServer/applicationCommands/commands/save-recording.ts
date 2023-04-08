@@ -17,7 +17,7 @@ const command: Command = {
     data: new SlashCommandBuilder()
         .setName('save')
         .setDescription('Save the last x (up to 10) minutes')
-        .addIntegerOption(option =>
+        .addIntegerOption((option) =>
             option
                 .setName('minutes')
                 .setDescription('How many minutes should be saved')

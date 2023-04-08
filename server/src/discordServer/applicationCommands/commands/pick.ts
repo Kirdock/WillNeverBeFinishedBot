@@ -5,7 +5,7 @@ const command: Command = {
     data: new SlashCommandBuilder()
         .setName('pick')
         .setDescription('Picks a random choice')
-        .addStringOption(option =>
+        .addStringOption((option) =>
             option
                 .setName('choices')
                 .setDescription('Choices separated by ","')
@@ -14,7 +14,7 @@ const command: Command = {
     async execute(interaction) {
         const choices = interaction.options.getString('choices', true);
 
-        const elements = choices.split(',').map(item => item.trim()).filter(item => item.length !== 0);
+        const elements = choices.split(',').map((item) => item.trim()).filter((item) => item.length !== 0);
         if (elements.length === 0) {
             return 'Choices can\'t be empty!';
         }

@@ -273,7 +273,7 @@ export function registerRoutes(router: rs) {
                 const soundMetas = await databaseHelper.getSoundsMeta([req.params.serverId], +(req.query.fromTime as string));
                 try {
                     await discordBot.mapUsernames(soundMetas, 'userId');
-                    const result = soundMetas.map(meta => {
+                    const result = soundMetas.map((meta) => {
                         const { path, ...data } = meta;
                         return data;
                     });
@@ -481,7 +481,7 @@ export function registerRoutes(router: rs) {
                 } else {
                     users = await discordBot.getUsersWhereIsAdmin(result.id, serverId);
                 }
-                const userInfo = await databaseHelper.getUsersInfo(users.map(user => user.id), serverId);
+                const userInfo = await databaseHelper.getUsersInfo(users.map((user) => user.id), serverId);
                 await discordBot.mapUsernames(userInfo, 'id');
                 res.status(200).json(userInfo);
             } catch (e) {
