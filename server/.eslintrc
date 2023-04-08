@@ -21,6 +21,7 @@
             "rules": {
                 "quotes": ["error", "single"],
                 "indent": ["error", 4],
+                "semi": "error",
                 "object-curly-spacing":  ["error", "always"],
                 "keyword-spacing": "error",
                 "comma-spacing": "error",

@@ -1,8 +1,9 @@
 import type { Command } from '../../../interfaces/command';
-import { SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
 import { getInteractionMetadata } from '../applicationManager';
 
 const command: Command = {
+    type: ApplicationCommandType.ChatInput,
     data: new SlashCommandBuilder()
         .setName('bubble')
         .setDescription('Generate a bubble wrap')

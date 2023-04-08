@@ -1,5 +1,5 @@
 import type { AutocompleteInteraction } from 'discord.js';
-import { SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
 import { databaseHelper } from '../../../services/databaseHelper';
 import type { Command } from '../../../interfaces/command';
 import { getInteractionMetadata } from '../applicationManager';
@@ -11,6 +11,7 @@ const userNotInVoiceChannelMessage = 'Du bist in kan Voice Channel!!';
 
 
 const playCommand: Command = {
+    type: ApplicationCommandType.ChatInput,
     data: new SlashCommandBuilder()
         .setName('play')
         .setDescription('Plays a file in the voice channel you are in')

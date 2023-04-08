@@ -3,7 +3,7 @@ import { registerApplicationCommands } from '../applicationCommands/applicationM
 import type { DiscordBot } from '../DiscordBot';
 import { scopedLogger } from '../../services/logHelper';
 
-const logger = scopedLogger('ON_MESSAGE_CREATE')
+const logger = scopedLogger('ON_MESSAGE_CREATE');
 
 export default function onMessageCreate(discordBot: DiscordBot): void {
     const clientMention = `<@${discordBot.client.user.id}>`;
@@ -18,9 +18,8 @@ export default function onMessageCreate(discordBot: DiscordBot): void {
             return;
         }
         if (await discordBot.isUserAdminInServer(message.member.id, message.guildId)) {
-            void message.channel.sendTyping();
             try {
-                await registerApplicationCommands(discordBot.client);
+                await registerApplicationCommands(discordBot.client, message);
                 await message.reply('Done!');
             } catch (e) {
                 logger.error(e, 'Failed to register slash commands');
@@ -31,5 +30,5 @@ export default function onMessageCreate(discordBot: DiscordBot): void {
         } else {
             await message.reply('Insufficient permission!');
         }
-    })
+    });
 }

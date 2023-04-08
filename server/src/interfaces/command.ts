@@ -1,11 +1,15 @@
 import type {
     APIApplicationCommandOptionChoice,
+    ApplicationCommandType,
     AutocompleteInteraction,
+    BaseMessageOptions,
     ChatInputCommandInteraction,
+    ContextMenuCommandBuilder,
+    MessageContextMenuCommandInteraction,
     RESTPostAPIChatInputApplicationCommandsJSONBody,
+    RESTPostAPIContextMenuApplicationCommandsJSONBody,
     SlashCommandBuilder
 } from 'discord.js';
-import type { BaseMessageOptions } from 'discord.js';
 
 export interface InteractionEphemeralResponse {
     content: string;
@@ -17,8 +21,19 @@ export interface InteractionFileResponse {
     ephemeral: false;
 }
 
-export interface Command {
+export type InteractionExecuteResponse = Promise<string | InteractionEphemeralResponse | InteractionFileResponse>;
+
+export interface ChatCommand {
     data:  RESTPostAPIChatInputApplicationCommandsJSONBody | SlashCommandBuilder;
-    execute: (interaction: ChatInputCommandInteraction) => Promise<string | InteractionEphemeralResponse | InteractionFileResponse>;
+    execute: (interaction: ChatInputCommandInteraction) => InteractionExecuteResponse;
     autocomplete?: (interaction: AutocompleteInteraction) => Promise<APIApplicationCommandOptionChoice[]>;
+    type: ApplicationCommandType.ChatInput,
 }
+
+export interface MessageCommand {
+    data: RESTPostAPIContextMenuApplicationCommandsJSONBody | ContextMenuCommandBuilder;
+    execute: (interaction: MessageContextMenuCommandInteraction) => InteractionExecuteResponse;
+    type: ApplicationCommandType.Message
+}
+
+export type Command = ChatCommand | MessageCommand;

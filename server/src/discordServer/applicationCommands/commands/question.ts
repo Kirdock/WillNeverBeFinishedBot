@@ -1,9 +1,10 @@
 import type { Command } from '../../../interfaces/command';
-import { SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
 
 const answers: string[] = ['Na', 'Jo', 'Frag doch einfach nochmal'];
 
 const command: Command = {
+    type: ApplicationCommandType.ChatInput,
     data: new SlashCommandBuilder()
         .setName('question')
         .setDescription('Ask the something and get a response')

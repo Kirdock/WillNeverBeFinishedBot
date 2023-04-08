@@ -1,7 +1,7 @@
 import { recordHelper } from '../../../services/recordHelper';
 import type { Command } from '../../../interfaces/command';
 import type { APIApplicationCommandOptionChoice } from 'discord.js';
-import { SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
 import type { AudioExportType } from '@kirdock/discordjs-voice-recorder';
 import { databaseHelper } from '../../../services/databaseHelper';
 import { mapUserSettingsToDict } from '../../../utils/convertion.utils';
@@ -14,6 +14,7 @@ const choices: Choices[] = [
 ];
 
 const command: Command = {
+    type: ApplicationCommandType.ChatInput,
     data: new SlashCommandBuilder()
         .setName('save')
         .setDescription('Save the last x (up to 10) minutes')

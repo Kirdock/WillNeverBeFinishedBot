@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { Guild, GuildMember, Snowflake, User, VoiceChannel } from 'discord.js';
-import { ApplicationCommandType, ChannelType, Client, GatewayIntentBits, PermissionFlagsBits } from 'discord.js';
+import { ChannelType, Client, Events, GatewayIntentBits, PermissionFlagsBits } from 'discord.js';
 import type { IUserObject } from '../interfaces/UserObject';
 import type { IUserServerInformation } from '../interfaces/IUserServerInformation';
 import { databaseHelper } from '../services/databaseHelper';
@@ -15,7 +15,7 @@ import onVoiceStateUpdate from './events/onVoiceStateUpdate';
 const logger = scopedLogger('BOT');
 
 export class DiscordBot {
-    public readonly client: Client<true>
+    public readonly client: Client<true>;
     private superAdmins: string[] = [];
     public readonly hostUrl: string;
 
@@ -38,16 +38,19 @@ export class DiscordBot {
     }
 
     public async run(): Promise<void> {
-        this.client.on('ready', async () => {
+        this.client.on(Events.ClientReady, async () => {
             console.log(`Logged in as ${this.client.user.tag}!`);
             await onVoiceStateUpdate(this.client);
             onMessageCreate(this);
-            await this.setMessageContextMenu();
             await setupApplicationCommands(this.client);
 
             const admins = [...EnvironmentConfig.OWNERS.split(','), this.client.application.owner?.id].map((owner) => owner?.trim());
             this.superAdmins = admins.filter((owner: string | undefined, index: number): owner is string => !!owner && admins.indexOf(owner) === index);
         });
+        this.client.on(Events.Error, (error)=> {
+            logger.error(error, { context: 'ClientError' });
+        });
+
         await this.client.login(EnvironmentConfig.CLIENT_TOKEN);
     }
 
@@ -157,7 +160,7 @@ export class DiscordBot {
     }
 
     public async isUserAdminInServerOrSuperAdmin(userId: string, serverId: string): Promise<boolean> {
-        return (await this.isUserAdminInServer(userId, serverId)) || this.isSuperAdmin(userId)
+        return (await this.isUserAdminInServer(userId, serverId)) || this.isSuperAdmin(userId);
     }
 
     private async isUserAdminInServerThroughId(userId: string, serverId: string): Promise<boolean> {
@@ -177,7 +180,7 @@ export class DiscordBot {
                 return {
                     id: item.id,
                     name: item.name
-                }
+                };
             });
     }
 
@@ -264,45 +267,6 @@ export class DiscordBot {
             userDict[discordUser.id] = users.length;
             users.push(defaultValuesFunc(discordUser.id));
         }
-    }
-
-    private async setMessageContextMenu(): Promise<void> {
-        // TODO: instead of clearing save all interaction IDs and the name
-        //  validate if the ID exists and the name is the same. Additionally delete commands that are not found
-        const openSteamCommandName = 'Gib Steam Link';
-
-        for (const guild of this.client.guilds.cache.values()) {
-            try {
-                await this.client.application.commands.create({
-                    type: ApplicationCommandType.Message,
-                    name: openSteamCommandName,
-                    default_permission: true,
-                }, guild.id);
-            } catch (e) {
-                logger.error(e as Error, `Can't create slash-command for guild ${guild.id}`);
-            }
-        }
-        this.client.on('interactionCreate', async (interaction) => {
-            if (!interaction.isMessageContextMenuCommand()) {
-                return;
-            }
-            if (interaction.commandName === openSteamCommandName) {
-                const steamLink = this.buildSteamLinkOutOfMessage(interaction.targetMessage.content);
-                await interaction.reply({
-                    content: steamLink || 'Hob kan Steam Link gfundn!',
-                    ephemeral: true
-                });
-            }
-        });
-    }
-
-    private buildSteamLinkOutOfMessage(content: string): string | undefined {
-        const urlRegex = /(https:\/\/store\.steampowered\.com\/[^\s]+)/g;
-        let url = content.match(urlRegex)?.[0];
-        if (url) {
-            url = `steam://openurl/${url}`;
-        }
-        return url;
     }
 }
 

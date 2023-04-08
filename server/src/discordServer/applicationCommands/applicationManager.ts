@@ -1,29 +1,44 @@
-import type { ChatInputCommandInteraction, Client, Guild, InteractionReplyOptions, APIApplicationCommandOptionChoice } from 'discord.js';
-import { Events, GuildMember } from 'discord.js';
+import type {
+    APIApplicationCommandOptionChoice,
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    Client,
+    Guild,
+    InteractionReplyOptions,
+    MessageContextMenuCommandInteraction
+    , Message } from 'discord.js';
+import { ApplicationCommandType, Events, GuildMember } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
 import { scopedLogger } from '../../services/logHelper';
 import { InteractionError } from '../../utils/InteractionError';
-import type { Command } from '../../interfaces/command';
+import type { ChatCommand, Command, InteractionExecuteResponse, MessageCommand } from '../../interfaces/command';
 import {
     APPLICATION_COMMAND_CHOICE_NAME,
     APPLICATION_COMMAND_CHOICE_VALUE,
     APPLICATION_COMMAND_MAX_CHOICES
 } from '../limits';
 
-const logger = scopedLogger('APPLICATION_COMMANDS')
+const logger = scopedLogger('APPLICATION_COMMANDS');
 const commandsPath = join(__dirname, './commands');
 const supportedExtensions: string[] = ['.js', '.ts'];
-let commands: Command[] = [];
+let chatCommands: ChatCommand[] = [];
+let messageCommands: MessageCommand[] = [];
+
 
 export async function readApplicationCommands(): Promise<void> {
-    const commandsRead: Command[] = [];
+    chatCommands = [];
+    messageCommands = [];
+
     const commandFiles = readdirSync(commandsPath).filter((file) => supportedExtensions.some((extension) => extname(file) === extension));
     for (const file of commandFiles) {
         const command: Command = (await import(join(commandsPath, file))).default;
-        commandsRead.push(command);
+        if (command.type === ApplicationCommandType.ChatInput) {
+            chatCommands.push(command);
+        } else {
+            messageCommands.push(command);
+        }
     }
-    commands = commandsRead;
 }
 
 export async function unregisterApplicationCommands(client: Client<true>): Promise<void> {
@@ -45,42 +60,77 @@ export async function unregisterApplicationCommands(client: Client<true>): Promi
  */
 export async function setupApplicationCommands(client: Client<true>): Promise<void> {
     client.on(Events.InteractionCreate, async (interaction) => {
-        if (!interaction.isAutocomplete() && !interaction.isChatInputCommand()) {
-            return;
-        }
-        const command = commands.find((command) => command.data.name === interaction.commandName);
-        if (!command) {
-            logger.error(`No command matching ${interaction.commandName} was found.`);
+        if (!interaction.isAutocomplete() && !interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) {
             return;
         }
 
-        if (interaction.isAutocomplete()) {
-            if (!command.autocomplete) {
-                return;
-            }
-
-            const choices = await command.autocomplete(interaction);
-
-            const normalizedChoices = normalizeChoices(choices);
-            await interaction.respond(normalizedChoices);
+        if (interaction.isMessageContextMenuCommand()) {
+            await handleMessageCommand(interaction);
             return;
         }
 
-        const reply = await getReply(interaction, command);
-
-        interaction.reply(reply);
+        await handleChatInputCommand(interaction);
     });
 }
 
-/**
- *
- * @param interaction
- * @param command
- * @throws never
- */
-async function getReply(interaction: ChatInputCommandInteraction, command: Command): Promise<InteractionReplyOptions> {
+export async function registerApplicationCommands(client: Client<true>, message: Message): Promise<void> {
+    for (const command of chatCommands) {
+        void message.channel.sendTyping();
+        await client.application.commands.create(command.data);
+    }
+}
+
+function normalizeChoices(choices: APIApplicationCommandOptionChoice[]): APIApplicationCommandOptionChoice[] {
+    return choices.map<APIApplicationCommandOptionChoice>((choice) => (
+        {
+            value: typeof choice.value === 'string' ? choice.value.substring(0, APPLICATION_COMMAND_CHOICE_VALUE) : choice.value,
+            name: choice.name.substring(0, APPLICATION_COMMAND_CHOICE_NAME),
+        }
+    )).slice(0, APPLICATION_COMMAND_MAX_CHOICES);
+}
+
+async function handleMessageCommand(interaction: MessageContextMenuCommandInteraction): Promise<void> {
+    const command = messageCommands.find((command) => command.data.name === interaction.commandName);
+    if (!command) {
+        logger.error(`No command matching message command ${interaction.commandName} was found.`);
+        return;
+    }
+    await handleReply(command.execute(interaction), interaction);
+}
+
+async function handleChatInputCommand(interaction: AutocompleteInteraction | ChatInputCommandInteraction): Promise<void> {
+    const command = chatCommands.find((command) => command.data.name === interaction.commandName);
+
+    if (!command) {
+        logger.error(`No command matching chat command ${interaction.commandName} was found.`);
+        return;
+    }
+
+    if (interaction.isAutocomplete()) {
+
+        if (!command.autocomplete) {
+            return;
+        }
+
+        const choices = await command.autocomplete(interaction);
+
+        const normalizedChoices = normalizeChoices(choices);
+        await interaction.respond(normalizedChoices);
+        return;
+    }
+
+    await handleReply(command.execute(interaction), interaction);
+}
+
+async function handleReply(replyResponse: InteractionExecuteResponse, interaction:  ChatInputCommandInteraction | MessageContextMenuCommandInteraction) {
+    const reply = await getReply(replyResponse, interaction.commandName);
+
+    await interaction.reply(reply);
+}
+
+async function getReply(reply: InteractionExecuteResponse, interactionName: string): Promise<InteractionReplyOptions> {
     try {
-        const interactionReply = await command.execute(interaction);
+        const interactionReply = await reply;
         if (typeof interactionReply === 'string') {
             return {
                 content: interactionReply,
@@ -90,17 +140,11 @@ async function getReply(interaction: ChatInputCommandInteraction, command: Comma
             return interactionReply;
         }
     } catch (error) {
-        logger.error(error, `Error executing ${interaction.commandName}`);
+        logger.error(error, `Error executing ${interactionName}`);
         return {
             content: handleInteractionError(error),
             ephemeral: true,
         };
-    }
-}
-
-export async function registerApplicationCommands(client: Client<true>): Promise<void> {
-    for (const command of commands) {
-        await client.application.commands.create(command.data);
     }
 }
 
@@ -129,13 +173,4 @@ export function handleInteractionError(error: unknown): string {
         return error.message;
     }
     return 'Unknown error happened!';
-}
-
-function normalizeChoices(choices: APIApplicationCommandOptionChoice[]): APIApplicationCommandOptionChoice[] {
-    return choices.map<APIApplicationCommandOptionChoice>((choice) => (
-        {
-            value: typeof choice.value === 'string' ? choice.value.substring(0, APPLICATION_COMMAND_CHOICE_VALUE) : choice.value,
-            name: choice.name.substring(0, APPLICATION_COMMAND_CHOICE_NAME),
-        }
-    )).slice(0, APPLICATION_COMMAND_MAX_CHOICES);
 }

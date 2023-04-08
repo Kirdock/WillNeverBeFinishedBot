@@ -1,8 +1,9 @@
 import { registerApplicationCommands, unregisterApplicationCommands } from '../applicationManager';
-import { SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
 import type { Command } from '../../../interfaces/command';
 
 const command: Command =  {
+    type: ApplicationCommandType.ChatInput,
     data: new SlashCommandBuilder()
         .setName('re-register')
         .setDescription('Command for re-registering slash commands')
