@@ -21,7 +21,7 @@ export const enCommandLanguage: CommandLanguageFile = {
     //endregion
 
     //region GENERATE_STEAM_LINK
-    [CommandLangKey.GENERATE_STEAM_LINK_NAME]: 'open_in_steam',
+    [CommandLangKey.GENERATE_STEAM_LINK_NAME]: 'Open in Steam',
     //endregion
 
     //region JOIN

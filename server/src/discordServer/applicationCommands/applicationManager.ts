@@ -64,7 +64,7 @@ export async function setupApplicationCommands(client: Client<true>): Promise<vo
 }
 
 export async function registerApplicationCommands(client: Client<true>, guildId: string, message?: Message): Promise<void> {
-    for (const command of chatCommands) {
+    for (const command of [...chatCommands, ...messageCommands]) {
         void message?.channel.sendTyping();
         await client.application.commands.create(command.data, guildId);
     }

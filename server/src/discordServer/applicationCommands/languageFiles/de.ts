@@ -21,7 +21,7 @@ export const deCommandLanguage: CommandLanguageFile = {
     //endregion
 
     //region GENERATE_STEAM_LINK
-    [CommandLangKey.GENERATE_STEAM_LINK_NAME]: 'in_steam_öffnen',
+    [CommandLangKey.GENERATE_STEAM_LINK_NAME]: 'In Steam öffnen',
     //endregion
 
     //region JOIN
@@ -113,7 +113,7 @@ export const deCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.ERRORS_INVALID_GUILD]: 'Ungültige Server ID!',
     [CommandLangKey.ERRORS_INVALID_AUDIO_CONTENT_TYPE]: 'Bist zbled um a Audiodatei auszuwöhln oda wos?',
     [CommandLangKey.ERRORS_INSUFFICIENT_PERMISSIONS]: 'Du host kane Rechte!',
-    [CommandLangKey.ERRORS_NO_STEAM_URL]: 'Fia mi is des ka Steam Link!',
+    [CommandLangKey.ERRORS_NO_STEAM_URL]: 'I sig do kan Steam Link!',
     [CommandLangKey.ERRORS_INVALID_DATA]: 'Ungültige Angabe!',
     [CommandLangKey.ERRORS_NOT_IN_VOICE_CHANNEL]: 'Du bist nicht in einem Sprachkanal!',
     [CommandLangKey.ERRORS_FILE_NOT_FOUND]: 'De Datei gibts nit du Volltrottl!',
