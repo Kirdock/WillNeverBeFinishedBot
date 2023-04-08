@@ -10,6 +10,6 @@ const command: Command = {
             ephemeral: false,
         };
     }
-}
+};
 
 export default command;

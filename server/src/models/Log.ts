@@ -10,5 +10,5 @@ export function createLog(serverId: Snowflake, userId: Snowflake, action: string
         userId,
         action,
         file,
-    }
+    };
 }

@@ -5,8 +5,9 @@ import type {
     Client,
     Guild,
     InteractionReplyOptions,
+    Message,
     MessageContextMenuCommandInteraction
-    , Message } from 'discord.js';
+} from 'discord.js';
 import { ApplicationCommandType, Events, GuildMember } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
@@ -73,9 +74,9 @@ export async function setupApplicationCommands(client: Client<true>): Promise<vo
     });
 }
 
-export async function registerApplicationCommands(client: Client<true>, message: Message): Promise<void> {
+export async function registerApplicationCommands(client: Client<true>, message?: Message): Promise<void> {
     for (const command of chatCommands) {
-        void message.channel.sendTyping();
+        void message?.channel.sendTyping();
         await client.application.commands.create(command.data);
     }
 }

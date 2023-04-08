@@ -39,8 +39,8 @@ const command: Command = {
         return {
             content: stringBuilder.join(''),
             ephemeral: false,
-        }
+        };
     }
-}
+};
 
 export default command;

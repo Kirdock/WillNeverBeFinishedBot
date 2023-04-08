@@ -10,16 +10,16 @@ export function createUser(id: string): IUser {
         _id: new ObjectId(),
         id,
         intros: {},
-    }
+    };
 }
 
 export function createUserVoiceSetting(id: string): IUserVoiceSettingsWithoutUsername {
     return {
         id,
         recordVolume: 100,
-    }
+    };
 }
 
 export function getOrCreateUserVoiceSetting(userSettings: IServerUserSettings[], userId: string): IUserVoiceSettingsWithoutUsername {
-    return userSettings.find((userSetting) => userSetting.id === userId) ?? createUserVoiceSetting(userId)
+    return userSettings.find((userSetting) => userSetting.id === userId) ?? createUserVoiceSetting(userId);
 }

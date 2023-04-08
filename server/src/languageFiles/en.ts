@@ -20,4 +20,4 @@ export const LanguageDictEN: IResponseMessages = {
     LOGIN_SUCCESSFUL: ' Successfully logged in',
     SOUND_DELETE_ERROR: 'Sound could not be deleted',
     SOUND_PLAY_NOT_ALLOWED: 'You are not allowed to play the desired sound',
-}
+};

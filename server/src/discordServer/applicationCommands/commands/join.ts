@@ -11,6 +11,6 @@ const command: Command = {
         await voiceHelper.joinVoiceChannelThroughMember(member, guild);
         return 'joined';
     }
-}
+};
 
 export default command;

@@ -10,5 +10,5 @@ export function createSoundMeta(path: string, fileName: string, category: string
         userId,
         serverId,
         category
-    }
+    };
 }

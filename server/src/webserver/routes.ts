@@ -29,10 +29,10 @@ const logger = scopedLogger('API');
 export function registerRoutes(router: rs) {
     const storage = multer.diskStorage({
         destination: (_req, _file, cb) => {
-            cb(null, fileHelper.soundFolder)
+            cb(null, fileHelper.soundFolder);
         },
         filename: (_req, file, cb) => {
-            cb(null, `${uuidv4()}${extname(file.originalname)}`)
+            cb(null, `${uuidv4()}${extname(file.originalname)}`);
         }
     });
     const upload = multer({ storage });
@@ -59,11 +59,11 @@ export function registerRoutes(router: rs) {
                 isSuperAdmin: discordBot.isSuperAdmin(result.id),
                 username: result.username,
                 // adminServers: discordBot.getAdminServerIds()
-            })
+            });
         } catch (e) {
             defaultError(e as Error, res, req);
         }
-    })
+    });
 
     router.route('/logs/:serverId')
         .get(async (req, res) => {
@@ -123,7 +123,7 @@ export function registerRoutes(router: rs) {
         .get(async (req, res) => {
             try {
                 const result = getPayload(res);
-                const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId)
+                const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId);
                 if (!valid) {
                     notAdmin(res, req);
                     return;
@@ -157,8 +157,8 @@ export function registerRoutes(router: rs) {
                         if (message === ErrorTypes.PLAY_NOT_ALLOWED) {
                             return 'SOUND_PLAY_NOT_ALLOWED';
                         }
-                        return 'DEFAULT_ERROR'
-                    }
+                        return 'DEFAULT_ERROR';
+                    };
                     res.statusMessage = getResponseMessage(req, errorToResponseMessageKey(message));
                     res.status(500).end();
                 }
@@ -203,7 +203,7 @@ export function registerRoutes(router: rs) {
             } catch (e) {
                 defaultError(e as Error, res, req);
             }
-        })
+        });
 
     router.route('/voiceRecorder/server/:serverId/userSettings/user/:userId')
         .put(async (req: Request, res: Response) => {
@@ -226,7 +226,7 @@ export function registerRoutes(router: rs) {
             } catch (e) {
                 defaultError(e as Error, res, req);
             }
-        })
+        });
 
     router.route('/recordVoice/:serverId')
         .get(async (req: Request, res: Response) => {
@@ -259,7 +259,7 @@ export function registerRoutes(router: rs) {
             } catch (e) {
                 defaultError(e as Error, res, req);
             }
-        })
+        });
 
     router.route('/sounds/:serverId')
         .get(async (req, res) => {

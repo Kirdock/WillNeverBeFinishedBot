@@ -17,6 +17,6 @@ const command: Command = {
         }
         return 'Insufficient permission!';
     }
-}
+};
 
 export default command;

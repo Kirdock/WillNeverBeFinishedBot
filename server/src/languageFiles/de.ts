@@ -20,4 +20,4 @@ export const LanguageDictDE: IResponseMessages = {
     LOGIN_SUCCESSFUL: 'Login erfolgreich! Du hast nun alle deine Menschenrechte verloren',
     SOUND_DELETE_ERROR: 'Der Sound kann nicht gelöscht werden und bleibt im österreichischem Besitz',
     SOUND_PLAY_NOT_ALLOWED: 'Du hast hier keine Rechte (um das abzuspielen)',
-}
+};

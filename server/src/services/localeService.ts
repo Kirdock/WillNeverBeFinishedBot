@@ -15,7 +15,7 @@ const ResponseMessageDict: Record<ESupportedLanguages, IResponseMessages> = {
     [ESupportedLanguages.AT]: LanguageDictAT,
     [ESupportedLanguages.DE]: LanguageDictDE,
     [ESupportedLanguages.EN]: LanguageDictEN,
-}
+};
 
 export function getResponseMessage(req: Request, key: keyof IResponseMessages) {
     const foundLangCode = req.acceptsLanguages().find((langCode): langCode is ESupportedLanguages => langCode in ResponseMessageDict);

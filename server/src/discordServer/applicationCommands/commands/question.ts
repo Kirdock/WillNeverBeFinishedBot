@@ -16,6 +16,6 @@ const command: Command = {
     async execute() {
         return answers[Math.floor(Math.random() * answers.length)];
     }
-}
+};
 
 export default command;

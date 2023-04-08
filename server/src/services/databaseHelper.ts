@@ -197,7 +197,7 @@ export class DatabaseHelper {
     public async getSoundsMetaByName(name: string, limit?: number): Promise<ISoundMeta[]> {
         let cursor = this.soundMetaCollection.find({ fileName: { $regex: name, $options: 'i' } });
         if (limit) {
-            cursor = cursor.limit(limit)
+            cursor = cursor.limit(limit);
         }
         return cursor.toArray();
     }

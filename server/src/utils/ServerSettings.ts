@@ -11,5 +11,5 @@ export function createServerSettings(serverId: Snowflake): IServerSettings {
         leaveChannelAfterPlay: false,
         userSettings: [],
         recordVoice: false,
-    }
+    };
 }

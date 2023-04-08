@@ -8,7 +8,7 @@ const requiredEnvironmentVariableKeys: { [key in keyof IRequiredEnvironmentVaria
     DATABASE_USER: true,
     DATABASE_PASSWORD: true,
     WEBTOKEN_SECRET: true,
-}
+};
 
 export interface IRequiredEnvironmentVariables {
     CLIENT_TOKEN: string;

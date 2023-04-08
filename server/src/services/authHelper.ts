@@ -10,7 +10,7 @@ import { scopedLogger } from './logHelper';
 import { EnvironmentConfig } from './config';
 import { fileHelper } from './fileHelper';
 
-const logger = scopedLogger('AUTH')
+const logger = scopedLogger('AUTH');
 
 class AuthHelper {
     private readonly secret: string;

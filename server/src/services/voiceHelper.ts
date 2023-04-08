@@ -63,7 +63,7 @@ class VoiceHelper {
                 });
             }
         } else {
-            connection = await this.joinVoiceChannelById(serverId, channelId)
+            connection = await this.joinVoiceChannelById(serverId, channelId);
         }
         return connection;
     }

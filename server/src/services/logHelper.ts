@@ -41,7 +41,7 @@ const Logger: LoggerMethods = {
             console.error(formatLog(LogLevel.ERROR, scope, message, additionalInfo));
         }
     }
-}
+};
 
 function isValidValue(level?: string): level is keyof typeof LogLevel {
     return !!level && logKeys.includes(level);
@@ -64,7 +64,7 @@ function stringify(message: unknown) {
 
 export function scopedLogger(scope: LogScopes): ScopedLogger {
     return Object.keys(Logger).reduce<Partial<ScopedLogger>>((logger, key)=> {
-        logger[key as LogKeys] = (...params: Tail<Parameters<LogFunction>>) => Logger[key as LogKeys](scope, ...params)
+        logger[key as LogKeys] = (...params: Tail<Parameters<LogFunction>>) => Logger[key as LogKeys](scope, ...params);
         return logger;
     }, {}) as ScopedLogger;
 }

@@ -20,4 +20,4 @@ export const LanguageDictAT: IResponseMessages = {
     LOGIN_SUCCESSFUL: 'Bist jetzt eingloggt. Bei Risiken und Nebenwirkungen, fragen sie ihren Arzt oder Apotheker',
     SOUND_DELETE_ERROR: 'I konn den Sound nit löschn. I-wos hob i verkackt',
     SOUND_PLAY_NOT_ALLOWED: 'Du host kane Rechte um des obzuspüln',
-}
+};

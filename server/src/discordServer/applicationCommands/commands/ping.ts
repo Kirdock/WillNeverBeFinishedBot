@@ -7,6 +7,6 @@ const command: Command = {
     async execute() {
         return 'pong';
     }
-}
+};
 
 export default command;

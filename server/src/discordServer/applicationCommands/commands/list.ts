@@ -8,6 +8,6 @@ const command: Command = {
     async execute() {
         return discordBot.hostUrl;
     }
-}
+};
 
 export default command;

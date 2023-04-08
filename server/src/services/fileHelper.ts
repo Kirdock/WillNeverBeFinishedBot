@@ -5,7 +5,7 @@ import { rename, unlink } from 'fs/promises';
 import { EnvironmentConfig } from './config';
 import { scopedLogger } from './logHelper';
 
-const logger = scopedLogger('FILE_SYSTEM')
+const logger = scopedLogger('FILE_SYSTEM');
 
 class FileHelper {
     public readonly rootDir: string = EnvironmentConfig.ROOT_DIR || join(__dirname, '/../../../');
@@ -76,7 +76,7 @@ class FileHelper {
         if (fileArray instanceof Array) {
             files = fileArray as Express.Multer.File[];
         } else {
-            fileArray = fileArray as { [fieldname: string]: Express.Multer.File[]; }
+            fileArray = fileArray as { [fieldname: string]: Express.Multer.File[]; };
             for (const key in fileArray) {
                 files.push(...fileArray[key]);
             }

@@ -50,6 +50,6 @@ const playCommand: Command = {
             }
         ));
     }
-}
+};
 
 export default playCommand;
