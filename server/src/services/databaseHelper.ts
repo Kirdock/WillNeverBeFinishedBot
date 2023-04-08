@@ -13,10 +13,7 @@ import type {
     UpdateFilter,
     UpdateResult
 } from 'mongodb';
-import {
-    MongoClient,
-    ObjectId
-} from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import { createUser } from '../utils/User';
 import { ErrorTypes } from './ErrorTypes';
 import type { IDatabaseMetadata } from '../interfaces/database-metadata';
@@ -195,6 +192,10 @@ export class DatabaseHelper {
             this.mapTime([ISoundMeta]);
         }
         return ISoundMeta ?? undefined;
+    }
+
+    async getSoundsMetaByName(name: string): Promise<ISoundMeta[]> {
+        return await this.soundMetaCollection.find({ fileName: { $regex: name, $options: 'i' } }).toArray();
     }
 
     async getSoundCategories(): Promise<string[]> {

@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction, Client, Guild, InteractionReplyOptions , TextBasedChannel } from 'discord.js';
+import type { ChatInputCommandInteraction, Client, Guild, InteractionReplyOptions, TextBasedChannel } from 'discord.js';
 import { Events, GuildMember } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
@@ -36,14 +36,22 @@ export async function unregisterApplicationCommands(client: Client<true>): Promi
  */
 export async function setupApplicationCommands(client: Client<true>): Promise<void> {
     client.on(Events.InteractionCreate, async (interaction) => {
-        if (!interaction.isChatInputCommand()) {
+        if (!interaction.isAutocomplete() && !interaction.isChatInputCommand()) {
+            return;
+        }
+        const command = commands.find((command) => command.data.name === interaction.commandName);
+        if (!command) {
+            logger.error(`No command matching ${interaction.commandName} was found.`);
             return;
         }
 
-        const command = commands.find((command) => command.data.name === interaction.commandName);
+        if (interaction.isAutocomplete()) {
+            if (!command.autocomplete) {
+                return;
+            }
 
-        if (!command) {
-            logger.error(`No command matching ${interaction.commandName} was found.`);
+            const choices = await command.autocomplete(interaction);
+            await interaction.respond(choices);
             return;
         }
 

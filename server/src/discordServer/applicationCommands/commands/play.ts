@@ -1,3 +1,4 @@
+import type { AutocompleteInteraction } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
 import { databaseHelper } from '../../../services/databaseHelper';
 import type { Command } from '../../../interfaces/command';
@@ -17,6 +18,7 @@ const playCommand: Command = {
                 .setName('file')
                 .setDescription('Choose the file you want to be played')
                 .setRequired(true)
+                .setAutocomplete(true)
         ).toJSON(),
 
     async execute(interaction) {
@@ -35,6 +37,11 @@ const playCommand: Command = {
         await playSound(guild.id, member.voice.channelId, meta.path);
 
         return 'Successfully requested!';
+    },
+    async autocomplete(interaction: AutocompleteInteraction) {
+        const value = interaction.options.getFocused();
+        const sounds = await databaseHelper.getSoundsMetaByName(value);
+        return sounds.map(sound => ({ value: sound.fileName, name: sound.fileName }));
     }
 }
 
