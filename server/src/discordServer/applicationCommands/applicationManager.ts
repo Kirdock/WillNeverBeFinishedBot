@@ -23,8 +23,12 @@ export async function readApplicationCommands(): Promise<void> {
 
 export async function unregisterApplicationCommands(client: Client<true>): Promise<void> {
     const currentCommands = await client.application.commands.fetch();
-    for (const [commandId] of currentCommands) {
-        await client.application.commands.delete(commandId);
+    for (const [commandId, command] of currentCommands) {
+        try {
+            await client.application.commands.delete(commandId);
+        } catch (error) {
+            logger.error(error, { message: 'error while deleting the application command', commandName: command.name });
+        }
     }
 }
 
