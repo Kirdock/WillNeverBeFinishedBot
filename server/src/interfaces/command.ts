@@ -21,7 +21,7 @@ export interface InteractionFileResponse {
     ephemeral: false;
 }
 
-export type InteractionExecuteResponse = Promise<string | InteractionEphemeralResponse | InteractionFileResponse>;
+export type InteractionExecuteResponse = Promise<string | InteractionEphemeralResponse | InteractionFileResponse | void>;
 
 export interface ChatCommand {
     data:  RESTPostAPIChatInputApplicationCommandsJSONBody | SlashCommandBuilder;

@@ -1,17 +1,29 @@
 import type { Command } from '../../../interfaces/command';
-import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType, PermissionsBitField, SlashCommandBuilder } from 'discord.js';
 import { unregisterApplicationCommands } from '../applicationManager';
+import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../commandLang';
+import { CommandLangKey } from '../types/lang.types';
 
 
 const command: Command =  {
     type: ApplicationCommandType.ChatInput,
     data: new SlashCommandBuilder()
-        .setName('unregister')
-        .setDescription('Command for unregistering slash commands')
+        .setName(getDefaultCommandLang(CommandLangKey.UNREGISTER_NAME))
+        .setNameLocalizations(getCommandLang(CommandLangKey.UNREGISTER_NAME))
+        .setDescription(getDefaultCommandLang(CommandLangKey.UNREGISTER_DESCRIPTION))
+        .setDescriptionLocalizations(getCommandLang(CommandLangKey.UNREGISTER_DESCRIPTION))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
         .toJSON(),
     async execute(interaction) {
-        await unregisterApplicationCommands(interaction.client);
-        return 'unregistered';
+        if (!interaction.guildId) {
+            return getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_GUILD);
+        }
+
+        await interaction.reply({
+            content:getCommandLangKey(interaction, CommandLangKey.TRYING_MY_BEST),
+            ephemeral: true,
+        });
+        await unregisterApplicationCommands(interaction.client, interaction.guildId);
     },
 };
 export default command;

@@ -4,18 +4,25 @@ import { getInteractionMetadata } from '../applicationManager';
 import { hasPlayLock } from '../../../services/musicPlayer';
 import { voiceHelper } from '../../../services/voiceHelper';
 import { discordBot } from '../../DiscordBot';
+import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../commandLang';
+import { CommandLangKey } from '../types/lang.types';
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: new SlashCommandBuilder().setName('leave').setDescription('Bot leaves the voice channel').toJSON(),
+    data: new SlashCommandBuilder()
+        .setName(getDefaultCommandLang(CommandLangKey.LEAVE_NAME))
+        .setNameLocalizations(getCommandLang(CommandLangKey.LEAVE_NAME))
+        .setDescription(getDefaultCommandLang(CommandLangKey.LEAVE_DESCRIPTION))
+        .setDescriptionLocalizations(getCommandLang(CommandLangKey.LEAVE_DESCRIPTION))
+        .toJSON(),
     async execute(interaction) {
         const { member, guild } = await getInteractionMetadata(interaction);
 
         if (!hasPlayLock(guild.id) || await discordBot.isUserAdminInServer(member.id, guild.id)) {
             voiceHelper.disconnectVoice(guild.id);
-            return 'disconnected';
+            return getCommandLangKey(interaction, CommandLangKey.SUCCESS);
         }
-        return 'Insufficient permission!';
+        return getCommandLangKey(interaction, CommandLangKey.ERRORS_INSUFFICIENT_PERMISSIONS);
     },
 };
 

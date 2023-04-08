@@ -1,6 +1,7 @@
 import { deCommandLanguage } from './languageFiles/de';
 import { enCommandLanguage } from './languageFiles/en';
-import type { ChatInputCommandInteraction, MessageContextMenuCommandInteraction } from 'discord.js';
+import type { Interaction } from 'discord.js';
+import type { LocaleString } from 'discord.js';
 import type { CommandLangKey, CommandLanguageFile, SupportedLang } from './types/lang.types';
 
 export const commandLang: Record<SupportedLang, CommandLanguageFile> = {
@@ -9,8 +10,9 @@ export const commandLang: Record<SupportedLang, CommandLanguageFile> = {
 };
 
 
-export function getCommandLangKey(interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction, key: CommandLangKey): string {
-    const locale = interaction.locale in commandLang ? interaction.locale as SupportedLang : 'en';
+export function getCommandLangKey(interaction: Interaction | LocaleString, key: CommandLangKey): string {
+    const localeKey = typeof interaction === 'string' ? interaction : interaction.locale;
+    const locale = localeKey in commandLang ? localeKey as SupportedLang : 'en';
     return commandLang[locale][key];
 }
 

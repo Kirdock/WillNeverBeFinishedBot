@@ -23,18 +23,24 @@ const command: Command = {
         .addAttachmentOption((option) =>
             option
                 .setName(attachmentName)
+                .setNameLocalizations(getCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_NAME))
                 .setDescription(getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_DESCRIPTION))
+                .setDescriptionLocalizations(getCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_DESCRIPTION))
                 .setRequired(true)
         ).addStringOption((option) =>
             option
                 .setName(categoryName)
+                .setNameLocalizations(getCommandLang(CommandLangKey.UPLOAD_FILE_CATEGORY_NAME))
                 .setDescription(getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_CATEGORY_DESCRIPTION))
+                .setDescriptionLocalizations(getCommandLang(CommandLangKey.UPLOAD_FILE_CATEGORY_DESCRIPTION))
                 .setRequired(true)
                 .setAutocomplete(true)
         ).addStringOption((option) =>
             option
                 .setName(fileNameOptionName)
+                .setNameLocalizations(getCommandLang(CommandLangKey.UPLOAD_FILE_FILE_NAME_NAME))
                 .setDescription(getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_FILE_NAME_DESCRIPTION))
+                .setDescriptionLocalizations(getCommandLang(CommandLangKey.UPLOAD_FILE_FILE_NAME_DESCRIPTION))
         )
         .toJSON(),
     async execute(interaction) {

@@ -42,17 +42,6 @@ export async function readApplicationCommands(): Promise<void> {
     }
 }
 
-export async function unregisterApplicationCommands(client: Client<true>): Promise<void> {
-    const currentCommands = await client.application.commands.fetch();
-    for (const [commandId, command] of currentCommands) {
-        try {
-            await client.application.commands.delete(commandId);
-        } catch (error) {
-            logger.error(error, { message: 'error while deleting the application command', commandName: command.name });
-        }
-    }
-}
-
 // DOC because Discord.js is unable to use JSDoc
 /**
  * CHAT_INPUT    1    Slash commands; a text-based command that shows up when a user types /
@@ -74,10 +63,21 @@ export async function setupApplicationCommands(client: Client<true>): Promise<vo
     });
 }
 
-export async function registerApplicationCommands(client: Client<true>, message?: Message): Promise<void> {
+export async function registerApplicationCommands(client: Client<true>, guildId: string, message?: Message): Promise<void> {
     for (const command of chatCommands) {
         void message?.channel.sendTyping();
-        await client.application.commands.create(command.data);
+        await client.application.commands.create(command.data, guildId);
+    }
+}
+
+export async function unregisterApplicationCommands(client: Client<true>, guildId: string): Promise<void> {
+    const currentCommands = await client.application.commands.fetch({ guildId });
+    for (const [, command] of currentCommands) {
+        try {
+            await client.application.commands.delete(command.id, command.guildId ?? undefined);
+        } catch (error) {
+            logger.error(error, { message: 'error while deleting the application command', commandName: command.name });
+        }
     }
 }
 
@@ -124,11 +124,19 @@ async function handleChatInputCommand(interaction: AutocompleteInteraction | Cha
 
 async function handleReply(replyResponse: InteractionExecuteResponse, interaction:  ChatInputCommandInteraction | MessageContextMenuCommandInteraction) {
     const reply = await getReply(replyResponse, interaction.commandName);
+    if (!reply) {
+        // reply is handled by command
+        return;
+    }
 
-    await interaction.reply(reply);
+    try {
+        await interaction.reply(reply);
+    } catch {
+        //TODO: handle interaction timeout (3 sec)
+    }
 }
 
-async function getReply(reply: InteractionExecuteResponse, interactionName: string): Promise<InteractionReplyOptions> {
+async function getReply(reply: InteractionExecuteResponse, interactionName: string): Promise<InteractionReplyOptions | void> {
     try {
         const interactionReply = await reply;
         if (typeof interactionReply === 'string') {

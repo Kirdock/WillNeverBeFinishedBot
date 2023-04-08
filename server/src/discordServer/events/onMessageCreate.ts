@@ -19,7 +19,7 @@ export default function onMessageCreate(discordBot: DiscordBot): void {
         }
         if (await discordBot.isUserAdminInServer(message.member.id, message.guildId)) {
             try {
-                await registerApplicationCommands(discordBot.client, message);
+                await registerApplicationCommands(discordBot.client, message.guildId, message);
                 await message.reply('Done!');
             } catch (e) {
                 logger.error(e, 'Failed to register slash commands');

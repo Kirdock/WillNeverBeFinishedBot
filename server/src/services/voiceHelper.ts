@@ -1,4 +1,4 @@
-import type { Guild, GuildMember, Snowflake } from 'discord.js';
+import type { Guild, GuildMember, Locale, LocaleString, Snowflake } from 'discord.js';
 import { VoiceChannel } from 'discord.js';
 import { ErrorTypes } from './ErrorTypes';
 import type { VoiceConnection } from '@discordjs/voice';
@@ -8,6 +8,8 @@ import { scopedLogger } from './logHelper';
 import { discordBot } from '../discordServer/DiscordBot';
 import { InteractionError } from '../utils/InteractionError';
 import { recordHelper } from './recordHelper';
+import { getCommandLangKey } from '../discordServer/applicationCommands/commandLang';
+import { CommandLangKey } from '../discordServer/applicationCommands/types/lang.types';
 
 const logger = scopedLogger('VOICE');
 
@@ -91,9 +93,10 @@ class VoiceHelper {
         }
     }
 
-    public async joinVoiceChannelThroughMember(member: GuildMember, guild: Guild) {
+    public async joinVoiceChannelThroughMember(member: GuildMember, guild: Guild, locale?: LocaleString) {
         if (!member.voice.channelId) {
-            throw new InteractionError(`Member ${member.user.username} is not in a voice channel!`);
+            const message = locale ? getCommandLangKey(locale, CommandLangKey.ERRORS_NOT_IN_VOICE_CHANNEL) : `Member ${member.user.username} is not in a voice channel!`;
+            throw new InteractionError(message);
         }
         await this.joinVoiceChannelById(guild.id, member.voice.channelId);
     }

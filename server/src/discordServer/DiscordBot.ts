@@ -146,6 +146,12 @@ export class DiscordBot {
         return users;
     }
 
+    /**
+     *
+     * @param userId
+     * @param serverId
+     * @throws never
+     */
     public async isUserAdminInServer(userId: string, serverId: string): Promise<boolean> {
         let status: boolean;
         try {
