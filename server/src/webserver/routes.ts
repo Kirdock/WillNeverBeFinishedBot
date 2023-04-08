@@ -379,10 +379,16 @@ export function registerRoutes(router: rs) {
             }
         });
 
-    router.route('/soundCategories')
+    router.route('/soundCategories/:serverId')
         .get(async (req, res) => {
             try {
-                res.status(200).json(await databaseHelper.getSoundCategories());
+                const serverId = req.params.serverId;
+                const result = getPayload(res);
+                if (await discordBot.isUserInServer(result.id, serverId)) {
+                    res.status(200).json(await databaseHelper.getSoundCategories(serverId));
+                    return;
+                }
+                res.status(403).json();
             } catch (e) {
                 defaultError(e as Error, res, req);
             }

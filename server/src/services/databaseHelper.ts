@@ -26,6 +26,7 @@ import { createSoundMeta } from '../utils/SoundMeta';
 import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
 import { EnvironmentConfig } from './config';
 import { fileHelper } from './fileHelper';
+import type { Readable } from 'stream';
 
 
 export class DatabaseHelper {
@@ -150,14 +151,19 @@ export class DatabaseHelper {
         return user?.intros[serverId]?.toString();
     }
 
-    public async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta[]> {
+    public async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<void> {
         const preparedFiles: Express.Multer.File[] = fileHelper.getFiles(files);
         await fileHelper.normalizeFiles(preparedFiles);
         const soundsMeta: ISoundMeta[] = preparedFiles.map((file) => createSoundMeta(file.path, fileHelper.getFileName(file.originalname), category, userId, serverId));
         void this.logSoundUpload(soundsMeta);
         await this.soundMetaCollection.insertMany(soundsMeta);
-        this.mapTime(soundsMeta);
-        return soundsMeta;
+    }
+
+    public async addSoundMetaThroughStream(stream: Readable, path: string, fileName: string, category: string, userId: string, serverId: string): Promise<void> {
+        await fileHelper.normalizeStream(stream, path);
+        const soundsMeta = createSoundMeta(path, fileHelper.getFileName(fileName), category, userId, serverId);
+        void this.logSoundUpload([soundsMeta]);
+        await this.soundMetaCollection.insertOne(soundsMeta);
     }
 
     public async addSoundMeta(id: ObjectId, filePath: string, fileName: string, userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta> {
@@ -194,16 +200,20 @@ export class DatabaseHelper {
         return ISoundMeta ?? undefined;
     }
 
-    public async getSoundsMetaByName(name: string, limit?: number): Promise<ISoundMeta[]> {
-        let cursor = this.soundMetaCollection.find({ fileName: { $regex: name, $options: 'i' } });
+    public async getSoundsMetaByName(name: string, guildId: string, limit?: number): Promise<ISoundMeta[]> {
+        let cursor = this.soundMetaCollection.find({ fileName: { $regex: name, $options: 'i' }, serverId: guildId });
         if (limit) {
             cursor = cursor.limit(limit);
         }
         return cursor.toArray();
     }
 
-    public async getSoundCategories(): Promise<string[]> {
-        return (await this.soundMetaCollection.distinct('category')).sort((a, b) => a.localeCompare(b));
+    public async getSoundCategories(guildId: string): Promise<string[]> {
+        return (await this.soundMetaCollection.distinct('category', { serverId: guildId })).sort((a, b) => a.localeCompare(b));
+    }
+
+    public async findSoundCategories(category: string, guildId: string, limit: number): Promise<string[]> {
+        return (await this.soundMetaCollection.distinct('category', { serverId: guildId, category: { $regex: category, $options: 'i' } })).sort((a, b) => a.localeCompare(b)).slice(0, limit);
     }
 
     public async removeSoundMeta(id: string): Promise<DeleteResult> {

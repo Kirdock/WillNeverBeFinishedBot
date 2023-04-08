@@ -41,8 +41,12 @@ const playCommand: Command = {
         return 'Successfully requested!';
     },
     async autocomplete(interaction: AutocompleteInteraction) {
+        if (!interaction.guildId) {
+            return [];
+        }
+
         const value = interaction.options.getFocused();
-        const sounds = await databaseHelper.getSoundsMetaByName(value, APPLICATION_COMMAND_MAX_CHOICES);
+        const sounds = await databaseHelper.getSoundsMetaByName(value, interaction.guildId, APPLICATION_COMMAND_MAX_CHOICES);
         return sounds.map((sound) => (
             {
                 value: sound.fileName,

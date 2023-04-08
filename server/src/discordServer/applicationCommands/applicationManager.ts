@@ -107,20 +107,19 @@ async function handleChatInputCommand(interaction: AutocompleteInteraction | Cha
         return;
     }
 
-    if (interaction.isAutocomplete()) {
-
-        if (!command.autocomplete) {
-            return;
-        }
-
-        const choices = await command.autocomplete(interaction);
-
-        const normalizedChoices = normalizeChoices(choices);
-        await interaction.respond(normalizedChoices);
+    if (!interaction.isAutocomplete()) {
+        await handleReply(command.execute(interaction), interaction);
         return;
     }
 
-    await handleReply(command.execute(interaction), interaction);
+    if (!command.autocomplete) {
+        return;
+    }
+
+    const choices = await command.autocomplete(interaction);
+
+    const normalizedChoices = normalizeChoices(choices);
+    await interaction.respond(normalizedChoices);
 }
 
 async function handleReply(replyResponse: InteractionExecuteResponse, interaction:  ChatInputCommandInteraction | MessageContextMenuCommandInteraction) {

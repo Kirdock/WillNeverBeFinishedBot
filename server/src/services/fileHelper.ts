@@ -4,6 +4,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import { rename, unlink } from 'fs/promises';
 import { EnvironmentConfig } from './config';
 import { scopedLogger } from './logHelper';
+import type { Readable } from 'stream';
 
 const logger = scopedLogger('FILE_SYSTEM');
 
@@ -94,29 +95,52 @@ class FileHelper {
 
     public async normalizeFiles(files: Express.Multer.File[]): Promise<void> {
         for (const file of files) {
-            await new Promise((resolve) => {
-                const newFileName = this.getFileName(file.filename) + '.mp3';
-                const tempPath = join(this.workFolder, newFileName);
-                ffmpeg(file.path)
-                    .audioFilter('loudnorm')
-                    .on('error', (e) => {
-                        logger.error(e, 'Normalize files');
-                        resolve(e);
-                    })
-                    .on('end', async () => {
-                        try {
-                            const newPath = join(file.destination, newFileName);
-                            await unlink(file.path);
-                            await rename(tempPath, newPath);
-                            file.path = newPath;
-                        } catch {
-                            await this.deleteFile(tempPath);
-                        }
-                        resolve(true);
-                    })
-                    .save(tempPath);
-            });
+            await this.normalizeFile(file);
         }
+    }
+
+    public async normalizeFile(file: Express.Multer.File): Promise<boolean> {
+        return await new Promise((resolve) => {
+            const newFileName = this.getFileName(file.filename) + '.mp3';
+            const tempPath = join(this.workFolder, newFileName);
+            ffmpeg(file.path)
+                .audioFilter('loudnorm')
+                .on('error', (e) => {
+                    logger.error(e, 'Normalize files');
+                    resolve(e);
+                })
+                .on('end', async () => {
+                    try {
+                        const newPath = join(file.destination, newFileName);
+                        await unlink(file.path);
+                        await rename(tempPath, newPath);
+                        file.path = newPath;
+                    } catch {
+                        await this.deleteFile(tempPath);
+                    }
+                    resolve(true);
+                })
+                .save(tempPath);
+        });
+    }
+
+    public async normalizeStream(file: Readable, path: string): Promise<boolean> {
+        return await new Promise((resolve) => {
+            ffmpeg(file)
+                .audioFilter('loudnorm')
+                .on('error', (e) => {
+                    logger.error(e, 'Normalize files');
+                    resolve(e);
+                })
+                .on('end', async () => {
+                    resolve(true);
+                })
+                .save(path);
+        });
+    }
+
+    public generateSoundPath(fileName: string): string {
+        return join(this.soundFolder, fileName);
     }
 }
 
