@@ -4,6 +4,7 @@ import type { IServerSettings } from '../../../../shared/interfaces/server-setti
 import { databaseHelper } from '../../services/databaseHelper';
 
 export default async function onVoiceStateUpdate(client: Client<true>) {
+    // prevent circular import
     const { playIntro, playSound } = await import( '../../services/musicPlayer');
     const { voiceHelper } = await import( '../../services/voiceHelper');
 

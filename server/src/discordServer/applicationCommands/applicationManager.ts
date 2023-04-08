@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction, Client, Guild, InteractionReplyOptions } from 'discord.js';
+import type { ChatInputCommandInteraction, Client, Guild, InteractionReplyOptions, APIApplicationCommandOptionChoice } from 'discord.js';
 import { Events, GuildMember } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
@@ -60,14 +60,9 @@ export async function setupApplicationCommands(client: Client<true>): Promise<vo
             }
 
             const choices = await command.autocomplete(interaction);
-            // make sure that all choices are valid
-            choices.map(choice => (
-                {
-                    value: typeof choice.value === 'string' ? choice.value.substring(0, APPLICATION_COMMAND_CHOICE_VALUE) : choice.value,
-                    name: choice.name.substring(0, APPLICATION_COMMAND_CHOICE_NAME),
-                }
-            )).slice(0, APPLICATION_COMMAND_MAX_CHOICES);
-            await interaction.respond(choices);
+
+            const normalizedChoices = normalizeChoices(choices);
+            await interaction.respond(normalizedChoices);
             return;
         }
 
@@ -134,4 +129,13 @@ export function handleInteractionError(error: unknown): string {
         return error.message;
     }
     return 'Unknown error happened!';
+}
+
+function normalizeChoices(choices: APIApplicationCommandOptionChoice[]): APIApplicationCommandOptionChoice[] {
+    return choices.map<APIApplicationCommandOptionChoice>(choice => (
+        {
+            value: typeof choice.value === 'string' ? choice.value.substring(0, APPLICATION_COMMAND_CHOICE_VALUE) : choice.value,
+            name: choice.name.substring(0, APPLICATION_COMMAND_CHOICE_NAME),
+        }
+    )).slice(0, APPLICATION_COMMAND_MAX_CHOICES);
 }
