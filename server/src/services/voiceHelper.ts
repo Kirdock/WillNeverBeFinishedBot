@@ -95,7 +95,7 @@ class VoiceHelper {
         if (!member.voice.channelId) {
             throw new InteractionError(`Member ${member.user.username} is not in a voice channel!`);
         }
-        await this.joinVoiceChannelById(member.voice.channelId, guild.id);
+        await this.joinVoiceChannelById(guild.id, member.voice.channelId);
     }
 }
 

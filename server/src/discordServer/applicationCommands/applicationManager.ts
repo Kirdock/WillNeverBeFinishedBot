@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction, Client, Guild, InteractionReplyOptions } from 'discord.js';
+import type { ChatInputCommandInteraction, Client, Guild, InteractionReplyOptions , TextBasedChannel } from 'discord.js';
 import { Events, GuildMember } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
@@ -85,7 +85,7 @@ export async function registerApplicationCommands(client: Client<true>): Promise
     }
 }
 
-export async function getInteractionMetadata(interaction: ChatInputCommandInteraction): Promise<{member: GuildMember, guild: Guild}> {
+export async function getInteractionMetadata(interaction: ChatInputCommandInteraction): Promise<{member: GuildMember, guild: Guild, channel: TextBasedChannel}> {
     let member = interaction.member;
     if (!member) {
         throw new InteractionError('invalid member');
@@ -102,7 +102,13 @@ export async function getInteractionMetadata(interaction: ChatInputCommandIntera
         throw new InteractionError(`Member ${member.user.username} is not in a voice channel!`);
     }
 
-    return { member, guild };
+    const channel = interaction.channel ?? await guild.channels.fetch(interaction.channelId);
+
+    if (!channel?.isTextBased()) {
+        throw new InteractionError('Channel is not a text channel');
+    }
+
+    return { member, guild, channel };
 }
 
 export function handleInteractionError(error: unknown): string {

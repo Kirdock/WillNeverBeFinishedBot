@@ -16,12 +16,13 @@ import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-s
 import { createUserVoiceSetting } from '../utils/User';
 import { sortUsers } from '../utils/sort';
 import { getNormalizedDate } from '../utils/date';
-import type { UserVolumesDict } from '@kirdock/discordjs-voice-recorder';
 import { scopedLogger } from '../services/logHelper';
 import { discordBot } from '../discordServer/DiscordBot';
-import { recordHelper, voiceHelper } from '../services/voiceHelper';
+import { voiceHelper } from '../services/voiceHelper';
 import { fileHelper } from '../services/fileHelper';
 import { playSound, requestSound, stopPlaying } from '../services/musicPlayer';
+import { mapUserSettingsToDict } from '../utils/convertion.utils';
+import { recordHelper } from '../services/recordHelper';
 
 const logger = scopedLogger('API');
 
@@ -247,11 +248,8 @@ export function registerRoutes(router: rs) {
                 } else {
                     res.type('application/zip').attachment(`${fileName}-all-streams.zip`);
                 }
-                const mappedSettings = serverSettings.userSettings.reduce<UserVolumesDict>((dict, user)=> {
-                    dict[user.id] = user.recordVolume;
-                    return dict;
-                }, {});
-                const succeeded = await recordHelper.getRecordedVoice(res, serverId, exportType, req.query.minutes ? +(req.query.minutes.toString()) : undefined, mappedSettings);
+
+                const succeeded = await recordHelper.getRecordedVoice(res, serverId, exportType, req.query.minutes ? +(req.query.minutes.toString()) : undefined, mapUserSettingsToDict(serverSettings));
 
                 if (!succeeded) {
                     res.statusMessage = getResponseMessage(req, 'RECORDING_NOT_FOUND');

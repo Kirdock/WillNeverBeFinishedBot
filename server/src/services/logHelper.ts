@@ -49,7 +49,7 @@ function isValidValue(level?: string): level is keyof typeof LogLevel {
 
 function formatLog(level: LogLevel, scope: string, message: unknown, additionalInfo: unknown) {
     const info = stringify(additionalInfo);
-    const infoText = info ? `info: ${info}` : '';
+    const infoText = info ? `\ninfo: ${info}` : '';
 
     return `[${LogLevel[level].toUpperCase()} - ${scope}]: ${stringify(message)}${infoText}`;
 }
@@ -59,7 +59,7 @@ function stringify(message: unknown) {
         return message.stack ?? message.message;
     }
 
-    return JSON.stringify(message);
+    return JSON.stringify(message, null, 2);
 }
 
 export function scopedLogger(scope: LogScopes): ScopedLogger {
