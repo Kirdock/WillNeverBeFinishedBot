@@ -4,6 +4,7 @@ import { databaseHelper } from '../../../services/databaseHelper';
 import type { Command } from '../../../interfaces/command';
 import { getInteractionMetadata } from '../applicationManager';
 import { playSound } from '../../../services/musicPlayer';
+import { APPLICATION_COMMAND_MAX_CHOICES } from '../../limits';
 
 const fileNotFoundMessage = 'De Datei gibts nit du Volltrottl!';
 const userNotInVoiceChannelMessage = 'Du bist in kan Voice Channel!!';
@@ -40,7 +41,7 @@ const playCommand: Command = {
     },
     async autocomplete(interaction: AutocompleteInteraction) {
         const value = interaction.options.getFocused();
-        const sounds = await databaseHelper.getSoundsMetaByName(value);
+        const sounds = await databaseHelper.getSoundsMetaByName(value, APPLICATION_COMMAND_MAX_CHOICES);
         return sounds.map(sound => (
             {
                 value: sound.fileName,

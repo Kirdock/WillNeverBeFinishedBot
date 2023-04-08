@@ -135,7 +135,7 @@ export class DatabaseHelper {
         return this.userCollection.updateOne({ id: userId }, updateFilter, { upsert: true });
     }
 
-    async getIntro(userId: Snowflake, serverId: Snowflake): Promise<string | undefined> {
+    public async getIntro(userId: Snowflake, serverId: Snowflake): Promise<string | undefined> {
         const projection: FindOptions<IUser> =
             {
                 projection: {
@@ -150,7 +150,7 @@ export class DatabaseHelper {
         return user?.intros[serverId]?.toString();
     }
 
-    async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta[]> {
+    public async addSoundsMeta(files: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[], userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta[]> {
         const preparedFiles: Express.Multer.File[] = fileHelper.getFiles(files);
         await fileHelper.normalizeFiles(preparedFiles);
         const soundsMeta: ISoundMeta[] = preparedFiles.map(file => createSoundMeta(file.path, fileHelper.getFileName(file.originalname), category, userId, serverId));
@@ -160,7 +160,7 @@ export class DatabaseHelper {
         return soundsMeta;
     }
 
-    async addSoundMeta(id: ObjectId, filePath: string, fileName: string, userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta> {
+    public async addSoundMeta(id: ObjectId, filePath: string, fileName: string, userId: Snowflake, category: string, serverId: Snowflake): Promise<ISoundMeta> {
         const ISoundMeta = createSoundMeta(filePath, fileName, category, userId, serverId);
         ISoundMeta._id = id;
         await this.soundMetaCollection.insertOne(ISoundMeta);
@@ -168,7 +168,7 @@ export class DatabaseHelper {
         return ISoundMeta;
     }
 
-    async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<ISoundMeta[]> {
+    public async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<ISoundMeta[]> {
         const query: Filter<ISoundMeta> = {
             serverId: { $in: servers },
             ...(fromTime && { _id: { $gt: this.timeToObjectID(fromTime) } })
@@ -178,7 +178,7 @@ export class DatabaseHelper {
         return soundsMeta;
     }
 
-    async getSoundMeta(id: string): Promise<ISoundMeta | undefined> {
+    public async getSoundMeta(id: string): Promise<ISoundMeta | undefined> {
         const ISoundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({ _id: new ObjectId(id) });
         if (ISoundMeta) {
             this.mapTime([ISoundMeta]);
@@ -186,7 +186,7 @@ export class DatabaseHelper {
         return ISoundMeta ?? undefined;
     }
 
-    async getSoundMetaByName(fileName: string): Promise<ISoundMeta | undefined> {
+    public async getSoundMetaByName(fileName: string): Promise<ISoundMeta | undefined> {
         const ISoundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({ fileName });
         if (ISoundMeta) {
             this.mapTime([ISoundMeta]);
@@ -194,19 +194,23 @@ export class DatabaseHelper {
         return ISoundMeta ?? undefined;
     }
 
-    async getSoundsMetaByName(name: string): Promise<ISoundMeta[]> {
-        return await this.soundMetaCollection.find({ fileName: { $regex: name, $options: 'i' } }).toArray();
+    public async getSoundsMetaByName(name: string, limit?: number): Promise<ISoundMeta[]> {
+        let cursor = this.soundMetaCollection.find({ fileName: { $regex: name, $options: 'i' } });
+        if (limit) {
+            cursor = cursor.limit(limit)
+        }
+        return cursor.toArray();
     }
 
-    async getSoundCategories(): Promise<string[]> {
+    public async getSoundCategories(): Promise<string[]> {
         return (await this.soundMetaCollection.distinct('category')).sort((a, b) => a.localeCompare(b));
     }
 
-    async removeSoundMeta(id: string): Promise<DeleteResult> {
+    public async removeSoundMeta(id: string): Promise<DeleteResult> {
         return this.soundMetaCollection.deleteOne({ _id: new ObjectId(id) });
     }
 
-    async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<IUser[]> {
+    public async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<IUser[]> {
         const usersWithoutInfo: IUser[] = [];
         const userInfos: IUser[] = await this.userCollection.find(
             {
@@ -239,7 +243,7 @@ export class DatabaseHelper {
         return this.log(createLog(meta.serverId, userId, message, { fileName: meta.fileName, id: meta._id }));
     }
 
-    async logPlaySound(userId: Snowflake, meta: ISoundMeta): Promise<InsertOneResult<ILog>> {
+    public async logPlaySound(userId: Snowflake, meta: ISoundMeta): Promise<InsertOneResult<ILog>> {
         return this.logSound(userId, meta, 'Play Sound');
     }
 
@@ -248,15 +252,15 @@ export class DatabaseHelper {
         return this.logCollection.insertMany(logs);
     }
 
-    async logSoundDelete(userId: Snowflake, ISoundMeta: ISoundMeta): Promise<InsertOneResult<ILog>> {
+    public async logSoundDelete(userId: Snowflake, ISoundMeta: ISoundMeta): Promise<InsertOneResult<ILog>> {
         return this.logSound(userId, ISoundMeta, 'Sound Delete');
     }
 
-    async log(log: ILog): Promise<InsertOneResult<ILog>> {
+    public async log(log: ILog): Promise<InsertOneResult<ILog>> {
         return this.logCollection.insertOne(log);
     }
 
-    async getLogs(serverId: string, pageSize: number, pageKey: number, fromTime: number): Promise<ILog[]> {
+    public async getLogs(serverId: string, pageSize: number, pageKey: number, fromTime: number): Promise<ILog[]> {
         const findQuery: Filter<ILog> = {
             serverId
         };
@@ -276,7 +280,7 @@ export class DatabaseHelper {
         ).toArray();
     }
 
-    async getServerSettings(serverId: Snowflake): Promise<IServerSettings> {
+    public async getServerSettings(serverId: Snowflake): Promise<IServerSettings> {
         const result: IServerSettings | null = await this.serverInfoCollection.findOne({ id: serverId },
             {
                 projection: {
@@ -286,7 +290,7 @@ export class DatabaseHelper {
         return result ?? createServerSettings(serverId);
     }
 
-    async updateServerSettings(serverInfo: IServerSettings): Promise<UpdateResult> {
+    public async updateServerSettings(serverInfo: IServerSettings): Promise<UpdateResult> {
         const { id, ...data } = serverInfo;
         return this.serverInfoCollection.updateOne({ id }, { $set: { ...data } }, { upsert: true });
     }
