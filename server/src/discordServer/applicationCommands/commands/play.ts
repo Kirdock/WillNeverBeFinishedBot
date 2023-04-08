@@ -41,7 +41,12 @@ const playCommand: Command = {
     async autocomplete(interaction: AutocompleteInteraction) {
         const value = interaction.options.getFocused();
         const sounds = await databaseHelper.getSoundsMetaByName(value);
-        return sounds.map(sound => ({ value: sound.fileName, name: sound.fileName }));
+        return sounds.map(sound => (
+            {
+                value: sound.fileName,
+                name: sound.fileName,
+            }
+        ));
     }
 }
 

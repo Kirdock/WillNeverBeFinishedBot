@@ -18,7 +18,7 @@ const command: Command = {
                 .setDescription('How many columns your bubble wrap should have')
                 .setRequired(true)
         ).toJSON(),
-    async execute(interaction){
+    async execute(interaction) {
         const { member } = await getInteractionMetadata(interaction);
         const rows = interaction.options.getInteger('rows', true);
         const columns = interaction.options.getInteger('columns', true);

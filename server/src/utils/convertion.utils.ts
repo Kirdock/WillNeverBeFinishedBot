@@ -12,7 +12,7 @@ export function asNumberOrUndefined(value: string): number | undefined {
     return parsed;
 }
 
-export function mapUserSettingsToDict(serverSettings: IServerSettings): UserVolumesDict{
+export function mapUserSettingsToDict(serverSettings: IServerSettings): UserVolumesDict {
     return serverSettings.userSettings.reduce<UserVolumesDict>((dict, user)=> {
         dict[user.id] = user.recordVolume;
         return dict;

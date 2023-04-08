@@ -5,6 +5,11 @@ import { readdirSync } from 'fs';
 import { scopedLogger } from '../../services/logHelper';
 import { InteractionError } from '../../utils/InteractionError';
 import type { Command } from '../../interfaces/command';
+import {
+    APPLICATION_COMMAND_CHOICE_NAME,
+    APPLICATION_COMMAND_CHOICE_VALUE,
+    APPLICATION_COMMAND_MAX_CHOICES
+} from '../limits';
 
 const logger = scopedLogger('APPLICATION_COMMANDS')
 const commandsPath = join(__dirname, './commands');
@@ -55,6 +60,13 @@ export async function setupApplicationCommands(client: Client<true>): Promise<vo
             }
 
             const choices = await command.autocomplete(interaction);
+            // make sure that all choices are valid
+            choices.map(choice => (
+                {
+                    value: typeof choice.value === 'string' ? choice.value.substring(0, APPLICATION_COMMAND_CHOICE_VALUE) : choice.value,
+                    name: choice.name.substring(0, APPLICATION_COMMAND_CHOICE_NAME),
+                }
+            )).slice(0, APPLICATION_COMMAND_MAX_CHOICES);
             await interaction.respond(choices);
             return;
         }
