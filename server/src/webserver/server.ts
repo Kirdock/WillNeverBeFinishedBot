@@ -6,8 +6,10 @@ import { authHelper } from '../services/authHelper';
 import { join } from 'path';
 import { EnvironmentConfig } from '../services/config';
 import { fileHelper } from '../services/fileHelper';
+import { scopedLogger } from '../services/logHelper';
 
 const baseUrl = '/api';
+const logger = scopedLogger('SERVER');
 
 export function startServer(router: express.Router) {
     const port: number = +EnvironmentConfig.PORT;
@@ -25,7 +27,7 @@ export function startServer(router: express.Router) {
     app.use(baseUrl, router);
 
     if (!fileHelper.existsFile(privateKeyPath)) {
-        console.log('start local');
+        logger.debug('start local');
         app.listen(port);
     } else {
         https.createServer({

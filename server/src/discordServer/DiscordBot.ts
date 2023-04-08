@@ -39,7 +39,7 @@ export class DiscordBot {
 
     public async run(): Promise<void> {
         this.client.on(Events.ClientReady, async () => {
-            console.log(`Logged in as ${this.client.user.tag}!`);
+            logger.info(`Logged in as ${this.client.user.tag}!`);
             await onVoiceStateUpdate(this.client);
             onMessageCreate(this);
             await setupApplicationCommands(this.client);

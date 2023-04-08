@@ -1,4 +1,4 @@
-import type { Guild, GuildMember, Locale, LocaleString, Snowflake } from 'discord.js';
+import type { Guild, GuildMember, LocaleString, Snowflake } from 'discord.js';
 import { VoiceChannel } from 'discord.js';
 import { ErrorTypes } from './ErrorTypes';
 import type { VoiceConnection } from '@discordjs/voice';
