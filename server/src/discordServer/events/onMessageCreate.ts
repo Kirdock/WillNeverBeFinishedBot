@@ -25,8 +25,6 @@ export default function onMessageCreate(discordBot: DiscordBot): void {
                 logger.error(e, 'Failed to register slash commands');
                 await message.reply('Oopsie Woopsie! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!');
             }
-
-
         } else {
             await message.reply('Insufficient permission!');
         }

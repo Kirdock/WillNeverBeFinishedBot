@@ -1,5 +1,6 @@
 import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType, ContextMenuCommandBuilder } from 'discord.js';
+import { buildSteamLinkOutOfMessage } from '../../utils/steam.utils';
 
 const command: Command = {
     type: ApplicationCommandType.Message,
@@ -12,12 +13,5 @@ const command: Command = {
         };
     }
 };
-
-function buildSteamLinkOutOfMessage(content: string): string | undefined {
-    const urlRegex = /(https:\/\/(store\.steampowered|steamcommunity)\.com\/[^\s]+)/g;
-    const url = content.match(urlRegex)?.[0];
-
-    return url ? `steam://openurl/${url}` : undefined;
-}
 
 export default command;
