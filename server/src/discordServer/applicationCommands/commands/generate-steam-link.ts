@@ -15,11 +15,9 @@ const command: Command = {
 
 function buildSteamLinkOutOfMessage(content: string): string | undefined {
     const urlRegex = /(https:\/\/(store\.steampowered|steamcommunity)\.com\/[^\s]+)/g;
-    let url = content.match(urlRegex)?.[0];
-    if (url) {
-        url = `steam://openurl/${url}`;
-    }
-    return url;
+    const url = content.match(urlRegex)?.[0];
+
+    return url ? `steam://openurl/${url}` : undefined;
 }
 
 export default command;
