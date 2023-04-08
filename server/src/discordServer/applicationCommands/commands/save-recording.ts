@@ -3,7 +3,6 @@ import type { Command } from '../../../interfaces/command';
 import type { APIApplicationCommandOptionChoice } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
 import type { AudioExportType } from '@kirdock/discordjs-voice-recorder';
-import { sendFile } from '../../utils/file-sender.utils';
 import { databaseHelper } from '../../../services/databaseHelper';
 import { mapUserSettingsToDict } from '../../../utils/convertion.utils';
 import { getInteractionMetadata } from '../applicationManager';
@@ -30,15 +29,31 @@ const command: Command = {
         )
         .toJSON(),
     async execute (interaction) {
-        const { guild, channel } = await getInteractionMetadata(interaction);
+        const { guild } = await getInteractionMetadata(interaction);
         const minutes = interaction.options.getInteger('minutes') ?? undefined;
         const exportType = (interaction.options.getString('export type') as AudioExportType | null) ?? undefined;
         const serverSettings = await databaseHelper.getServerSettings(guild.id);
         const readable = await recordHelper.getRecordedVoiceAsReadable(guild.id, exportType, minutes, mapUserSettingsToDict(serverSettings));
+        const date = new Date().toISOString();
+        let fileType: string, fileName: string;
 
-        await sendFile(readable, channel, exportType);
+        if (exportType === 'single') {
+            fileType = 'audio/mp3';
+            fileName = `${date}.mp3`;
 
-        return 'done';
+        } else {
+            fileType = 'application/zip';
+            fileName = `${date}-all-streams.zip`;
+        }
+
+        return {
+            files: [ {
+                attachment: readable,
+                contentType: fileType,
+                name: fileName,
+            } ],
+            ephemeral: false
+        };
     },
 };
 
