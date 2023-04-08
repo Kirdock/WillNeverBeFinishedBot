@@ -1,30 +1,28 @@
 import express from 'express';
-import { DiscordBot } from './discordServer/DiscordBot';
-import { AuthHelper } from './services/authHelper';
-import { DatabaseHelper } from './services/databaseHelper';
-import { registerRoutes } from './webserver/routes';
-import { IEnvironmentVariables } from './interfaces/environment-variables';
-import { startServer } from './webserver/server';
-import { logger } from './services/logHelper';
-import { EnvironmentConfig } from './services/config';
+import { discordBot } from './discordServer/DiscordBot';
+import { scopedLogger } from './services/logHelper';
+import { readApplicationCommands } from './discordServer/applicationCommands/applicationManager';
+import { databaseHelper } from './services/databaseHelper';
 import { migrateCheck } from './services/migratorHelper';
+import { registerRoutes } from './webserver/routes';
+import { startServer } from './webserver/server';
 
-if (EnvironmentConfig) {
-    start(EnvironmentConfig);
-}
+const logger = scopedLogger('SERVER');
+void start();
 
-async function start(config: IEnvironmentVariables): Promise<void> {
+async function start(): Promise<void> {
     try {
-        const databaseHelper = new DatabaseHelper(config);
-        await databaseHelper.run();
-        await migrateCheck(config, databaseHelper);
-        const discordBot: DiscordBot = new DiscordBot(databaseHelper, config);
-        const authHelper = new AuthHelper(databaseHelper, discordBot, config);
         const router = express.Router();
-        registerRoutes(discordBot, router, databaseHelper, authHelper);
-        startServer(router, authHelper, logger, config);
+
+        await databaseHelper.run();
+        await migrateCheck();
+        await readApplicationCommands();
+        await discordBot.run();
+
+        registerRoutes(router);
+        startServer(router);
     } catch (e) {
-        logger.error(e as Error, 'Server start');
+        logger.error('SERVER', e);
         process.exit(1);
     }
 }

@@ -29,7 +29,6 @@ Environment Variables (.env file in root):
 - HOST: URL for the website. Used for `list` command (reply url) and OAUTH2. Default `http://localhost:5000`.
 - PORT: Port for webserver. Default: `4599`.
 - OWNERS: "id1,id2,...". Super admins separated by `,`.
-- PREFIXES: "!,-,...". Prefixes for bot commands in chat separated by `,`. Default: `!`.
 - SCOPE: "identify,...". Scopes of the bot. Default: `identify`.
 - WEBTOKEN_SECRET: Secret to encode webtoken.
 - DATABASE_NAME: Main database name for mongodb.

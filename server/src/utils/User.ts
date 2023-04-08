@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { IUser } from '../interfaces/user';
-import { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
-import { IServerUserSettings } from '../../../shared/interfaces/server-settings';
+import type { IUser } from '../interfaces/user';
+import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
+import type { IServerUserSettings } from '../../../shared/interfaces/server-settings';
 
 type IUserVoiceSettingsWithoutUsername = Omit<IUserVoiceSettings, 'username'>;
 
@@ -21,5 +21,5 @@ export function createUserVoiceSetting(id: string): IUserVoiceSettingsWithoutUse
 }
 
 export function getOrCreateUserVoiceSetting(userSettings: IServerUserSettings[], userId: string): IUserVoiceSettingsWithoutUsername {
-    return userSettings?.find(userSetting => userSetting.id === userId) ?? createUserVoiceSetting(userId)
+    return userSettings.find(userSetting => userSetting.id === userId) ?? createUserVoiceSetting(userId)
 }

@@ -1,5 +1,5 @@
-import { ObjectId } from 'mongodb';
-import { IUserToken } from './UserToken';
+import type { ObjectId } from 'mongodb';
+import type { IUserToken } from './UserToken';
 
 export interface IUser {
     _id: ObjectId;

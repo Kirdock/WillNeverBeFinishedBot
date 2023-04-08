@@ -3,7 +3,6 @@ const requiredEnvironmentVariableKeys: { [key in keyof IRequiredEnvironmentVaria
     CLIENT_SECRET: true,
     HOST: true,
     PORT: true,
-    PREFIXES: true,
     SCOPE: true,
     DATABASE_NAME: true,
     DATABASE_USER: true,
@@ -16,7 +15,6 @@ export interface IRequiredEnvironmentVariables {
     CLIENT_SECRET: string;
     HOST: string;
     PORT: string;
-    PREFIXES: string;
     SCOPE: string;
     DATABASE_NAME: string;
     DATABASE_USER: string;

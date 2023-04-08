@@ -1,35 +1,17 @@
-import { Message, VoiceChannel } from 'discord.js';
-import { DiscordBot } from '../discordServer/DiscordBot';
+import type { Guild, GuildMember, Snowflake } from 'discord.js';
+import { VoiceChannel } from 'discord.js';
 import { ErrorTypes } from './ErrorTypes';
-import { joinVoiceChannel, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
-import { DatabaseHelper } from './databaseHelper';
-import { RecordVoiceHelper } from './record-voice-helper';
-import { IEnvironmentVariables } from '../interfaces/environment-variables';
-import { logger } from './logHelper';
+import type { VoiceConnection } from '@discordjs/voice';
+import { joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
+import { databaseHelper } from './databaseHelper';
+import { scopedLogger } from './logHelper';
+import { discordBot } from '../discordServer/DiscordBot';
+import { InteractionError } from '../utils/InteractionError';
+import { recordHelper } from './recordHelper';
 
-export class VoiceHelper {
-    public readonly recordHelper: RecordVoiceHelper;
+const logger = scopedLogger('VOICE');
 
-    constructor(private discordBot: DiscordBot, private databaseHelper: DatabaseHelper, config: IEnvironmentVariables) {
-        this.recordHelper = new RecordVoiceHelper(config, discordBot);
-    }
-
-    /**
-     *
-     * @param message
-     * @returns
-     * @throws CHANNEL_JOIN_FAILED
-     */
-    public async joinVoiceChannel(message: Message): Promise<VoiceConnection> {
-        let connection: VoiceConnection;
-        if (message.member?.voice.channel) {
-            connection = await this.joinVoiceChannelById(message.member.guild.id, message.member.voice.channel.id);
-        } else {
-            throw new Error(ErrorTypes.CHANNEL_JOIN_FAILED);
-        }
-        return connection;
-    }
-
+class VoiceHelper {
     /**
      *
      * @param serverId
@@ -37,56 +19,41 @@ export class VoiceHelper {
      * @returns Connection of joined voice channel
      * @throws Error
      */
-    async joinVoiceChannelById(serverId: string, clientId: string): Promise<VoiceConnection> {
-        const server = await this.discordBot.getServer(serverId);
-        if (server) {
-            const channel = await server.channels.fetch(clientId);
-            if (!channel) {
-                throw new Error(ErrorTypes.CHANNEL_ID_NOT_FOUND);
-            } else if (channel instanceof VoiceChannel) {
-                try {
-                    const conn = joinVoiceChannel({
-                        channelId: channel.id,
-                        guildId: channel.guildId,
-                        adapterCreator: channel.guild.voiceAdapterCreator,
-                        selfDeaf: false,
-                    });
+    async joinVoiceChannelById(serverId: Snowflake, clientId: Snowflake): Promise<VoiceConnection> {
+        const server = await discordBot.getServer(serverId);
+        const channel = await server.channels.fetch(clientId);
+        if (!channel) {
+            throw new Error(ErrorTypes.CHANNEL_ID_NOT_FOUND);
+        } else if (channel instanceof VoiceChannel) {
+            try {
+                const conn = joinVoiceChannel({
+                    channelId: channel.id,
+                    guildId: channel.guildId,
+                    adapterCreator: channel.guild.voiceAdapterCreator,
+                    selfDeaf: false,
+                });
 
-                    const serverSettings = await this.databaseHelper.getServerSettings(serverId);
-                    if (serverSettings.recordVoice) {
-                        this.recordHelper.startRecording(conn);
-                    }
-
-                    // temporary solution for region bug
-                    // https://github.com/discordjs/discord.js/issues/9185
-                    const networkStateChangeHandler = (oldNetworkState: any, newNetworkState: any) => {
-                        const newUdp = Reflect.get(newNetworkState, 'udp');
-                        clearInterval(newUdp?.keepAliveInterval);
-                    }
-                    conn.on('stateChange', (oldState, newState) => {
-                        Reflect.get(oldState, 'networking')?.off('stateChange', networkStateChangeHandler);
-                        Reflect.get(newState, 'networking')?.on('stateChange', networkStateChangeHandler);
-                    });
-
-                    conn.on('error', reason => {
-                        logger.error(reason, {serverId, clientId});
-                        conn.disconnect();
-                    });
-                    return conn;
-                } catch (e) {
-                    logger.error(e as Error, {serverId, clientId});
-                    throw new Error(ErrorTypes.CHANNEL_JOIN_FAILED);
+                const serverSettings = await databaseHelper.getServerSettings(serverId);
+                if (serverSettings.recordVoice) {
+                    recordHelper.startRecording(conn);
                 }
-            } else {
-                throw new Error(ErrorTypes.CHANNEL_NOT_VOICE);
+
+                conn.on('error', reason => {
+                    logger.error(reason, { serverId, clientId });
+                    conn.disconnect();
+                });
+                return conn;
+            } catch (e) {
+                logger.error(e, { serverId, clientId });
+                throw new Error(ErrorTypes.CHANNEL_JOIN_FAILED);
             }
         } else {
-            throw new Error(ErrorTypes.SERVER_ID_NOT_FOUND);
+            throw new Error(ErrorTypes.CHANNEL_NOT_VOICE);
         }
     }
 
     public async getOrJoinVoiceChannel(serverId: string, channelId: string): Promise<VoiceConnection> {
-        let connection = this.discordBot.getVoiceConnection(serverId);
+        let connection = discordBot.getVoiceConnection(serverId);
         if (connection) {
             if (connection.joinConfig.channelId !== channelId || connection.state.status !== VoiceConnectionStatus.Ready) {
                 connection.rejoin({
@@ -107,7 +74,7 @@ export class VoiceHelper {
      * @returns `VoiceConnection` or `undefined`
      */
     public getActiveConnection(serverId: string): VoiceConnection | undefined {
-        return this.discordBot.getVoiceConnection(serverId);
+        return discordBot.getVoiceConnection(serverId);
     }
 
     /**
@@ -123,4 +90,13 @@ export class VoiceHelper {
             throw new Error(ErrorTypes.CONNECTION_NOT_FOUND);
         }
     }
+
+    public async joinVoiceChannelThroughMember(member: GuildMember, guild: Guild) {
+        if (!member.voice.channelId) {
+            throw new InteractionError(`Member ${member.user.username} is not in a voice channel!`);
+        }
+        await this.joinVoiceChannelById(member.voice.channelId, guild.id);
+    }
 }
+
+export const voiceHelper = new VoiceHelper();

@@ -1,8 +1,8 @@
-import { Request } from 'express';
+import type { Request } from 'express';
 import { LanguageDictAT } from '../languageFiles/at';
 import { LanguageDictDE } from '../languageFiles/de';
 import { LanguageDictEN } from '../languageFiles/en';
-import { IResponseMessages } from '../interfaces/response-messages';
+import type { IResponseMessages } from '../interfaces/response-messages';
 
 enum ESupportedLanguages {
     AT = 'de-AT',

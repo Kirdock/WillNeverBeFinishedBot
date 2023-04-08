@@ -1,6 +1,6 @@
-import { Snowflake } from 'discord.js';
+import type { Snowflake } from 'discord.js';
 import { ObjectId } from 'mongodb';
-import { ILog } from '../interfaces/log';
+import type { ILog } from '../interfaces/log';
 
 export function createLog(serverId: Snowflake, userId: Snowflake, action: string, file?: { fileName: string, id: ObjectId }): ILog {
     return {
