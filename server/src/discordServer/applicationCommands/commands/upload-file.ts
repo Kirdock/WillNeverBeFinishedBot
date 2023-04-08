@@ -6,62 +6,57 @@ import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { fileHelper } from '../../../services/fileHelper';
 import { Readable } from 'stream';
+import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../commandLang';
+import { CommandLangKey } from '../types/lang.types';
 
-const attachmentName = 'file';
-const categoryName = 'category';
-const fileNameOptionName = 'file-name';
+const attachmentName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_NAME);
+const categoryName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_CATEGORY_NAME);
+const fileNameOptionName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_FILE_NAME_NAME);
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
     data: new SlashCommandBuilder()
-        .setName('upload')
-        .setDescription('Upload a sound file')
-        .setNameLocalizations({
-            de: 'upload'
-        })
-        .setDescriptionLocalizations({
-            de: 'Lade eine Audiodatei hoch'
-        })
+        .setName(getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_BASE_COMMAND_NAME))
+        .setDescription(getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_BASE_COMMAND_DESCRIPTION))
+        .setNameLocalizations(getCommandLang(CommandLangKey.UPLOAD_FILE_BASE_COMMAND_NAME))
+        .setDescriptionLocalizations(getCommandLang(CommandLangKey.UPLOAD_FILE_BASE_COMMAND_DESCRIPTION))
         .addAttachmentOption((option) =>
             option
                 .setName(attachmentName)
-                .setDescription('Attach you audio file')
+                .setDescription(getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_DESCRIPTION))
                 .setRequired(true)
         ).addStringOption((option) =>
             option
                 .setName(categoryName)
-                .setDescription('Sound category')
+                .setDescription(getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_CATEGORY_DESCRIPTION))
                 .setRequired(true)
                 .setAutocomplete(true)
         ).addStringOption((option) =>
             option
                 .setName(fileNameOptionName)
-                .setDescription('File name (optional)')
-        ).toJSON(),
+                .setDescription(getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_FILE_NAME_DESCRIPTION))
+        )
+        .toJSON(),
     async execute(interaction) {
         const attachment = interaction.options.getAttachment(attachmentName, true);
         const category = interaction.options.getString(categoryName, true);
 
         if (!interaction.guildId) {
-            return interaction.locale === 'de' ? 'Ungültige server ID!' : 'Invalid guild id!';
+            return getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_GUILD);
         }
 
         if (attachment.contentType !== 'audio/mpeg') {
-            return interaction.locale === 'de' ? 'Bist zbled um a Audiodatei auszuwöhln oda wos?' : 'Invalid file format!';
+            return getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_AUDIO_CONTENT_TYPE);
         }
 
         const name = `${uuidv4()}${extname(attachment.url)}`;
         const response = await fetch(attachment.url);
         const fileName = interaction.options.getString(fileNameOptionName) || fileHelper.getFileName(attachment.url);
-
-        if (!response.body) {
-            return 'File can\'t be fetched';
-        }
-
         const stream = Readable.from(Buffer.from(await response.arrayBuffer()));
+
         await databaseHelper.addSoundMetaThroughStream(stream, fileHelper.generateSoundPath(name), fileName, category, interaction.user.id, interaction.guildId);
 
-        return 'uploaded!';
+        return getCommandLangKey(interaction, CommandLangKey.SUCCESS_UPLOAD);
     },
     async autocomplete(interaction) {
         if (!interaction.guildId) {
@@ -74,7 +69,7 @@ const command: Command = {
             value: category,
             name: category,
         }));
-    }
+    },
 };
 
 export default command;

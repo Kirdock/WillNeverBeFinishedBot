@@ -33,7 +33,7 @@ export function registerRoutes(router: rs) {
         },
         filename: (_req, file, cb) => {
             cb(null, `${uuidv4()}${extname(file.originalname)}`);
-        }
+        },
     });
     const upload = multer({ storage });
 

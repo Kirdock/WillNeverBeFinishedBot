@@ -7,6 +7,6 @@ export function createUserPayload(_id: string, id: Snowflake, username: string, 
         _id,
         id,
         username,
-        isSuperAdmin
+        isSuperAdmin,
     };
 }

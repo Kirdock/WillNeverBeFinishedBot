@@ -9,9 +9,9 @@ const command: Command = {
         const steamLink = buildSteamLinkOutOfMessage(interaction.targetMessage.content);
         return {
             content: steamLink || 'Hob kan Steam Link gfundn!',
-            ephemeral: false
+            ephemeral: false,
         };
-    }
+    },
 };
 
 export default command;

@@ -15,7 +15,7 @@ const command: Command = {
                 .setRequired(true)).toJSON(),
     async execute() {
         return answers[Math.floor(Math.random() * answers.length)];
-    }
+    },
 };
 
 export default command;

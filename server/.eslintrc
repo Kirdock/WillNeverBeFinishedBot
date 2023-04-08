@@ -26,6 +26,9 @@
                 "keyword-spacing": "error",
                 "comma-spacing": "error",
                 "space-before-blocks": "error",
+                "comma-dangle": ["error", {
+                    "objects": "only-multiline"
+                }],
                 "curly": "error",
                 "arrow-parens": "error",
                 "@typescript-eslint/no-unnecessary-condition": "error",

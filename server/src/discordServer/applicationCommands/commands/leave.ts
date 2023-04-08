@@ -16,7 +16,7 @@ const command: Command = {
             return 'disconnected';
         }
         return 'Insufficient permission!';
-    }
+    },
 };
 
 export default command;

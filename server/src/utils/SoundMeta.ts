@@ -9,6 +9,6 @@ export function createSoundMeta(path: string, fileName: string, category: string
         fileName,
         userId,
         serverId,
-        category
+        category,
     };
 }

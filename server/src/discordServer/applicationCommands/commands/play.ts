@@ -53,7 +53,7 @@ const playCommand: Command = {
                 name: sound.fileName,
             }
         ));
-    }
+    },
 };
 
 export default playCommand;

@@ -9,7 +9,7 @@ const command: Command = {
             content: Math.floor(Math.random() * 2) == 0 ? 'Kopf' : 'Zahl',
             ephemeral: false,
         };
-    }
+    },
 };
 
 export default command;

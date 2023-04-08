@@ -53,7 +53,7 @@ const command: Command = {
                 contentType: fileType,
                 name: fileName,
             } ],
-            ephemeral: false
+            ephemeral: false,
         };
     },
 };

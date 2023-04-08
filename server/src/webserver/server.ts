@@ -30,7 +30,7 @@ export function startServer(router: express.Router) {
     } else {
         https.createServer({
             key: fileHelper.readFile(privateKeyPath),
-            cert: fileHelper.readFile(certPath)
+            cert: fileHelper.readFile(certPath),
         }, app)
             .listen(port);
     }

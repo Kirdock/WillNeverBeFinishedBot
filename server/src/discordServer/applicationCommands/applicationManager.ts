@@ -134,7 +134,7 @@ async function getReply(reply: InteractionExecuteResponse, interactionName: stri
         if (typeof interactionReply === 'string') {
             return {
                 content: interactionReply,
-                ephemeral: true
+                ephemeral: true,
             };
         } else {
             return interactionReply;

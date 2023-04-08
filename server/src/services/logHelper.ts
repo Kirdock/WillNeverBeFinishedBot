@@ -40,7 +40,7 @@ const Logger: LoggerMethods = {
         if (logLevel <= LogLevel.ERROR) {
             console.error(formatLog(LogLevel.ERROR, scope, message, additionalInfo));
         }
-    }
+    },
 };
 
 function isValidValue(level?: string): level is keyof typeof LogLevel {

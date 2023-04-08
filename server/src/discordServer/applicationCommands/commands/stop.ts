@@ -13,7 +13,7 @@ const command: Command = {
         await stopPlaying(guild.id, discordBot.isSuperAdmin(member.id));
 
         return 'stopped';
-    }
+    },
 };
 
 export default command;

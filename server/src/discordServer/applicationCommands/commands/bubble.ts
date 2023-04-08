@@ -40,7 +40,7 @@ const command: Command = {
             content: stringBuilder.join(''),
             ephemeral: false,
         };
-    }
+    },
 };
 
 export default command;

@@ -57,7 +57,7 @@ export class DiscordBot {
     public async fetchUserData(tokenData: { token_type: string, access_token: string }): Promise<IUserObject> {
         const { data } = await axios.get('https://discord.com/api/users/@me', {
             headers: {
-                authorization: `${tokenData.token_type} ${tokenData.access_token}`
+                authorization: `${tokenData.token_type} ${tokenData.access_token}`,
             },
         });
         return data;
@@ -115,7 +115,7 @@ export class DiscordBot {
                 id: guild.id,
                 name: guild.name,
                 icon: guild.icon,
-                isAdmin: member.permissions.has(PermissionFlagsBits.Administrator)
+                isAdmin: member.permissions.has(PermissionFlagsBits.Administrator),
             };
         } else if (isOwner) {
             server = {
@@ -179,7 +179,7 @@ export class DiscordBot {
             .map((item) => {
                 return {
                     id: item.id,
-                    name: item.name
+                    name: item.name,
                 };
             });
     }

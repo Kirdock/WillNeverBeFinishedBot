@@ -10,7 +10,7 @@ const command: Command = {
         const { member, guild } = await getInteractionMetadata(interaction);
         await voiceHelper.joinVoiceChannelThroughMember(member, guild);
         return 'joined';
-    }
+    },
 };
 
 export default command;

@@ -6,7 +6,7 @@ const command: Command = {
     data: new SlashCommandBuilder().setName('ping').setDescription('pong?').toJSON(),
     async execute() {
         return 'pong';
-    }
+    },
 };
 
 export default command;

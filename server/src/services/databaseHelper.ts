@@ -47,7 +47,7 @@ export class DatabaseHelper {
             {
                 retryWrites: true,
                 writeConcern: {
-                    w: 'majority'
+                    w: 'majority',
                 },
             });
     }
@@ -90,18 +90,18 @@ export class DatabaseHelper {
             {
                 $set:
                     {
-                        version
-                    }
+                        version,
+                    },
             },
             {
-                upsert: true
+                upsert: true,
             }
         );
     }
 
     private async getDatabaseMetadata(): Promise<IDatabaseMetadata> {
         return await this.metadataCollection.findOne({}) ?? {
-            version: '0.1.0'
+            version: '0.1.0',
         };
     }
 
@@ -125,8 +125,8 @@ export class DatabaseHelper {
                 upsert: true,
                 returnDocument: 'after',
                 projection: {
-                    _id: 1
-                }
+                    _id: 1,
+                },
             }
         )).value?._id;
     }
@@ -141,10 +141,10 @@ export class DatabaseHelper {
             {
                 projection: {
                     intros: {
-                        [serverId]: 1
+                        [serverId]: 1,
                     },
-                    _id: 0
-                }
+                    _id: 0,
+                },
             };
 
         const user = await this.userCollection.findOne<IUser>({ id: userId }, projection);
@@ -177,7 +177,7 @@ export class DatabaseHelper {
     public async getSoundsMeta(servers: Snowflake[], fromTime?: number): Promise<ISoundMeta[]> {
         const query: Filter<ISoundMeta> = {
             serverId: { $in: servers },
-            ...(fromTime && { _id: { $gt: this.timeToObjectID(fromTime) } })
+            ...(fromTime && { _id: { $gt: this.timeToObjectID(fromTime) } }),
         };
         const soundsMeta = await this.soundMetaCollection.find<ISoundMeta>(query).toArray();
         this.mapTime(soundsMeta);
@@ -226,17 +226,17 @@ export class DatabaseHelper {
             {
                 id:
                     {
-                        $in: users
+                        $in: users,
                     },
-                [`intros.${serverId}`]: { $exists: true }
+                [`intros.${serverId}`]: { $exists: true },
             },
             {
                 projection:
                     {
                         intros: 1,
                         id: 1,
-                        _id: 0
-                    }
+                        _id: 0,
+                    },
             }).toArray();
 
         for (const userId of users) {
@@ -272,16 +272,16 @@ export class DatabaseHelper {
 
     public async getLogs(serverId: string, pageSize: number, pageKey: number, fromTime: number): Promise<ILog[]> {
         const findQuery: Filter<ILog> = {
-            serverId
+            serverId,
         };
         const query: FindOptions<ILog> = {
             ...(pageSize && pageKey && pageSize > 0 && pageKey >= 0 &&
                 {
                     limit: pageSize,
-                    skip: pageKey * pageSize
+                    skip: pageKey * pageSize,
                 }
             ),
-            ...(fromTime && { time: { $gte: fromTime } })
+            ...(fromTime && { time: { $gte: fromTime } }),
         };
 
         return await this.logCollection.find(
@@ -294,8 +294,8 @@ export class DatabaseHelper {
         const result: IServerSettings | null = await this.serverInfoCollection.findOne({ id: serverId },
             {
                 projection: {
-                    _id: 0
-                }
+                    _id: 0,
+                },
             });
         return result ?? createServerSettings(serverId);
     }
@@ -308,15 +308,15 @@ export class DatabaseHelper {
     public async getUsersRecordVolume(serverId: string): Promise<Omit<IUserVoiceSettings, 'username'>[]> {
         const serverSettings = await this.serverInfoCollection.findOne(
             {
-                id: serverId
+                id: serverId,
             },
             {
                 projection:
                     {
                         userSettings: 1,
                         id: 1,
-                        _id: 0
-                    }
+                        _id: 0,
+                    },
             });
         return serverSettings?.userSettings ?? [];
     }
@@ -324,11 +324,11 @@ export class DatabaseHelper {
     public async updateUserRecordVolume(serverId: string, userId: string, volume: number): Promise<void> {
         const result = await this.serverInfoCollection.updateOne({
             id: serverId,
-            'userSettings.id': userId
+            'userSettings.id': userId,
         }, {
             $set: {
-                'userSettings.$.recordVolume': volume
-            }
+                'userSettings.$.recordVolume': volume,
+            },
         });
         if (!result.matchedCount) {
             // update not possible because no user configuration exists. Add it to the database
@@ -340,8 +340,8 @@ export class DatabaseHelper {
                     userSettings: {
                         id: userId,
                         recordVolume: volume,
-                    }
-                }
+                    },
+                },
             });
         }
     }
