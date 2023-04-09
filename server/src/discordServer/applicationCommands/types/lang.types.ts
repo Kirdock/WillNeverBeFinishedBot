@@ -10,6 +10,26 @@ export enum CommandLangKey {
     BUBBLE_COLUMN_DESCRIPTION,
     //endregion
 
+    //region DELETE_INTRO
+    DELETE_INTRO_NAME,
+    DELETE_INTRO_DESCRIPTION,
+    //endregion
+
+    //region DELETE_SOUND
+    DELETE_SOUND_NAME,
+    DELETE_SOUND_DESCRIPTION,
+    //endregion
+
+    //region DELETE_USER_INTRO
+    DELETE_USER_INTRO_NAME,
+    DELETE_USER_INTRO_DESCRIPTION,
+    //endregion
+
+    //region DOWNLOAD
+    DOWNLOAD_NAME,
+    DOWNLOAD_DESCRIPTION,
+    //endregion
+
     //region FLIP
     FLIP_NAME,
     FLIP_DESCRIPTION,
@@ -48,6 +68,13 @@ export enum CommandLangKey {
     PLAY_DESCRIPTION,
     PLAY_FILE_NAME,
     PLAY_FILE_DESCRIPTION,
+    PLAY_VOLUME_NAME,
+    PLAY_VOLUME_DESCRIPTION,
+    //endregion
+
+    //region PLAY_FORCE
+    PLAY_FORCE_NAME,
+    PLAY_FORCE_DESCRIPTION,
     //endregion
 
     //region POST_STEAM_LINK
@@ -83,6 +110,23 @@ export enum CommandLangKey {
     SAVE_RECORDING_TYPE_CHOICE_MULTIPLE,
     //endregion
 
+    //region SET_INTRO
+    SET_INTRO_NAME,
+    SET_INTRO_DESCRIPTION,
+    //endregion
+
+    //region SET_USER_INTRO
+    SET_USER_INTRO_NAME,
+    SET_USER_INTRO_DESCRIPTION,
+    SET_USER_INTRO_USER_NAME,
+    SET_USER_INTRO_USER_DESCRIPTION,
+    //endregion
+
+    //region SET_USER_VOLUME
+    SET_USER_VOLUME_NAME,
+    SET_USER_VOLUME_DESCRIPTION,
+    //endregion
+
     //region STOP
     STOP_NAME,
     STOP_DESCRIPTION,
@@ -108,12 +152,14 @@ export enum CommandLangKey {
 
     //region error messages
     ERRORS_INVALID_GUILD,
+    ERRORS_INVALID_MEMBER,
     ERRORS_INVALID_AUDIO_CONTENT_TYPE,
     ERRORS_INSUFFICIENT_PERMISSIONS,
     ERRORS_NO_STEAM_URL,
     ERRORS_INVALID_DATA,
     ERRORS_NOT_IN_VOICE_CHANNEL,
     ERRORS_FILE_NOT_FOUND,
+    ERRORS_UNKNOWN,
     //endregion
 
     //region Success messages

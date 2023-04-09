@@ -1,16 +1,12 @@
 import type { Command } from '../../../interfaces/command';
-import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType } from 'discord.js';
 import { discordBot } from '../../DiscordBot';
-import { getCommandLang, getDefaultCommandLang } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
+import { getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: new SlashCommandBuilder()
-        .setName(getDefaultCommandLang(CommandLangKey.LIST_NAME))
-        .setNameLocalizations(getCommandLang(CommandLangKey.LIST_NAME))
-        .setDescription(getDefaultCommandLang(CommandLangKey.LIST_DESCRIPTION))
-        .setDescriptionLocalizations(getCommandLang(CommandLangKey.LIST_DESCRIPTION))
+    data: getScopedSlashCommandBuilder(CommandLangKey.LIST_NAME, CommandLangKey.LIST_DESCRIPTION)
         .toJSON(),
     async execute() {
         return discordBot.hostUrl;

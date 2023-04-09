@@ -1,16 +1,6 @@
 import type { Snowflake, VoiceState } from 'discord.js';
-import type {
-    AudioPlayer,
-    AudioPlayerError,
-    AudioResource,
-    VoiceConnection
-} from '@discordjs/voice';
-import {
-    AudioPlayerStatus,
-    createAudioPlayer,
-    createAudioResource,
-    StreamType
-} from '@discordjs/voice';
+import type { AudioPlayer, AudioPlayerError, AudioResource, VoiceConnection } from '@discordjs/voice';
+import { AudioPlayerStatus, createAudioPlayer, createAudioResource, StreamType } from '@discordjs/voice';
 import { voiceHelper } from './voiceHelper';
 import { databaseHelper } from './databaseHelper';
 import { stream as youtubeStream } from 'play-dl';
@@ -43,7 +33,8 @@ export async function playSound(serverId: Snowflake, channelId: string, file?: s
     const streamOptions = { inlineVolume: true, inputType: StreamType.OggOpus };
     if (!file && url) {
         const stream = await youtubeStream(url);
-        resource = createAudioResource(stream.stream, { ...streamOptions, inputType: stream.type });
+        const normalized = await fileHelper.normalizeStream(stream.stream);
+        resource = createAudioResource(normalized, { ...streamOptions, inputType: stream.type });
     } else if (file) {
         resource = createAudioResource(createReadStream(file), streamOptions);
     }

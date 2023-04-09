@@ -131,7 +131,7 @@ export class DatabaseHelper {
         )).value?._id;
     }
 
-    public setIntro(userId: Snowflake, soundId: ObjectId, serverId: Snowflake): Promise<UpdateResult> {
+    public setIntro(userId: Snowflake, soundId: ObjectId | undefined | string, serverId: Snowflake): Promise<UpdateResult> {
         const updateFilter: UpdateFilter<IUser> = { $set: { [`intros.${serverId}`]: soundId } };
         return this.userCollection.updateOne({ id: userId }, updateFilter, { upsert: true });
     }
@@ -160,7 +160,7 @@ export class DatabaseHelper {
     }
 
     public async addSoundMetaThroughStream(stream: Readable, path: string, fileName: string, category: string, userId: string, serverId: string): Promise<void> {
-        await fileHelper.normalizeStream(stream, path);
+        await fileHelper.normalizeStreamAndSave(stream, path);
         const soundsMeta = createSoundMeta(path, fileHelper.getFileName(fileName), category, userId, serverId);
         void this.logSoundUpload([soundsMeta]);
         await this.soundMetaCollection.insertOne(soundsMeta);
@@ -200,8 +200,8 @@ export class DatabaseHelper {
         return ISoundMeta ?? undefined;
     }
 
-    public async getSoundsMetaByName(name: string, guildId: string, limit?: number): Promise<ISoundMeta[]> {
-        let cursor = this.soundMetaCollection.find({ fileName: { $regex: name, $options: 'i' }, serverId: guildId });
+    public async getSoundsMetaByName(name: string, guildId: string, limit?: number, userId?: string): Promise<ISoundMeta[]> {
+        let cursor = this.soundMetaCollection.find({ fileName: { $regex: name, $options: 'i' }, serverId: guildId, ...userId && { userId } });
         if (limit) {
             cursor = cursor.limit(limit);
         }

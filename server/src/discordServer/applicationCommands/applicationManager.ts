@@ -18,7 +18,9 @@ import {
     APPLICATION_COMMAND_CHOICE_NAME,
     APPLICATION_COMMAND_CHOICE_VALUE,
     APPLICATION_COMMAND_MAX_CHOICES
-} from '../limits';
+} from '../constants';
+import { getCommandLangKey } from './commandLang';
+import { CommandLangKey } from './types/lang.types';
 
 const logger = scopedLogger('APPLICATION_COMMANDS');
 const commandsPath = join(__dirname, './commands');
@@ -123,7 +125,7 @@ async function handleChatInputCommand(interaction: AutocompleteInteraction | Cha
 }
 
 async function handleReply(replyResponse: InteractionExecuteResponse, interaction:  ChatInputCommandInteraction | MessageContextMenuCommandInteraction) {
-    const reply = await getReply(replyResponse, interaction.commandName);
+    const reply = await getReply(replyResponse, interaction);
     if (!reply) {
         // reply is handled by command
         return;
@@ -132,11 +134,11 @@ async function handleReply(replyResponse: InteractionExecuteResponse, interactio
     try {
         await interaction.reply(reply);
     } catch {
-        //TODO: handle interaction timeout (3 sec)
+        // handle interaction timeout? (3 sec)
     }
 }
 
-async function getReply(reply: InteractionExecuteResponse, interactionName: string): Promise<InteractionReplyOptions | void> {
+async function getReply(reply: InteractionExecuteResponse, interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction): Promise<InteractionReplyOptions | void> {
     try {
         const interactionReply = await reply;
         if (typeof interactionReply === 'string') {
@@ -148,37 +150,34 @@ async function getReply(reply: InteractionExecuteResponse, interactionName: stri
             return interactionReply;
         }
     } catch (error) {
-        logger.error(error, `Error executing ${interactionName}`);
+        logger.error(error, `Error executing ${interaction.commandName}`);
         return {
-            content: handleInteractionError(error),
+            content: handleInteractionError(error, interaction),
             ephemeral: true,
         };
     }
 }
 
-export async function getInteractionMetadata(interaction: ChatInputCommandInteraction): Promise<{member: GuildMember, guild: Guild}> {
+export async function getInteractionMetadata(interaction: ChatInputCommandInteraction | AutocompleteInteraction): Promise<{member: GuildMember, guild: Guild}> {
     let member = interaction.member;
     if (!member) {
-        throw new InteractionError('invalid member');
+        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_MEMBER));
     }
     const guild = interaction.inCachedGuild() ? await interaction.guild.fetch() : interaction.guild;
     if (!guild) {
-        throw new InteractionError('Invalid guild');
+        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_GUILD));
     }
 
     if (!(member instanceof GuildMember)) {
         member = await guild.members.fetch(member.user.id);
     }
-    if (!member.voice.channelId) {
-        throw new InteractionError(`Member ${member.user.username} is not in a voice channel!`);
-    }
 
     return { member, guild };
 }
 
-export function handleInteractionError(error: unknown): string {
+export function handleInteractionError(error: unknown, interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction): string {
     if (error instanceof InteractionError) {
         return error.message;
     }
-    return 'Unknown error happened!';
+    return getCommandLangKey(interaction, CommandLangKey.ERRORS_UNKNOWN);
 }

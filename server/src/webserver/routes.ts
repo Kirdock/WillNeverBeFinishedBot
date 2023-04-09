@@ -23,6 +23,7 @@ import { fileHelper } from '../services/fileHelper';
 import { playSound, requestSound, stopPlaying } from '../services/musicPlayer';
 import { mapUserSettingsToDict } from '../utils/convertion.utils';
 import { recordHelper } from '../services/recordHelper';
+import type { ObjectId } from 'mongodb';
 
 const logger = scopedLogger('API');
 
@@ -430,7 +431,7 @@ export function registerRoutes(router: rs) {
             try {
                 const result = getPayload(res);
                 const meta = await databaseHelper.getSoundMeta(req.body.soundId);
-                const soundId = meta?._id ?? req.body.soundId;
+                const soundId: ObjectId | string | undefined = meta?._id ?? req.body.soundId;
                 let id: string;
                 let isAllowed: boolean;
 

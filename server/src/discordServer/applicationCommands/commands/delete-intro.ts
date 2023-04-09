@@ -1,20 +1,19 @@
 import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType } from 'discord.js';
-import { stopPlaying } from '../../../services/musicPlayer';
-import { getInteractionMetadata } from '../applicationManager';
-import { discordBot } from '../../DiscordBot';
-import { getCommandLangKey } from '../commandLang';
-import { CommandLangKey } from '../types/lang.types';
 import { getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
+import { CommandLangKey } from '../types/lang.types';
+import { getInteractionMetadata } from '../applicationManager';
+import { databaseHelper } from '../../../services/databaseHelper';
+import { getCommandLangKey } from '../commandLang';
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: getScopedSlashCommandBuilder(CommandLangKey.STOP_NAME, CommandLangKey.STOP_DESCRIPTION)
+    data: getScopedSlashCommandBuilder(CommandLangKey.DELETE_INTRO_NAME, CommandLangKey.DELETE_INTRO_DESCRIPTION)
         .toJSON(),
     async execute(interaction) {
         const { member, guild } = await getInteractionMetadata(interaction);
 
-        await stopPlaying(guild.id, discordBot.isSuperAdmin(member.id));
+        await databaseHelper.setIntro(member.id, undefined, guild.id);
 
         return getCommandLangKey(interaction, CommandLangKey.SUCCESS);
     },

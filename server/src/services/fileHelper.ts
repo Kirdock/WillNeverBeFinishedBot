@@ -5,6 +5,7 @@ import { rename, unlink } from 'fs/promises';
 import { EnvironmentConfig } from './config';
 import { scopedLogger } from './logHelper';
 import type { Readable } from 'stream';
+import { PassThrough } from 'stream';
 
 const logger = scopedLogger('FILE_SYSTEM');
 
@@ -124,7 +125,7 @@ class FileHelper {
         });
     }
 
-    public async normalizeStream(file: Readable, path: string): Promise<boolean> {
+    public async normalizeStreamAndSave(file: Readable, path: string): Promise<boolean> {
         return await new Promise((resolve) => {
             ffmpeg(file)
                 .audioFilter('loudnorm')
@@ -137,6 +138,23 @@ class FileHelper {
                 })
                 .save(path);
         });
+    }
+
+    public async normalizeStream(stream: Readable): Promise<PassThrough> {
+        const passThrough = new PassThrough();
+        await new Promise((resolve) => {
+            ffmpeg(stream)
+                .audioFilter('loudnorm')
+                .on('error', (e) => {
+                    logger.error(e, 'Normalize files');
+                    resolve(e);
+                })
+                .on('end', async () => {
+                    resolve(true);
+                })
+                .writeToStream(passThrough);
+        });
+        return passThrough;
     }
 
     public generateSoundPath(fileName: string): string {

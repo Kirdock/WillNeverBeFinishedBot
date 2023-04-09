@@ -13,6 +13,26 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.BUBBLE_COLUMN_DESCRIPTION]: 'Wieviele Spalten soll die Luftpolsterfolie haben?',
     //endregion
 
+    //region DELETE_INTRO
+    // [CommandLangKey.DELETE_INTRO_NAME]: 'delete-intro',
+    [CommandLangKey.DELETE_INTRO_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
+    //endregion
+
+    //region DELETE_SOUND
+    // [CommandLangKey.DELETE_SOUND_NAME]: 'delete-sound',
+    [CommandLangKey.DELETE_SOUND_DESCRIPTION]: 'Löscht die angegebene Audiodatei',
+    //endregion
+
+    //region DELETE_USER_INTRO
+    // [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove-user-intro',
+    [CommandLangKey.DELETE_USER_INTRO_DESCRIPTION]: 'Entfernt das Intro des angegebenen Benutzers',
+    //endregion
+
+    //region DOWNLOAD
+    // [CommandLangKey.DOWNLOAD_NAME]: 'download-sound',
+    [CommandLangKey.DOWNLOAD_DESCRIPTION]: 'Lädt die Audiodatei in Discord hoch damit du sie herunterladen kannst (nur sichtbar für dich)',
+    //endregion
+
     //region FLIP
     // [CommandLangKey.FLIP_NAME]: 'münzwurf',
     [CommandLangKey.FLIP_DESCRIPTION]: 'Wirf eine Münze',
@@ -51,6 +71,13 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.PLAY_DESCRIPTION]: 'Spiele eine Audiodatei in Sprachkanal ab',
     [CommandLangKey.PLAY_FILE_NAME]: 'datei',
     [CommandLangKey.PLAY_FILE_DESCRIPTION]: 'Wähle einen Song aus, den du abspielen möchtest',
+    [CommandLangKey.PLAY_VOLUME_NAME]: 'lautstärke',
+    [CommandLangKey.PLAY_VOLUME_DESCRIPTION]: 'Setzt die Lautstärke der abzuspielenden Audiodatei +(1-100%)',
+    //endregion
+
+    //region PLAY_FORCE
+    // [CommandLangKey.PLAY_FORCE_NAME]: 'play-force',
+    [CommandLangKey.PLAY_FORCE_DESCRIPTION]: 'Spielt eine Audiodatei ab, die nur von Admins abgebrochen werden kann',
     //endregion
 
     //region POST_STEAM_LINK
@@ -86,6 +113,23 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_MULTIPLE]: 'ZIP Datei mit allen Benutzeraufnahmen',
     //endregion
 
+    //region SET_INTRO
+    // [CommandLangKey.SET_INTRO_NAME]: 'set-intro',
+    [CommandLangKey.SET_INTRO_DESCRIPTION]: 'Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst',
+    //endregion
+
+    //region SET_USER_INTRO
+    [CommandLangKey.SET_USER_INTRO_NAME]: 'set-user-intro',
+    [CommandLangKey.SET_USER_INTRO_DESCRIPTION]: 'Setzt das Intro eines anderen Benutzers',
+    [CommandLangKey.SET_USER_INTRO_USER_NAME]: 'benutzer',
+    [CommandLangKey.SET_USER_INTRO_USER_DESCRIPTION]: 'Wähle einen Benutzer',
+    //endregion
+
+    //region SET_USER_VOLUME
+    // [CommandLangKey.SET_USER_VOLUME_NAME]: 'set-user-volume',
+    [CommandLangKey.SET_USER_VOLUME_DESCRIPTION]: 'Setzt die Aufnahmelautstärke des ausgewählten Nutzers',
+    //endregion
+
     //region STOP
     // [CommandLangKey.STOP_NAME]: 'stop',
     [CommandLangKey.STOP_DESCRIPTION]: 'Sorgt dafia, dass da Bot sei Goschn holtat',
@@ -111,6 +155,7 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
 
     //region error messages
     [CommandLangKey.ERRORS_INVALID_GUILD]: 'Ungültige Server ID!',
+    [CommandLangKey.ERRORS_INVALID_MEMBER]: 'Ungültige Benutzer ID!',
     [CommandLangKey.ERRORS_INVALID_AUDIO_CONTENT_TYPE]: 'Bist zbled um a Audiodatei auszuwöhln oda wos?',
     [CommandLangKey.ERRORS_INSUFFICIENT_PERMISSIONS]: 'Du host kane Rechte!',
     [CommandLangKey.ERRORS_NO_STEAM_URL]: 'I sig do kan Steam Link!',

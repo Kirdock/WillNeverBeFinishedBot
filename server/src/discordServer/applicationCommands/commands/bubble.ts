@@ -1,32 +1,22 @@
 import type { Command } from '../../../interfaces/command';
-import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType } from 'discord.js';
 import { getInteractionMetadata } from '../applicationManager';
-import { getCommandLang, getDefaultCommandLang } from '../commandLang';
+import { getDefaultCommandLang } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
+import { getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
 
 const rowName = getDefaultCommandLang(CommandLangKey.BUBBLE_ROW_NAME);
 const columnName = getDefaultCommandLang(CommandLangKey.BUBBLE_COLUMN_NAME);
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: new SlashCommandBuilder()
-        .setName(getDefaultCommandLang(CommandLangKey.BUBBLE_NAME))
-        .setNameLocalizations(getCommandLang(CommandLangKey.BUBBLE_NAME))
-        .setDescription(getDefaultCommandLang(CommandLangKey.BUBBLE_DESCRIPTION))
-        .setDescriptionLocalizations(getCommandLang(CommandLangKey.BUBBLE_DESCRIPTION))
+    data: getScopedSlashCommandBuilder(CommandLangKey.BUBBLE_NAME, CommandLangKey.BUBBLE_DESCRIPTION)
         .addIntegerOption((option) =>
-            option
-                .setName(rowName)
-                .setNameLocalizations(getCommandLang(CommandLangKey.BUBBLE_ROW_NAME))
-                .setDescription(getDefaultCommandLang(CommandLangKey.BUBBLE_ROW_DESCRIPTION))
-                .setDescriptionLocalizations(getCommandLang(CommandLangKey.BUBBLE_ROW_DESCRIPTION))
+            getScopedOption(option, CommandLangKey.BUBBLE_ROW_NAME, CommandLangKey.BUBBLE_ROW_DESCRIPTION)
                 .setRequired(true)
         )
         .addIntegerOption((option) =>
-            option
-                .setName(columnName)
-                .setDescription(getDefaultCommandLang(CommandLangKey.BUBBLE_COLUMN_DESCRIPTION))
-                .setDescriptionLocalizations(getCommandLang(CommandLangKey.BUBBLE_COLUMN_DESCRIPTION))
+            getScopedOption(option, CommandLangKey.BUBBLE_COLUMN_NAME, CommandLangKey.BUBBLE_COLUMN_DESCRIPTION)
                 .setRequired(true)
         ).toJSON(),
     async execute(interaction) {

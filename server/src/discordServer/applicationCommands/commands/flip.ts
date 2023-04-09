@@ -1,15 +1,12 @@
 import type { Command } from '../../../interfaces/command';
-import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
-import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../commandLang';
+import { ApplicationCommandType } from 'discord.js';
+import { getCommandLangKey } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
+import { getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: new SlashCommandBuilder()
-        .setName(getDefaultCommandLang(CommandLangKey.FLIP_NAME))
-        .setNameLocalizations(getCommandLang(CommandLangKey.FLIP_NAME))
-        .setDescription(getDefaultCommandLang(CommandLangKey.FLIP_DESCRIPTION))
-        .setDescriptionLocalizations(getCommandLang(CommandLangKey.FLIP_DESCRIPTION))
+    data: getScopedSlashCommandBuilder(CommandLangKey.FLIP_NAME, CommandLangKey.FLIP_DESCRIPTION)
         .toJSON(),
     async execute(interaction) {
         return {

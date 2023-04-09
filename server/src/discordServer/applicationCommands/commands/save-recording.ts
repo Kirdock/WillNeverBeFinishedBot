@@ -1,14 +1,15 @@
 import { recordHelper } from '../../../services/recordHelper';
 import type { Command } from '../../../interfaces/command';
 import type { APIApplicationCommandOptionChoice } from 'discord.js';
-import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType } from 'discord.js';
 import type { AudioExportType } from '@kirdock/discordjs-voice-recorder';
 import { databaseHelper } from '../../../services/databaseHelper';
 import { mapUserSettingsToDict } from '../../../utils/convertion.utils';
 import { getInteractionMetadata } from '../applicationManager';
 import { getCommandLang, getDefaultCommandLang } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
-import { setLoading } from '../../utils/commonCommand.utils';
+import { getScopedOption, getScopedSlashCommandBuilder, setLoading } from '../../utils/commonCommand.utils';
+import { AUDIO_CONTENT_TYPE } from '../../constants';
 
 type Choices = APIApplicationCommandOptionChoice & {value: AudioExportType};
 const choices: Choices[] = [
@@ -29,26 +30,14 @@ const typeName = getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_TYPE_NAME);
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: new SlashCommandBuilder()
-        .setName(getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_NAME))
-        .setNameLocalizations(getCommandLang(CommandLangKey.SAVE_RECORDING_NAME))
-        .setDescription(getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_DESCRIPTION))
-        .setDescriptionLocalizations(getCommandLang(CommandLangKey.SAVE_RECORDING_DESCRIPTION))
+    data: getScopedSlashCommandBuilder(CommandLangKey.SAVE_RECORDING_NAME, CommandLangKey.SAVE_RECORDING_DESCRIPTION)
         .addIntegerOption((option) =>
-            option
-                .setName(minutesName)
-                .setNameLocalizations(getCommandLang(CommandLangKey.SAVE_RECORDING_MINUTES_NAME))
-                .setDescription(getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_MINUTES_DESCRIPTION))
-                .setDescriptionLocalizations(getCommandLang(CommandLangKey.SAVE_RECORDING_MINUTES_DESCRIPTION))
+            getScopedOption(option, CommandLangKey.SAVE_RECORDING_MINUTES_NAME, CommandLangKey.SAVE_RECORDING_MINUTES_DESCRIPTION)
                 .setMinValue(1)
                 .setMaxValue(10)
         )
         .addStringOption((option) =>
-            option
-                .setName(typeName)
-                .setNameLocalizations(getCommandLang(CommandLangKey.SAVE_RECORDING_TYPE_NAME))
-                .setDescription(getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION))
-                .setDescriptionLocalizations(getCommandLang(CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION))
+            getScopedOption(option, CommandLangKey.SAVE_RECORDING_TYPE_NAME, CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION)
                 .setChoices(...choices)
         )
         .toJSON(),
@@ -63,7 +52,7 @@ const command: Command = {
         let fileType: string, fileName: string;
 
         if (exportType === 'single') {
-            fileType = 'audio/mp3';
+            fileType = AUDIO_CONTENT_TYPE;
             fileName = `${date}.mp3`;
         } else {
             fileType = 'application/zip';

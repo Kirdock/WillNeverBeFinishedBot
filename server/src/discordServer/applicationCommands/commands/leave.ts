@@ -1,19 +1,16 @@
 import type { Command } from '../../../interfaces/command';
-import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandType } from 'discord.js';
 import { getInteractionMetadata } from '../applicationManager';
 import { hasPlayLock } from '../../../services/musicPlayer';
 import { voiceHelper } from '../../../services/voiceHelper';
 import { discordBot } from '../../DiscordBot';
-import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../commandLang';
+import { getCommandLangKey } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
+import { getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: new SlashCommandBuilder()
-        .setName(getDefaultCommandLang(CommandLangKey.LEAVE_NAME))
-        .setNameLocalizations(getCommandLang(CommandLangKey.LEAVE_NAME))
-        .setDescription(getDefaultCommandLang(CommandLangKey.LEAVE_DESCRIPTION))
-        .setDescriptionLocalizations(getCommandLang(CommandLangKey.LEAVE_DESCRIPTION))
+    data: getScopedSlashCommandBuilder(CommandLangKey.LEAVE_NAME, CommandLangKey.LEAVE_DESCRIPTION)
         .toJSON(),
     async execute(interaction) {
         const { member, guild } = await getInteractionMetadata(interaction);

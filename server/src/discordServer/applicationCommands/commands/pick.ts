@@ -1,23 +1,16 @@
 import type { Command } from '../../../interfaces/command';
-import { ApplicationCommandType, SlashCommandBuilder } from 'discord.js';
-import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../commandLang';
+import { ApplicationCommandType } from 'discord.js';
+import { getCommandLangKey, getDefaultCommandLang } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
+import { getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
 
 const choicesName = getDefaultCommandLang(CommandLangKey.PICK_CHOICE_NAME);
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: new SlashCommandBuilder()
-        .setName(getDefaultCommandLang(CommandLangKey.PICK_NAME))
-        .setNameLocalizations(getCommandLang(CommandLangKey.PICK_NAME))
-        .setDescription(getDefaultCommandLang(CommandLangKey.PICK_DESCRIPTION))
-        .setDescriptionLocalizations(getCommandLang(CommandLangKey.PICK_DESCRIPTION))
+    data: getScopedSlashCommandBuilder(CommandLangKey.PICK_NAME, CommandLangKey.PICK_DESCRIPTION)
         .addStringOption((option) =>
-            option
-                .setName(choicesName)
-                .setNameLocalizations(getCommandLang(CommandLangKey.PICK_CHOICE_NAME))
-                .setDescription(getDefaultCommandLang(CommandLangKey.PICK_CHOICE_DESCRIPTION))
-                .setDescriptionLocalizations(getCommandLang(CommandLangKey.PICK_CHOICE_DESCRIPTION))
+            getScopedOption(option, CommandLangKey.PICK_CHOICE_NAME, CommandLangKey.PICK_CHOICE_DESCRIPTION)
                 .setRequired(true)
         ).toJSON(),
     async execute(interaction) {

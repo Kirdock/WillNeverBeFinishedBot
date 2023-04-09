@@ -22,11 +22,12 @@ export interface InteractionFileResponse {
 }
 
 export type InteractionExecuteResponse = Promise<string | InteractionEphemeralResponse | InteractionFileResponse | void>;
+export type InteractionAutocomplete = (interaction: AutocompleteInteraction) => Promise<APIApplicationCommandOptionChoice[]>;
 
 export interface ChatCommand {
     data:  RESTPostAPIChatInputApplicationCommandsJSONBody | SlashCommandBuilder;
     execute: (interaction: ChatInputCommandInteraction) => InteractionExecuteResponse;
-    autocomplete?: (interaction: AutocompleteInteraction) => Promise<APIApplicationCommandOptionChoice[]>;
+    autocomplete?: InteractionAutocomplete;
     type: ApplicationCommandType.ChatInput,
 }
 
