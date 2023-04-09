@@ -1,9 +1,10 @@
 import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType } from 'discord.js';
-import { getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
+import { getScopedOption, getScopedSlashCommandBuilder, setLoading } from '../../utils/commonCommand.utils';
 import { CommandLangKey } from '../types/lang.types';
 import openAI from '../../../services/openAI';
 import { getCommandLangKey, getDefaultCommandLang } from '../commandLang';
+import { DISCORD_MAX_MESSAGE_LENGTH } from '../../constants';
 
 const textCommand = getDefaultCommandLang(CommandLangKey.CHAT_GPT_TEXT_NAME);
 
@@ -20,11 +21,10 @@ const command: Command = {
             return getCommandLangKey(interaction, CommandLangKey.ERRORS_OPEN_AI_DISABLED);
         }
         const text = interaction.options.getString(textCommand, true);
-        const messagePromise = interaction.reply(getCommandLangKey(interaction, CommandLangKey.LOADING));
+        const message = await setLoading(interaction, false);
         const response = await openAI.getResponse(text);
-        const message = await messagePromise;
 
-        await message.edit(response ?? getCommandLangKey(interaction, CommandLangKey.ERRORS_EMPTY_RESPONSE));
+        await message.edit(response?.substring(0, DISCORD_MAX_MESSAGE_LENGTH) ?? getCommandLangKey(interaction, CommandLangKey.ERRORS_EMPTY_RESPONSE));
     }
 };
 

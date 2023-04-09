@@ -47,7 +47,7 @@ const command: Command = {
         .toJSON(),
     async execute (interaction) {
         const { guildId } = getInteractionMetadata(interaction);
-        const messagePromise = setLoading(interaction, false);
+        const message = await setLoading(interaction, false);
         const minutes = interaction.options.getInteger(minutesName) ?? undefined;
         const exportType = (interaction.options.getString(typeName) as AudioExportType | null) ?? undefined;
         const serverSettings = await databaseHelper.getServerSettings(guildId);
@@ -62,8 +62,6 @@ const command: Command = {
             fileType = 'application/zip';
             fileName = `${date}.zip`;
         }
-
-        const message = await messagePromise;
         await message.edit({
             files: [ {
                 attachment: readable,
