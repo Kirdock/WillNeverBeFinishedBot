@@ -56,8 +56,8 @@ const command: Command = {
         }
 
         const name = `${uuidv4()}${extname(attachment.url)}`;
-        const response = await fetch(attachment.url);
         const fileName = interaction.options.getString(fileNameOptionName) || fileHelper.getFileName(attachment.url);
+        const response = await fetch(attachment.url);
         const stream = Readable.from(Buffer.from(await response.arrayBuffer()));
 
         await databaseHelper.addSoundMetaThroughStream(stream, fileHelper.generateSoundPath(name), fileName, category, interaction.user.id, interaction.guildId);
