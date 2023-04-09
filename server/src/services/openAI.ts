@@ -18,6 +18,7 @@ class OpenAI {
                 content: text,
                 role: 'user'
             }],
+            temperature: 0.9,
         });
         return completion.data.choices[0].message?.content;
     }
