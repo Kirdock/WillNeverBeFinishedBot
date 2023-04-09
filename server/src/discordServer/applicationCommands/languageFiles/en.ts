@@ -13,23 +13,30 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.BUBBLE_COLUMN_DESCRIPTION]: 'How many columns your bubble wrap should have',
     //endregion
 
+    //region CHAT_GPT
+    [CommandLangKey.CHAT_GPT_NAME]: 'chat_gpt',
+    [CommandLangKey.CHAT_GPT_DESCRIPTION]: 'Ask ChatGPT',
+    [CommandLangKey.CHAT_GPT_TEXT_NAME]: 'question',
+    [CommandLangKey.CHAT_GPT_TEXT_DESCRIPTION]: 'What do you want to know?',
+    //endregion
+
     //region DELETE_INTRO
-    [CommandLangKey.DELETE_INTRO_NAME]: 'remove-intro',
+    [CommandLangKey.DELETE_INTRO_NAME]: 'remove_intro',
     [CommandLangKey.DELETE_INTRO_DESCRIPTION]: 'Removes your intro. The file will still be here',
     //endregion
 
     //region DELETE_SOUND
-    [CommandLangKey.DELETE_SOUND_NAME]: 'delete-sound',
+    [CommandLangKey.DELETE_SOUND_NAME]: 'delete_sound',
     [CommandLangKey.DELETE_SOUND_DESCRIPTION]: 'Deletes the given sound',
     //endregion
 
     //region DELETE_USER_INTRO
-    [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove-user-intro',
+    [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove_user_intro',
     [CommandLangKey.DELETE_USER_INTRO_DESCRIPTION]: 'Removes the intro of the given user',
     //endregion
 
     //region DOWNLOAD
-    [CommandLangKey.DOWNLOAD_NAME]: 'download-sound',
+    [CommandLangKey.DOWNLOAD_NAME]: 'download_sound',
     [CommandLangKey.DOWNLOAD_DESCRIPTION]: 'Uploads the given sound to the Discord channel (only visible to you)',
     //endregion
 
@@ -76,8 +83,13 @@ export const enCommandLanguage: CommandLanguageFile = {
     //endregion
 
     //region PLAY_FORCE
-    [CommandLangKey.PLAY_FORCE_NAME]: 'play-force',
+    [CommandLangKey.PLAY_FORCE_NAME]: 'play_force',
     [CommandLangKey.PLAY_FORCE_DESCRIPTION]: 'Plays a given file that can\'t be interrupted by non admin users',
+    //endregion
+
+    //region PLAY_YOUTUBE
+    [CommandLangKey.PLAY_YOUTUBE_NAME]: 'play_youtube',
+    [CommandLangKey.PLAY_YOUTUBE_DESCRIPTION]: 'Play the audio of a given Youtube-URL',
     //endregion
 
     //region POST_STEAM_LINK
@@ -114,19 +126,19 @@ export const enCommandLanguage: CommandLanguageFile = {
     //endregion
 
     //region SET_INTRO
-    [CommandLangKey.SET_INTRO_NAME]: 'set-intro',
+    [CommandLangKey.SET_INTRO_NAME]: 'set_intro',
     [CommandLangKey.SET_INTRO_DESCRIPTION]: 'Sets the intro that is played when you join a voice channel',
     //endregion
 
     //region SET_USER_INTRO
-    [CommandLangKey.SET_USER_INTRO_NAME]: 'set-user-intro',
+    [CommandLangKey.SET_USER_INTRO_NAME]: 'set_user_intro',
     [CommandLangKey.SET_USER_INTRO_DESCRIPTION]: 'Sets the intro of another user',
     [CommandLangKey.SET_USER_INTRO_USER_NAME]: 'user',
     [CommandLangKey.SET_USER_INTRO_USER_DESCRIPTION]: 'Choose a user',
     //endregion
 
     //region SET_USER_VOLUME
-    [CommandLangKey.SET_USER_VOLUME_NAME]: 'set-user-volume',
+    [CommandLangKey.SET_USER_VOLUME_NAME]: 'set_user_volume',
     [CommandLangKey.SET_USER_VOLUME_DESCRIPTION]: 'Sets the record volume of the given user',
     //endregion
 
@@ -164,6 +176,8 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.ERRORS_NOT_IN_VOICE_CHANNEL]: 'Your are not in a voice channel!',
     [CommandLangKey.ERRORS_FILE_NOT_FOUND]: 'File not found!',
     [CommandLangKey.ERRORS_UNKNOWN]: 'Unknown error happened!',
+    [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT is disabled by the bot owner',
+    [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'I didn\'t get any response',
     //endregion
 
     //region success messages

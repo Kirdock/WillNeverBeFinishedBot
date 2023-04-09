@@ -24,17 +24,22 @@ export interface InteractionFileResponse {
 export type InteractionExecuteResponse = Promise<string | InteractionEphemeralResponse | InteractionFileResponse | void>;
 export type InteractionAutocomplete = (interaction: AutocompleteInteraction) => Promise<APIApplicationCommandOptionChoice[]>;
 
-export interface ChatCommand {
+interface BaseCommand {
+    enabled?: boolean;
+}
+
+export interface ChatCommand extends BaseCommand{
     data:  RESTPostAPIChatInputApplicationCommandsJSONBody | SlashCommandBuilder;
     execute: (interaction: ChatInputCommandInteraction) => InteractionExecuteResponse;
     autocomplete?: InteractionAutocomplete;
     type: ApplicationCommandType.ChatInput,
 }
 
-export interface MessageCommand {
+export interface MessageCommand extends BaseCommand {
     data: RESTPostAPIContextMenuApplicationCommandsJSONBody | ContextMenuCommandBuilder;
     execute: (interaction: MessageContextMenuCommandInteraction) => InteractionExecuteResponse;
     type: ApplicationCommandType.Message
+    enabled?: boolean;
 }
 
 export type Command = ChatCommand | MessageCommand;

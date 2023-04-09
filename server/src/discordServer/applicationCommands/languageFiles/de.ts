@@ -13,23 +13,30 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.BUBBLE_COLUMN_DESCRIPTION]: 'Wieviele Spalten soll die Luftpolsterfolie haben?',
     //endregion
 
+    //region CHAT_GPT
+    // [CommandLangKey.CHAT_GPT_NAME]: 'chat_gpt',
+    [CommandLangKey.CHAT_GPT_DESCRIPTION]: 'Frage ChatGPT etwas',
+    [CommandLangKey.CHAT_GPT_TEXT_NAME]: 'frage',
+    [CommandLangKey.CHAT_GPT_TEXT_DESCRIPTION]: 'Was willst du wissen?',
+    //endregion
+
     //region DELETE_INTRO
-    // [CommandLangKey.DELETE_INTRO_NAME]: 'delete-intro',
+    // [CommandLangKey.DELETE_INTRO_NAME]: 'delete_intro',
     [CommandLangKey.DELETE_INTRO_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
     //endregion
 
     //region DELETE_SOUND
-    // [CommandLangKey.DELETE_SOUND_NAME]: 'delete-sound',
+    // [CommandLangKey.DELETE_SOUND_NAME]: 'delete_sound',
     [CommandLangKey.DELETE_SOUND_DESCRIPTION]: 'Löscht die angegebene Audiodatei',
     //endregion
 
     //region DELETE_USER_INTRO
-    // [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove-user-intro',
+    // [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove_user_intro',
     [CommandLangKey.DELETE_USER_INTRO_DESCRIPTION]: 'Entfernt das Intro des angegebenen Benutzers',
     //endregion
 
     //region DOWNLOAD
-    // [CommandLangKey.DOWNLOAD_NAME]: 'download-sound',
+    // [CommandLangKey.DOWNLOAD_NAME]: 'download_sound',
     [CommandLangKey.DOWNLOAD_DESCRIPTION]: 'Lädt die Audiodatei in Discord hoch damit du sie herunterladen kannst (nur sichtbar für dich)',
     //endregion
 
@@ -76,8 +83,13 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     //endregion
 
     //region PLAY_FORCE
-    // [CommandLangKey.PLAY_FORCE_NAME]: 'play-force',
+    // [CommandLangKey.PLAY_FORCE_NAME]: 'play_force',
     [CommandLangKey.PLAY_FORCE_DESCRIPTION]: 'Spielt eine Audiodatei ab, die nur von Admins abgebrochen werden kann',
+    //endregion
+
+    //region PLAY_YOUTUBE
+    // [CommandLangKey.PLAY_YOUTUBE_NAME]: 'play_youtube',
+    [CommandLangKey.PLAY_YOUTUBE_DESCRIPTION]: 'Spiele den Ton eines Youtube Videos ab',
     //endregion
 
     //region POST_STEAM_LINK
@@ -114,19 +126,19 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     //endregion
 
     //region SET_INTRO
-    // [CommandLangKey.SET_INTRO_NAME]: 'set-intro',
+    // [CommandLangKey.SET_INTRO_NAME]: 'set_intro',
     [CommandLangKey.SET_INTRO_DESCRIPTION]: 'Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst',
     //endregion
 
     //region SET_USER_INTRO
-    [CommandLangKey.SET_USER_INTRO_NAME]: 'set-user-intro',
+    // [CommandLangKey.SET_USER_INTRO_NAME]: 'set_user_intro',
     [CommandLangKey.SET_USER_INTRO_DESCRIPTION]: 'Setzt das Intro eines anderen Benutzers',
     [CommandLangKey.SET_USER_INTRO_USER_NAME]: 'benutzer',
     [CommandLangKey.SET_USER_INTRO_USER_DESCRIPTION]: 'Wähle einen Benutzer',
     //endregion
 
     //region SET_USER_VOLUME
-    // [CommandLangKey.SET_USER_VOLUME_NAME]: 'set-user-volume',
+    // [CommandLangKey.SET_USER_VOLUME_NAME]: 'set_user_volume',
     [CommandLangKey.SET_USER_VOLUME_DESCRIPTION]: 'Setzt die Aufnahmelautstärke des ausgewählten Nutzers',
     //endregion
 
@@ -162,6 +174,8 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.ERRORS_INVALID_DATA]: 'Ungültige Angabe!',
     [CommandLangKey.ERRORS_NOT_IN_VOICE_CHANNEL]: 'Du bist nicht in einem Sprachkanal!',
     [CommandLangKey.ERRORS_FILE_NOT_FOUND]: 'De Datei gibts nit du Volltrottl!',
+    [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT ist vom Botbesicher deaktiviert worden',
+    [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'Keine Antwort erhalten',
     //endregion
 
     //region success messages

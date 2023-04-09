@@ -1,6 +1,5 @@
 import multer from 'multer';
 import { extname } from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import type { Request, Response, Router as rs } from 'express';
 import { databaseHelper } from '../services/databaseHelper';
 import { authHelper } from '../services/authHelper';
@@ -24,6 +23,7 @@ import { playSound, requestSound, stopPlaying } from '../services/musicPlayer';
 import { mapUserSettingsToDict } from '../utils/convertion.utils';
 import { recordHelper } from '../services/recordHelper';
 import type { ObjectId } from 'mongodb';
+import dataService from '../services/data.service';
 
 const logger = scopedLogger('API');
 
@@ -33,7 +33,7 @@ export function registerRoutes(router: rs) {
             cb(null, fileHelper.soundFolder);
         },
         filename: (_req, file, cb) => {
-            cb(null, `${uuidv4()}${extname(file.originalname)}`);
+            cb(null, fileHelper.generateUniqueFileName(file.originalname));
         },
     });
     const upload = multer({ storage });
@@ -338,20 +338,12 @@ export function registerRoutes(router: rs) {
                 const result = getPayload(res);
                 const meta = await databaseHelper.getSoundMeta(req.params.id);
                 if (meta && (meta.userId === result.id || discordBot.isSuperAdmin(result.id))) {
-                    const filePath = meta.path;
-                    await databaseHelper.removeSoundMeta(req.params.id);
                     try {
-                        await fileHelper.deleteFile(filePath);
-                        await databaseHelper.logSoundDelete(result.id, meta);
+                        await dataService.deleteSound(meta, result.id);
+
                         res.statusMessage = getResponseMessage(req, 'SOUND_DELETED');
                         res.status(200).end();
                     } catch (error) {
-                        logger.error(error as Error, 'DeleteFile');
-                        try {
-                            await databaseHelper.addSoundMeta(meta._id, meta.path, meta.fileName, meta.userId, meta.category, meta.serverId);
-                        } catch (error2) {
-                            logger.error(error2 as Error, 'AddSoundMeta');
-                        }
                         res.statusMessage = getResponseMessage(req, 'SOUND_DELETE_ERROR');
                         res.status(500).end();
                     }

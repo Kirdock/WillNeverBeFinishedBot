@@ -5,10 +5,14 @@ import { ApplicationCommandType } from 'discord.js';
 import type { AudioExportType } from '@kirdock/discordjs-voice-recorder';
 import { databaseHelper } from '../../../services/databaseHelper';
 import { mapUserSettingsToDict } from '../../../utils/convertion.utils';
-import { getInteractionMetadata } from '../applicationManager';
 import { getCommandLang, getDefaultCommandLang } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
-import { getScopedOption, getScopedSlashCommandBuilder, setLoading } from '../../utils/commonCommand.utils';
+import {
+    getInteractionMetadata,
+    getScopedOption,
+    getScopedSlashCommandBuilder,
+    setLoading
+} from '../../utils/commonCommand.utils';
 import { AUDIO_CONTENT_TYPE } from '../../constants';
 
 type Choices = APIApplicationCommandOptionChoice & {value: AudioExportType};
@@ -42,12 +46,12 @@ const command: Command = {
         )
         .toJSON(),
     async execute (interaction) {
-        const { guild } = await getInteractionMetadata(interaction);
+        const { guildId } = getInteractionMetadata(interaction);
         const messagePromise = setLoading(interaction, false);
         const minutes = interaction.options.getInteger(minutesName) ?? undefined;
         const exportType = (interaction.options.getString(typeName) as AudioExportType | null) ?? undefined;
-        const serverSettings = await databaseHelper.getServerSettings(guild.id);
-        const readable = await recordHelper.getRecordedVoiceAsReadable(guild.id, exportType, minutes, mapUserSettingsToDict(serverSettings));
+        const serverSettings = await databaseHelper.getServerSettings(guildId);
+        const readable = await recordHelper.getRecordedVoiceAsReadable(guildId, exportType, minutes, mapUserSettingsToDict(serverSettings));
         const date = new Date().toISOString();
         let fileType: string, fileName: string;
 

@@ -2,13 +2,11 @@ import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType } from 'discord.js';
 import { databaseHelper } from '../../../services/databaseHelper';
 import { APPLICATION_COMMAND_MAX_CHOICES } from '../../constants';
-import { extname } from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import { fileHelper } from '../../../services/fileHelper';
 import { Readable } from 'stream';
 import { getCommandLangKey, getDefaultCommandLang } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
-import { getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
+import { getInteractionMetadata, getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
 
 const attachmentName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_NAME);
 const categoryName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_CATEGORY_NAME);
@@ -31,21 +29,18 @@ const command: Command = {
     async execute(interaction) {
         const attachment = interaction.options.getAttachment(attachmentName, true);
         const category = interaction.options.getString(categoryName, true);
-
-        if (!interaction.guildId) {
-            return getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_GUILD);
-        }
+        const { guildId } = getInteractionMetadata(interaction);
 
         if (attachment.contentType !== 'audio/mpeg') {
             return getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_AUDIO_CONTENT_TYPE);
         }
 
-        const name = `${uuidv4()}${extname(attachment.url)}`;
+        const name = fileHelper.generateUniqueFileName(attachment.url);
         const fileName = interaction.options.getString(fileNameOptionName) || fileHelper.getFileName(attachment.url);
         const response = await fetch(attachment.url);
         const stream = Readable.from(Buffer.from(await response.arrayBuffer()));
 
-        await databaseHelper.addSoundMetaThroughStream(stream, fileHelper.generateSoundPath(name), fileName, category, interaction.user.id, interaction.guildId);
+        await databaseHelper.addSoundMetaThroughStream(stream, fileHelper.generateSoundPath(name), fileName, category, interaction.user.id, guildId);
 
         return getCommandLangKey(interaction, CommandLangKey.SUCCESS_UPLOAD);
     },

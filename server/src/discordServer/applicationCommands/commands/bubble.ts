@@ -1,9 +1,8 @@
 import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType } from 'discord.js';
-import { getInteractionMetadata } from '../applicationManager';
 import { getDefaultCommandLang } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
-import { getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
+import { getInteractionMetadata, getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
 
 const rowName = getDefaultCommandLang(CommandLangKey.BUBBLE_ROW_NAME);
 const columnName = getDefaultCommandLang(CommandLangKey.BUBBLE_COLUMN_NAME);
@@ -20,7 +19,7 @@ const command: Command = {
                 .setRequired(true)
         ).toJSON(),
     async execute(interaction) {
-        const { member } = await getInteractionMetadata(interaction);
+        const { member } = getInteractionMetadata(interaction);
         const rows = interaction.options.getInteger(rowName, true);
         const columns = interaction.options.getInteger(columnName, true);
 

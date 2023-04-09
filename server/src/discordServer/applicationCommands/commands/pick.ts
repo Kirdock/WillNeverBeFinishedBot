@@ -2,7 +2,7 @@ import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType } from 'discord.js';
 import { getCommandLangKey, getDefaultCommandLang } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
-import { getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
+import { getScopedOption, getScopedSlashCommandBuilder, takeRandom } from '../../utils/commonCommand.utils';
 
 const choicesName = getDefaultCommandLang(CommandLangKey.PICK_CHOICE_NAME);
 
@@ -20,8 +20,8 @@ const command: Command = {
         if (elements.length === 0) {
             return getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_DATA);
         }
-        const index = Math.floor(Math.random() * elements.length);
-        return elements[index];
+
+        return takeRandom(elements);
     },
 };
 

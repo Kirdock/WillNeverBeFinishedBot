@@ -185,15 +185,15 @@ export class DatabaseHelper {
     }
 
     public async getSoundMeta(id: string): Promise<ISoundMeta | undefined> {
-        const ISoundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({ _id: new ObjectId(id) });
-        if (ISoundMeta) {
-            this.mapTime([ISoundMeta]);
+        const soundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({ _id: new ObjectId(id) });
+        if (soundMeta) {
+            this.mapTime([soundMeta]);
         }
-        return ISoundMeta ?? undefined;
+        return soundMeta ?? undefined;
     }
 
-    public async getSoundMetaByName(fileName: string): Promise<ISoundMeta | undefined> {
-        const ISoundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({ fileName });
+    public async getSoundMetaByName(fileName: string, guildId: string): Promise<ISoundMeta | undefined> {
+        const ISoundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({ fileName, serverId: guildId });
         if (ISoundMeta) {
             this.mapTime([ISoundMeta]);
         }
@@ -216,8 +216,8 @@ export class DatabaseHelper {
         return (await this.soundMetaCollection.distinct('category', { serverId: guildId, category: { $regex: category, $options: 'i' } })).sort((a, b) => a.localeCompare(b)).slice(0, limit);
     }
 
-    public async removeSoundMeta(id: string): Promise<DeleteResult> {
-        return this.soundMetaCollection.deleteOne({ _id: new ObjectId(id) });
+    public async removeSoundMeta(id: string | ObjectId): Promise<DeleteResult> {
+        return await this.soundMetaCollection.deleteOne({ _id: new ObjectId(id) });
     }
 
     public async getUsersInfo(users: Snowflake[], serverId: Snowflake): Promise<IUser[]> {

@@ -1,6 +1,10 @@
 import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType } from 'discord.js';
-import { getScopedSlashCommandBuilder, getSoundSelection } from '../../utils/commonCommand.utils';
+import {
+    getInteractionMetadata,
+    getScopedSlashCommandBuilder,
+    getSoundSelection
+} from '../../utils/commonCommand.utils';
 import { CommandLangKey } from '../types/lang.types';
 import { databaseHelper } from '../../../services/databaseHelper';
 import { getCommandLangKey } from '../commandLang';
@@ -16,7 +20,8 @@ const command: Command = {
         .toJSON(),
     async execute(interaction) {
         const fileName = interaction.options.getString(fileCommandName, true);
-        const sound = await databaseHelper.getSoundMetaByName(fileName);
+        const { guildId } = getInteractionMetadata(interaction);
+        const sound = await databaseHelper.getSoundMetaByName(fileName, guildId);
 
         if (!sound) {
             return getCommandLangKey(interaction, CommandLangKey.ERRORS_FILE_NOT_FOUND);
@@ -26,7 +31,7 @@ const command: Command = {
             files: [ {
                 attachment: createReadStream(sound.path),
                 contentType: AUDIO_CONTENT_TYPE,
-                name: fileName,
+                name: `${fileName}.mp3`,
             }],
             ephemeral: true
         });

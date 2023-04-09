@@ -1,9 +1,5 @@
-import type {
-    IEnvironmentVariables,
-    IRequiredEnvironmentVariables } from '../interfaces/environment-variables';
-import {
-    KEnvironmentVariables
-} from '../interfaces/environment-variables';
+import type { IEnvironmentVariables, IRequiredEnvironmentVariables } from '../interfaces/environment-variables';
+import { KEnvironmentVariables } from '../interfaces/environment-variables';
 import { scopedLogger } from './logHelper';
 
 const logger = scopedLogger('CONFIG');
@@ -26,6 +22,8 @@ function setDefaultOptionalEnvironmentVariables(envs: IRequiredEnvironmentVariab
         DATABASE_CONTAINER_NAME: envs.DATABASE_CONTAINER_NAME || 'mongodb',
         MAX_RECORD_TIME_MINUTES: envs.MAX_RECORD_TIME_MINUTES || '',
         LOG_LEVEL: envs.LOG_LEVEL ?? '',
+        OPENAI_API_KEY: env.OPENAI_API_KEY,
+        OPENAI_API_MODEL: env.OPENAI_API_MODEL,
     };
 }
 

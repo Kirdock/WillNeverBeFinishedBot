@@ -6,6 +6,7 @@ import { EnvironmentConfig } from './config';
 import { scopedLogger } from './logHelper';
 import type { Readable } from 'stream';
 import { PassThrough } from 'stream';
+import { v4 as uuidv4 } from 'uuid';
 
 const logger = scopedLogger('FILE_SYSTEM');
 
@@ -49,17 +50,6 @@ class FileHelper {
         }
 
         return deleted;
-    }
-
-    public async deleteFilesByPath(files: string[]): Promise<boolean> {
-        let status = true;
-
-        for (const file of files) {
-            const stat = await this.deleteFile(file);
-            status &&= stat;
-
-        }
-        return status;
     }
 
     public async deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
@@ -159,6 +149,10 @@ class FileHelper {
 
     public generateSoundPath(fileName: string): string {
         return join(this.soundFolder, fileName);
+    }
+
+    public generateUniqueFileName(fileName: string): string {
+        return `${uuidv4()}${extname(fileName)}`;
     }
 }
 

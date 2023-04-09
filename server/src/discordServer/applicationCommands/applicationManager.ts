@@ -3,12 +3,11 @@ import type {
     AutocompleteInteraction,
     ChatInputCommandInteraction,
     Client,
-    Guild,
     InteractionReplyOptions,
     Message,
     MessageContextMenuCommandInteraction
 } from 'discord.js';
-import { ApplicationCommandType, Events, GuildMember } from 'discord.js';
+import { ApplicationCommandType, Events } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
 import { scopedLogger } from '../../services/logHelper';
@@ -27,6 +26,7 @@ const commandsPath = join(__dirname, './commands');
 const supportedExtensions: string[] = ['.js', '.ts'];
 let chatCommands: ChatCommand[] = [];
 let messageCommands: MessageCommand[] = [];
+let allCommands: Command[] = [];
 
 
 export async function readApplicationCommands(): Promise<void> {
@@ -36,12 +36,18 @@ export async function readApplicationCommands(): Promise<void> {
     const commandFiles = readdirSync(commandsPath).filter((file) => supportedExtensions.some((extension) => extname(file) === extension));
     for (const file of commandFiles) {
         const command: Command = (await import(join(commandsPath, file))).default;
+        const isEnabled = command.enabled ?? true;
+        if (!isEnabled) {
+            continue;
+        }
+
         if (command.type === ApplicationCommandType.ChatInput) {
             chatCommands.push(command);
         } else {
             messageCommands.push(command);
         }
     }
+    allCommands = [...chatCommands, ...messageCommands];
 }
 
 // DOC because Discord.js is unable to use JSDoc
@@ -66,20 +72,24 @@ export async function setupApplicationCommands(client: Client<true>): Promise<vo
 }
 
 export async function registerApplicationCommands(client: Client<true>, guildId: string, message?: Message): Promise<void> {
-    for (const command of [...chatCommands, ...messageCommands]) {
-        void message?.channel.sendTyping();
+    let index = 0;
+
+    for (const command of allCommands) {
         await client.application.commands.create(command.data, guildId);
+        message?.edit(`${ ++index }/${ allCommands.length }`);
     }
 }
 
-export async function unregisterApplicationCommands(client: Client<true>, guildId: string): Promise<void> {
+export async function unregisterApplicationCommands(client: Client<true>, guildId: string, statusMessage?: Message): Promise<void> {
     const currentCommands = await client.application.commands.fetch({ guildId });
+    let index = 0;
     for (const [, command] of currentCommands) {
         try {
             await client.application.commands.delete(command.id, command.guildId ?? undefined);
         } catch (error) {
             logger.error(error, { message: 'error while deleting the application command', commandName: command.name });
         }
+        statusMessage?.edit(`${++index}/${currentCommands.size}`);
     }
 }
 
@@ -156,23 +166,6 @@ async function getReply(reply: InteractionExecuteResponse, interaction: ChatInpu
             ephemeral: true,
         };
     }
-}
-
-export async function getInteractionMetadata(interaction: ChatInputCommandInteraction | AutocompleteInteraction): Promise<{member: GuildMember, guild: Guild}> {
-    let member = interaction.member;
-    if (!member) {
-        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_MEMBER));
-    }
-    const guild = interaction.inCachedGuild() ? await interaction.guild.fetch() : interaction.guild;
-    if (!guild) {
-        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_GUILD));
-    }
-
-    if (!(member instanceof GuildMember)) {
-        member = await guild.members.fetch(member.user.id);
-    }
-
-    return { member, guild };
 }
 
 export function handleInteractionError(error: unknown, interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction): string {

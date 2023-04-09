@@ -18,12 +18,13 @@ export default function onMessageCreate(discordBot: DiscordBot): void {
             return;
         }
         if (await discordBot.isUserAdminInServer(message.member.id, message.guildId)) {
+            const statusMessage = await message.channel.send('Loading...');
             try {
-                await registerApplicationCommands(discordBot.client, message.guildId, message);
-                await message.reply('Done!');
+                await registerApplicationCommands(discordBot.client, message.guildId, statusMessage);
+                await statusMessage.edit('Done!');
             } catch (e) {
                 logger.error(e, 'Failed to register slash commands');
-                await message.reply('Oopsie Woopsie! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!');
+                await statusMessage.edit('Oopsie Woopsie! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!');
             }
         } else {
             await message.reply('Insufficient permission!');

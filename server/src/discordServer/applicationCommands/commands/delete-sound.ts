@@ -2,11 +2,15 @@
 
 import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType, PermissionsBitField } from 'discord.js';
-import { getScopedSlashCommandBuilder, getSoundSelection } from '../../utils/commonCommand.utils';
+import {
+    getInteractionMetadata,
+    getScopedSlashCommandBuilder,
+    getSoundSelection
+} from '../../utils/commonCommand.utils';
 import { CommandLangKey } from '../types/lang.types';
 import { databaseHelper } from '../../../services/databaseHelper';
 import { getCommandLangKey } from '../commandLang';
-import { getInteractionMetadata } from '../applicationManager';
+import dataService from '../../../services/data.service';
 
 const { fileCommandName, fileNameOption, autocomplete } = getSoundSelection(true, true);
 
@@ -16,19 +20,19 @@ const command: Command = {
         .addStringOption(fileNameOption)
         .toJSON(),
     async execute(interaction) {
-        const { member } = await getInteractionMetadata(interaction);
+        const { member, guildId } = getInteractionMetadata(interaction);
         const fileName = interaction.options.getString(fileCommandName, true);
-        const sound = await databaseHelper.getSoundMetaByName(fileName);
+        const sound = await databaseHelper.getSoundMetaByName(fileName, guildId);
 
         if (!sound) {
             return getCommandLangKey(interaction, CommandLangKey.ERRORS_FILE_NOT_FOUND);
         }
 
-        if (sound.userId !== member.id && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
+        if (sound.userId !== member.user.id && !member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             return getCommandLangKey(interaction, CommandLangKey.ERRORS_INSUFFICIENT_PERMISSIONS);
         }
 
-        await databaseHelper.removeSoundMeta(sound._id.toHexString());
+        await dataService.deleteSound(sound, member.id);
 
         return getCommandLangKey(interaction, CommandLangKey.SUCCESS);
     },

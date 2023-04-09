@@ -2,7 +2,7 @@ import type { Command } from '../../../interfaces/command';
 import { ApplicationCommandType } from 'discord.js';
 import { getCommandLangKey } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
-import { getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
+import { getScopedSlashCommandBuilder, takeRandom } from '../../utils/commonCommand.utils';
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
@@ -10,7 +10,7 @@ const command: Command = {
         .toJSON(),
     async execute(interaction) {
         return {
-            content: getCommandLangKey(interaction, Math.floor(Math.random() * 2) == 0 ? CommandLangKey.FLIP_CHOICE_HEAD : CommandLangKey.FLIP_CHOICE_TAILS),
+            content: getCommandLangKey(interaction, takeRandom([CommandLangKey.FLIP_CHOICE_HEAD, CommandLangKey.FLIP_CHOICE_TAILS])),
             ephemeral: false,
         };
     },

@@ -10,6 +10,13 @@ export enum CommandLangKey {
     BUBBLE_COLUMN_DESCRIPTION,
     //endregion
 
+    //region CHAT_GPT
+    CHAT_GPT_NAME,
+    CHAT_GPT_DESCRIPTION,
+    CHAT_GPT_TEXT_NAME,
+    CHAT_GPT_TEXT_DESCRIPTION,
+    //endregion
+
     //region DELETE_INTRO
     DELETE_INTRO_NAME,
     DELETE_INTRO_DESCRIPTION,
@@ -75,6 +82,11 @@ export enum CommandLangKey {
     //region PLAY_FORCE
     PLAY_FORCE_NAME,
     PLAY_FORCE_DESCRIPTION,
+    //endregion
+
+    //region PLAY_YOUTUBE
+    PLAY_YOUTUBE_NAME,
+    PLAY_YOUTUBE_DESCRIPTION,
     //endregion
 
     //region POST_STEAM_LINK
@@ -160,6 +172,8 @@ export enum CommandLangKey {
     ERRORS_NOT_IN_VOICE_CHANNEL,
     ERRORS_FILE_NOT_FOUND,
     ERRORS_UNKNOWN,
+    ERRORS_OPEN_AI_DISABLED,
+    ERRORS_EMPTY_RESPONSE,
     //endregion
 
     //region Success messages

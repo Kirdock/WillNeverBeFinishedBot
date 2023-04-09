@@ -34,6 +34,8 @@ export interface IEnvironmentVariables extends IRequiredEnvironmentVariables {
     DATABASE_CONTAINER_NAME: string;
     MAX_RECORD_TIME_MINUTES: string;
     LOG_LEVEL: string;
+    OPENAI_API_KEY?: string;
+    OPENAI_API_MODEL?: string;
 }
 
 export const KEnvironmentVariables: (keyof IRequiredEnvironmentVariables)[] = Object.keys(requiredEnvironmentVariableKeys) as (keyof IRequiredEnvironmentVariables)[];

@@ -1,6 +1,7 @@
 import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../applicationCommands/commandLang';
 import { CommandLangKey } from '../applicationCommands/types/lang.types';
 import type {
+    AutocompleteInteraction,
     ChatInputCommandInteraction,
     InteractionResponse,
     MessageContextMenuCommandInteraction,
@@ -8,13 +9,13 @@ import type {
     SlashCommandStringOption,
     SlashCommandUserOption
 } from 'discord.js';
-import { ContextMenuCommandBuilder, PermissionsBitField, SlashCommandBuilder } from 'discord.js';
+import { ContextMenuCommandBuilder, GuildMember, PermissionsBitField, SlashCommandBuilder } from 'discord.js';
 import { databaseHelper } from '../../services/databaseHelper';
 import { APPLICATION_COMMAND_MAX_CHOICES } from '../constants';
 import type { InteractionAutocomplete } from '../../interfaces/command';
 import type { ApplicationCommandOptionBase } from '@discordjs/builders';
-import { getInteractionMetadata } from '../applicationCommands/applicationManager';
 import { playSound } from '../../services/musicPlayer';
+import { InteractionError } from '../../utils/InteractionError';
 
 type CommandOption<T extends ApplicationCommandOptionBase> = (command: T) => T;
 type UserOption = { userOption: CommandOption<SlashCommandUserOption>, userCommandName: string};
@@ -51,11 +52,11 @@ export function getSoundSelection(required = true, onlyWhereCreator = false): So
         fileCommandName,
         async autocomplete(interaction) {
             try {
-                const { member, guild } = await getInteractionMetadata(interaction);
+                const { member, guildId } = getInteractionMetadata(interaction);
                 const value = interaction.options.getFocused();
                 // return all sounds if the user that requests it is the admin
                 const creatorId = member.permissions.has(PermissionsBitField.Flags.Administrator) || !onlyWhereCreator ? undefined : member.id;
-                const sounds = await databaseHelper.getSoundsMetaByName(value, guild.id, APPLICATION_COMMAND_MAX_CHOICES, creatorId);
+                const sounds = await databaseHelper.getSoundsMetaByName(value, guildId, APPLICATION_COMMAND_MAX_CHOICES, creatorId);
 
                 return sounds.map((sound) => (
                     {
@@ -108,7 +109,7 @@ function transformVolume(volume?: number): number | undefined {
 }
 
 export async function playSoundThroughInteraction(interaction: ChatInputCommandInteraction, fileCommand: string, volumeCommand: string, forcePlay = false): Promise<string | undefined> {
-    const { member, guild } = await getInteractionMetadata(interaction);
+    const { member, guildId } = getInteractionMetadata(interaction);
     const file = interaction.options.getString(fileCommand, true);
     const volume = interaction.options.getInteger(volumeCommand) ?? undefined;
 
@@ -116,15 +117,15 @@ export async function playSoundThroughInteraction(interaction: ChatInputCommandI
         return getCommandLangKey(interaction, CommandLangKey.ERRORS_NOT_IN_VOICE_CHANNEL);
     }
 
-    const meta = await databaseHelper.getSoundMetaByName(file);
+    const meta = await databaseHelper.getSoundMetaByName(file, guildId);
     if (!meta?.path) {
         return getCommandLangKey(interaction, CommandLangKey.ERRORS_FILE_NOT_FOUND);
     }
-    await playSound(guild.id, member.voice.channelId, meta.path, transformVolume(volume), undefined, forcePlay);
+    await playSound(guildId, member.voice.channelId, meta.path, transformVolume(volume), undefined, forcePlay);
 }
 
 export async function playYoutubeThroughInteraction(interaction: ChatInputCommandInteraction, urlCommand: string, volumeCommand: string): Promise<string | undefined> {
-    const { member, guild } = await getInteractionMetadata(interaction);
+    const { member, guildId } = getInteractionMetadata(interaction);
     const url = interaction.options.getString(urlCommand, true);
     const volume = interaction.options.getInteger(volumeCommand) ?? undefined;
 
@@ -132,5 +133,31 @@ export async function playYoutubeThroughInteraction(interaction: ChatInputComman
         return getCommandLangKey(interaction, CommandLangKey.ERRORS_NOT_IN_VOICE_CHANNEL);
     }
 
-    await playSound(guild.id, member.voice.channelId, undefined, transformVolume(volume), url);
+    await playSound(guildId, member.voice.channelId, undefined, transformVolume(volume) ?? 0.5, url);
+}
+
+export function getInteractionMetadata(interaction: ChatInputCommandInteraction | AutocompleteInteraction): {member: GuildMember, guildId: string} {
+    const guildId = getGuildIdOfInteraction(interaction);
+    const member = getMemberOfInteraction(interaction);
+
+    return { member, guildId };
+}
+
+function getMemberOfInteraction(interaction: ChatInputCommandInteraction | AutocompleteInteraction): GuildMember {
+    if (!interaction.member || !(interaction.member instanceof GuildMember)) {
+        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_MEMBER));
+    }
+    return interaction.member;
+}
+
+function getGuildIdOfInteraction(interaction: ChatInputCommandInteraction | AutocompleteInteraction): string {
+    if (!interaction.guildId) {
+        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_GUILD));
+    }
+    return interaction.guildId;
+}
+
+export function takeRandom<T>(array: T[]): T {
+    const randomIndex = Math.floor(Math.random() * array.length);
+    return array[randomIndex];
 }

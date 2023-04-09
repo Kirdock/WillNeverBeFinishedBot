@@ -3,7 +3,7 @@ import { ApplicationCommandType, PermissionsBitField } from 'discord.js';
 import { unregisterApplicationCommands } from '../applicationManager';
 import { getCommandLangKey } from '../commandLang';
 import { CommandLangKey } from '../types/lang.types';
-import { getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
+import { getInteractionMetadata, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
 
 
 const command: Command =  {
@@ -12,15 +12,16 @@ const command: Command =  {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
         .toJSON(),
     async execute(interaction) {
-        if (!interaction.guildId) {
-            return getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_GUILD);
-        }
+        const { member, guildId } = getInteractionMetadata(interaction);
 
         await interaction.reply({
             content:getCommandLangKey(interaction, CommandLangKey.TRYING_MY_BEST),
             ephemeral: true,
         });
-        await unregisterApplicationCommands(interaction.client, interaction.guildId);
+        const statusMessage = await member.send(getCommandLangKey(interaction, CommandLangKey.LOADING));
+        await unregisterApplicationCommands(interaction.client, guildId, statusMessage);
+
+        await statusMessage.edit(getCommandLangKey(interaction, CommandLangKey.SUCCESS));
     },
 };
 export default command;

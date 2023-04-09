@@ -17,7 +17,7 @@ const { volumeCommandName, volumeOption } = getVolumeInput();
 
 const command: Command = {
     type: ApplicationCommandType.ChatInput,
-    data: getScopedSlashCommandBuilder(CommandLangKey.PLAY_FORCE_NAME, CommandLangKey.PLAY_FORCE_DESCRIPTION)
+    data: getScopedSlashCommandBuilder(CommandLangKey.PLAY_YOUTUBE_NAME, CommandLangKey.PLAY_YOUTUBE_DESCRIPTION)
         .addStringOption((option) =>
             getScopedOption(option, CommandLangKey.POST_STEAM_LINK_URL_NAME, CommandLangKey.POST_STEAM_LINK_URL_DESCRIPTION)
                 .setRequired(true)

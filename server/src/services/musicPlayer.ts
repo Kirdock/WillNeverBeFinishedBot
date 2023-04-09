@@ -16,7 +16,7 @@ const audioPlayers: { [serverId: string]: AudioPlayer | undefined } = {};
 
 const logger = scopedLogger('PLAY_SOUND');
 
-export async function playSound(serverId: Snowflake, channelId: string, file?: string, volumeMultiplier = 0.5, url?: string, forcePlay?: boolean): Promise<void> {
+export async function playSound(serverId: Snowflake, channelId: string, file?: string, volumeMultiplier = 1, url?: string, forcePlay?: boolean): Promise<void> {
     if (!forcePlay && forcePlayLock[serverId]) {
         return;
     }
@@ -33,8 +33,7 @@ export async function playSound(serverId: Snowflake, channelId: string, file?: s
     const streamOptions = { inlineVolume: true, inputType: StreamType.OggOpus };
     if (!file && url) {
         const stream = await youtubeStream(url);
-        const normalized = await fileHelper.normalizeStream(stream.stream);
-        resource = createAudioResource(normalized, { ...streamOptions, inputType: stream.type });
+        resource = createAudioResource(stream.stream, { ...streamOptions, inputType: stream.type });
     } else if (file) {
         resource = createAudioResource(createReadStream(file), streamOptions);
     }
@@ -58,7 +57,7 @@ function getAudioPlayer(serverId: Snowflake, serverInfo?: IServerSettings): Audi
         }
     });
     player.on('error', (error: AudioPlayerError) => {
-        logger.error(error, 'PlaySound');
+        logger.error(error);
         removeLock(serverId);
     });
     audioPlayers[serverId] = player;
