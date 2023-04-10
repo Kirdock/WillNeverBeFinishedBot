@@ -20,6 +20,11 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.CHAT_GPT_TEXT_DESCRIPTION]: 'What do you want to know?',
     //endregion
 
+    //region DELETE_COMMAND
+    [CommandLangKey.DELETE_COMMAND_NAME]: 'delete_command',
+    [CommandLangKey.DELETE_COMMAND_DESCRIPTION]: 'Deletes a registered slash or context menu command',
+    //endregion
+
     //region DELETE_INTRO
     [CommandLangKey.DELETE_INTRO_NAME]: 'remove_intro',
     [CommandLangKey.DELETE_INTRO_DESCRIPTION]: 'Removes your intro. The file will still be here',
@@ -114,6 +119,11 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.RE_REGISTER_DESCRIPTION]: 'Command for re-registering slash commands',
     //endregion
 
+    //region REGISTER_COMMAND_NAME
+    [CommandLangKey.REGISTER_COMMAND_NAME]: 'register_command',
+    [CommandLangKey.REGISTER_COMMAND_DESCRIPTION]: 'Deletes a given slash or context menu command',
+    //endregion
+
     //region SAVE_RECORDING
     [CommandLangKey.SAVE_RECORDING_NAME]: 'save',
     [CommandLangKey.SAVE_RECORDING_DESCRIPTION]: 'Save the last x (up to 10) minutes',
@@ -164,9 +174,15 @@ export const enCommandLanguage: CommandLanguageFile = {
 
     //endregion
 
+    //region COMPONENTS
+    [CommandLangKey.COMMAND_SELECTION_NAME]: 'command_name',
+    [CommandLangKey.COMMAND_SELECTION_DESCRIPTION]: 'Select the slash or context menu command',
+    //endregion
+
     //endregion
 
     //region error messages
+    [CommandLangKey.ERRORS_INVALID_COMMAND]: 'The command does not exist!',
     [CommandLangKey.ERRORS_INVALID_GUILD]: 'Invalid guild id!',
     [CommandLangKey.ERRORS_INVALID_MEMBER]: 'Invalid member id!',
     [CommandLangKey.ERRORS_INVALID_AUDIO_CONTENT_TYPE]: 'Invalid file format!',

@@ -17,6 +17,11 @@ export enum CommandLangKey {
     CHAT_GPT_TEXT_DESCRIPTION,
     //endregion
 
+    //region DELETE_COMMAND
+    DELETE_COMMAND_NAME,
+    DELETE_COMMAND_DESCRIPTION,
+    //endregion
+
     //region DELETE_INTRO
     DELETE_INTRO_NAME,
     DELETE_INTRO_DESCRIPTION,
@@ -111,6 +116,11 @@ export enum CommandLangKey {
     RE_REGISTER_DESCRIPTION,
     //endregion
 
+    //region REGISTER_COMMAND_NAME
+    REGISTER_COMMAND_NAME,
+    REGISTER_COMMAND_DESCRIPTION,
+    //endregion
+
     //region SAVE_RECORDING
     SAVE_RECORDING_NAME,
     SAVE_RECORDING_DESCRIPTION,
@@ -160,9 +170,15 @@ export enum CommandLangKey {
     UPLOAD_FILE_CATEGORY_DESCRIPTION,
     //endregion
 
+    //region COMPONENTS
+    COMMAND_SELECTION_NAME,
+    COMMAND_SELECTION_DESCRIPTION,
+    //endregion
+
     //endregion
 
     //region error messages
+    ERRORS_INVALID_COMMAND,
     ERRORS_INVALID_GUILD,
     ERRORS_INVALID_MEMBER,
     ERRORS_INVALID_AUDIO_CONTENT_TYPE,

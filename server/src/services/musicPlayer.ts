@@ -79,12 +79,13 @@ export async function playIntro(voiceState: VoiceState, fallBackIntro: string | 
     }
 
     const soundId = await databaseHelper.getIntro(voiceState.id, voiceState.guild.id) || fallBackIntro;
-    if (soundId) {
-        const soundMeta = await databaseHelper.getSoundMeta(soundId);
-        if (soundMeta) {
-            await playSound(voiceState.guild.id, newUserChannelId, soundMeta.path);
-        }
-        //else remove intro if not found?
+    if (!soundId) {
+        //remove intro if not found?
+        return;
+    }
+    const soundMeta = await databaseHelper.getSoundMeta(soundId);
+    if (soundMeta) {
+        await playSound(voiceState.guild.id, newUserChannelId, soundMeta.path);
     }
 }
 

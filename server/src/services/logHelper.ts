@@ -48,8 +48,7 @@ function isValidValue(level?: string): level is keyof typeof LogLevel {
 }
 
 function formatLog(level: LogLevel, scope: string, message: unknown, additionalInfo: unknown) {
-    const info = stringify(additionalInfo);
-    const infoText = info ? `\ninfo: ${info}` : '';
+    const infoText = additionalInfo ? `\ninfo: ${stringify(additionalInfo)}` : '';
 
     return `[${LogLevel[level].toUpperCase()} - ${scope}]: ${stringify(message)}${infoText}`;
 }

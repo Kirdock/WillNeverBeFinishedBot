@@ -20,6 +20,11 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.CHAT_GPT_TEXT_DESCRIPTION]: 'Was willst du wissen?',
     //endregion
 
+    //region DELETE_COMMAND
+    // [CommandLangKey.DELETE_COMMAND_NAME]: 'delete_command',
+    [CommandLangKey.DELETE_COMMAND_DESCRIPTION]: 'Löscht eines registriertes Slash- oder Kontextmenü-Kommando',
+    //endregion
+
     //region DELETE_INTRO
     // [CommandLangKey.DELETE_INTRO_NAME]: 'delete_intro',
     [CommandLangKey.DELETE_INTRO_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
@@ -114,6 +119,11 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.RE_REGISTER_DESCRIPTION]: 'Löscht alle Kommandos und registriert sie erneut',
     //endregion
 
+    //region REGISTER_COMMAND_NAME
+    // [CommandLangKey.REGISTER_COMMAND_NAME]: 'register_command',
+    [CommandLangKey.REGISTER_COMMAND_DESCRIPTION]: 'Löscht das eingegebene Slash- oder Kontextmenü-Kommando',
+    //endregion
+
     //region SAVE_RECORDING
     // [CommandLangKey.SAVE_RECORDING_NAME]: 'speichern',
     [CommandLangKey.SAVE_RECORDING_DESCRIPTION]: 'Speichere die letzten (bis zu 10) Minuten',
@@ -163,9 +173,16 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.UPLOAD_FILE_CATEGORY_DESCRIPTION]: 'Sound Kategorie',
 
     //endregion
+
+    //region COMPONENTS
+    // [CommandLangKey.COMMAND_SELECTION_NAME]: 'command_name',
+    [CommandLangKey.COMMAND_SELECTION_DESCRIPTION]: 'Wähle ein Slash- oder Kontextmenü-Kommando aus',
+    //endregion
+
     //endregion
 
     //region error messages
+    [CommandLangKey.ERRORS_INVALID_COMMAND]: 'Der Befehl existiert nicht!',
     [CommandLangKey.ERRORS_INVALID_GUILD]: 'Ungültige Server ID!',
     [CommandLangKey.ERRORS_INVALID_MEMBER]: 'Ungültige Benutzer ID!',
     [CommandLangKey.ERRORS_INVALID_AUDIO_CONTENT_TYPE]: 'Bist zbled um a Audiodatei auszuwöhln oda wos?',

@@ -41,10 +41,7 @@ Environment Variables (.env file in root):
   error
   warn
   info
-  http
-  verbose
   debug
-  silly
   ```
 
 # Run in production

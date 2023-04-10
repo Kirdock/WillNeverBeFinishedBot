@@ -1,4 +1,4 @@
-import { Events } from 'discord.js';
+import { Events, PermissionsBitField } from 'discord.js';
 import { registerApplicationCommands } from '../applicationCommands/applicationManager';
 import type { DiscordBot } from '../DiscordBot';
 import { scopedLogger } from '../../services/logHelper';
@@ -17,17 +17,18 @@ export default function onMessageCreate(discordBot: DiscordBot): void {
         if (content !== 'register') {
             return;
         }
-        if (await discordBot.isUserAdminInServer(message.member.id, message.guildId)) {
-            const statusMessage = await message.channel.send('Loading...');
-            try {
-                await registerApplicationCommands(discordBot.client, message.guildId, statusMessage);
-                await statusMessage.edit('Done!');
-            } catch (e) {
-                logger.error(e, 'Failed to register slash commands');
-                await statusMessage.edit('Oopsie Woopsie! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!');
-            }
-        } else {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
             await message.reply('Insufficient permission!');
+            return;
+        }
+
+        const statusMessage = await message.channel.send('Loading...');
+        try {
+            await registerApplicationCommands(discordBot.client, message.guildId, statusMessage);
+            await statusMessage.edit('Done!');
+        } catch (e) {
+            logger.error(e, 'Failed to register slash commands');
+            await statusMessage.edit('Oopsie Woopsie! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!');
         }
     });
 }

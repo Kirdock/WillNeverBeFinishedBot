@@ -3,10 +3,12 @@ import type {
     AutocompleteInteraction,
     ChatInputCommandInteraction,
     Client,
+    Collection,
+    GuildResolvable,
     InteractionReplyOptions,
     Message,
     MessageContextMenuCommandInteraction
-} from 'discord.js';
+    , ApplicationCommand } from 'discord.js';
 import { ApplicationCommandType, Events } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
@@ -71,6 +73,14 @@ export async function setupApplicationCommands(client: Client<true>): Promise<vo
     });
 }
 
+export async function getRegisteredApplicationCommands(client: Client<true>, guildId: string): Promise<Collection<string, ApplicationCommand<{guild: GuildResolvable}>>> {
+    return await client.application.commands.fetch({ guildId });
+}
+
+export function getAvailableApplicationCommands(): Command[] {
+    return allCommands;
+}
+
 export async function registerApplicationCommands(client: Client<true>, guildId: string, message?: Message): Promise<void> {
     let index = 0;
 
@@ -80,8 +90,25 @@ export async function registerApplicationCommands(client: Client<true>, guildId:
     }
 }
 
+export async function registerApplicationCommand(interaction: ChatInputCommandInteraction, guildId: string, commandName: string): Promise<void> {
+    const command = allCommands.find((cmd) => cmd.data.name === commandName);
+    if (!command) {
+        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_COMMAND));
+    }
+    await interaction.client.application.commands.create(command.data, guildId);
+}
+
+export async function deleteApplicationCommand(interaction: ChatInputCommandInteraction, guildId: string, commandName: string): Promise<void> {
+    const availableCommand = await getRegisteredApplicationCommands(interaction.client, guildId);
+    const command = availableCommand.find((cmd) => cmd.name === commandName);
+    if (!command) {
+        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_COMMAND));
+    }
+    await interaction.client.application.commands.delete(command.id, guildId);
+}
+
 export async function unregisterApplicationCommands(client: Client<true>, guildId: string, statusMessage?: Message): Promise<void> {
-    const currentCommands = await client.application.commands.fetch({ guildId });
+    const currentCommands = await getRegisteredApplicationCommands(client, guildId);
     let index = 0;
     for (const [, command] of currentCommands) {
         try {
