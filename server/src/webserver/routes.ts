@@ -1,35 +1,42 @@
 import multer from 'multer';
 import { extname } from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { FileHelper } from '../services/fileHelper';
-import { Request, Response, Router as rs } from 'express';
-import { DiscordBot } from '../discordServer/DiscordBot';
-import { DatabaseHelper } from '../services/databaseHelper';
-import { AuthHelper } from '../services/authHelper';
+import type { Request, Response, Router as rs } from 'express';
+import { databaseHelper } from '../services/databaseHelper';
+import { authHelper } from '../services/authHelper';
 import { ErrorTypes } from '../services/ErrorTypes';
-import { GuildMember } from 'discord.js';
-import { AudioExportType } from '../../../shared/models/types';
-import { logger } from '../services/logHelper';
-import { IServerSettings } from '../../../shared/interfaces/server-settings';
-import { ILog } from '../interfaces/log';
+import type { GuildMember } from 'discord.js';
+import type { AudioExportType } from '../../../shared/models/types';
+import type { IServerSettings } from '../../../shared/interfaces/server-settings';
+import type { ILog } from '../interfaces/log';
 import { getResponseMessage } from '../services/localeService';
-import { IResponseMessages } from '../interfaces/response-messages';
-import { IUserPayload } from '../interfaces/user-payload';
-import { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
+import type { IResponseMessages } from '../interfaces/response-messages';
+import type { IUserPayload } from '../interfaces/user-payload';
+import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
 import { createUserVoiceSetting } from '../utils/User';
 import { sortUsers } from '../utils/sort';
 import { getNormalizedDate } from '../utils/date';
+import { scopedLogger } from '../services/logHelper';
+import { discordBot } from '../discordServer/DiscordBot';
+import { voiceHelper } from '../services/voiceHelper';
+import { fileHelper } from '../services/fileHelper';
+import { playSound, requestSound, stopPlaying } from '../services/musicPlayer';
+import { mapUserSettingsToDict } from '../utils/convertion.utils';
+import { recordHelper } from '../services/recordHelper';
+import type { ObjectId } from 'mongodb';
+import dataService from '../services/data.service';
 
-export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelper: DatabaseHelper, authHelper: AuthHelper) {
+const logger = scopedLogger('API');
+
+export function registerRoutes(router: rs) {
     const storage = multer.diskStorage({
         destination: (_req, _file, cb) => {
-            cb(null, FileHelper.soundFolder)
+            cb(null, fileHelper.soundFolder);
         },
         filename: (_req, file, cb) => {
-            cb(null, `${uuidv4()}${extname(file.originalname)}`)
-        }
+            cb(null, fileHelper.generateUniqueFileName(file.originalname));
+        },
     });
-    const upload = multer({storage});
+    const upload = multer({ storage });
 
     router.route('/login')
         .post(async (req: Request, res: Response) => {
@@ -53,11 +60,11 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 isSuperAdmin: discordBot.isSuperAdmin(result.id),
                 username: result.username,
                 // adminServers: discordBot.getAdminServerIds()
-            })
+            });
         } catch (e) {
             defaultError(e as Error, res, req);
         }
-    })
+    });
 
     router.route('/logs/:serverId')
         .get(async (req, res) => {
@@ -98,12 +105,12 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                     return;
                 }
                 await databaseHelper.updateServerSettings(settings);
-                const connection = discordBot.voiceHelper.getActiveConnection(settings.id);
+                const connection = voiceHelper.getActiveConnection(settings.id);
                 if (connection) {
                     if (settings.recordVoice) {
-                        discordBot.voiceHelper.recordHelper.startRecording(connection);
+                        recordHelper.startRecording(connection);
                     } else {
-                        discordBot.voiceHelper.recordHelper.stopRecording(connection);
+                        recordHelper.stopRecording(connection);
                     }
                 }
                 res.statusMessage = getResponseMessage(req, 'SERVER_SETTINGS_UPDATED');
@@ -117,7 +124,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
         .get(async (req, res) => {
             try {
                 const result = getPayload(res);
-                const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId)
+                const valid = discordBot.isSuperAdmin(result.id) || await discordBot.isUserAdminInServer(result.id, req.params.serverId);
                 if (!valid) {
                     notAdmin(res, req);
                     return;
@@ -139,23 +146,22 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 }
                 const isAdmin: boolean = await discordBot.isUserAdminInServer(result.id, req.params.serverId) || discordBot.isSuperAdmin(result.id);
                 try {
-                    await discordBot.playSoundCommand.stopPlaying(req.params.serverId, isAdmin);
+                    await stopPlaying(req.params.serverId, isAdmin);
                     res.statusMessage = getResponseMessage(req, 'SOUND_PLAY_STOPPED');
                     res.status(200).end();
                 } catch (error) {
                     const message = (error as Error).message;
-                    res.statusMessage = getResponseMessage(req, errorToResponseMessageKey(message));
-                    res.status(500).end();
-
-                    function errorToResponseMessageKey(message: string): keyof IResponseMessages {
+                    const errorToResponseMessageKey = (message: string): keyof IResponseMessages=> {
                         if (message === ErrorTypes.SERVER_ID_NOT_FOUND) {
                             return 'SERVER_NOT_FOUND';
                         }
                         if (message === ErrorTypes.PLAY_NOT_ALLOWED) {
                             return 'SOUND_PLAY_NOT_ALLOWED';
                         }
-                        return 'DEFAULT_ERROR'
-                    }
+                        return 'DEFAULT_ERROR';
+                    };
+                    res.statusMessage = getResponseMessage(req, errorToResponseMessageKey(message));
+                    res.status(500).end();
                 }
             } catch (e) {
                 defaultError(e as Error, res, req);
@@ -198,13 +204,13 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
             } catch (e) {
                 defaultError(e as Error, res, req);
             }
-        })
+        });
 
     router.route('/voiceRecorder/server/:serverId/userSettings/user/:userId')
         .put(async (req: Request, res: Response) => {
             try {
                 const result = getPayload(res);
-                const {serverId, userId} = req.params;
+                const { serverId, userId } = req.params;
                 const volume = +req.body.volume;
                 if (!(await discordBot.isUserAdminInServerOrSuperAdmin(result.id, serverId))) {
                     res.statusMessage = getResponseMessage(req, 'NOT_ADMIN');
@@ -221,13 +227,13 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
             } catch (e) {
                 defaultError(e as Error, res, req);
             }
-        })
+        });
 
     router.route('/recordVoice/:serverId')
         .get(async (req: Request, res: Response) => {
             try {
                 const result = getPayload(res);
-                const {serverId} = req.params;
+                const { serverId } = req.params;
 
                 if (!(await discordBot.isUserInServer(result.id, serverId))) {
                     res.statusMessage = getResponseMessage(req, 'SERVER_NOT_FOUND');
@@ -243,7 +249,8 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 } else {
                     res.type('application/zip').attachment(`${fileName}-all-streams.zip`);
                 }
-                const succeeded = await discordBot.voiceHelper.recordHelper.getRecordedVoice(serverId, exportType, req.query.minutes ? +(req.query.minutes.toString()) : undefined, serverSettings, res);
+
+                const succeeded = await recordHelper.getRecordedVoice(res, serverId, exportType, req.query.minutes ? +(req.query.minutes.toString()) : undefined, mapUserSettingsToDict(serverSettings));
 
                 if (!succeeded) {
                     res.statusMessage = getResponseMessage(req, 'RECORDING_NOT_FOUND');
@@ -253,7 +260,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
             } catch (e) {
                 defaultError(e as Error, res, req);
             }
-        })
+        });
 
     router.route('/sounds/:serverId')
         .get(async (req, res) => {
@@ -267,8 +274,8 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 const soundMetas = await databaseHelper.getSoundsMeta([req.params.serverId], +(req.query.fromTime as string));
                 try {
                     await discordBot.mapUsernames(soundMetas, 'userId');
-                    const result = soundMetas.map(meta => {
-                        const {path, ...data} = meta;
+                    const result = soundMetas.map((meta) => {
+                        const { path, ...data } = meta;
                         return data;
                     });
                     res.status(200).json(result);
@@ -309,14 +316,14 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                         res.status(404).end();
                         return;
                     }
-                    databaseHelper.logPlaySound(result.id, meta);
+                    void databaseHelper.logPlaySound(result.id, meta);
                     const forcePlay = req.body.forcePlay && await discordBot.isUserAdminInServer(result.id, req.body.serverId);
 
-                    await discordBot.playSoundCommand.requestSound(meta.path, req.body.serverId, channelId, req.body.volume, forcePlay);
+                    await requestSound(meta.path, req.body.serverId, channelId, req.body.volume, forcePlay);
                     res.statusMessage = getResponseMessage(req, 'SOUND_PLAY_TRIGGERED');
                     res.status(200).end();
                 } else if (req.body.url) {
-                    await discordBot.playSoundCommand.playSound(req.body.serverId, channelId, undefined, req.body.volume, req.body.url);
+                    await playSound(req.body.serverId, channelId, undefined, req.body.volume, req.body.url);
                     res.statusMessage = getResponseMessage(req, 'SOUND_PLAY_TRIGGERED');
                     res.status(200).end();
                 }
@@ -331,20 +338,12 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 const result = getPayload(res);
                 const meta = await databaseHelper.getSoundMeta(req.params.id);
                 if (meta && (meta.userId === result.id || discordBot.isSuperAdmin(result.id))) {
-                    const filePath = meta.path;
-                    await databaseHelper.removeSoundMeta(req.params.id);
                     try {
-                        await FileHelper.deleteFile(filePath);
-                        await databaseHelper.logSoundDelete(result.id, meta);
+                        await dataService.deleteSound(meta, result.id);
+
                         res.statusMessage = getResponseMessage(req, 'SOUND_DELETED');
                         res.status(200).end();
                     } catch (error) {
-                        logger.error(error as Error, 'DeleteFile');
-                        try {
-                            await databaseHelper.addSoundMeta(meta._id, meta.path, meta.fileName, meta.userId, meta.category, meta.serverId);
-                        } catch (error2) {
-                            logger.error(error2 as Error, 'AddSoundMeta');
-                        }
                         res.statusMessage = getResponseMessage(req, 'SOUND_DELETE_ERROR');
                         res.status(500).end();
                     }
@@ -373,10 +372,16 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
             }
         });
 
-    router.route('/soundCategories')
+    router.route('/soundCategories/:serverId')
         .get(async (req, res) => {
             try {
-                res.status(200).json(await databaseHelper.getSoundCategories());
+                const serverId = req.params.serverId;
+                const result = getPayload(res);
+                if (await discordBot.isUserInServer(result.id, serverId)) {
+                    res.status(200).json(await databaseHelper.getSoundCategories(serverId));
+                    return;
+                }
+                res.status(403).json();
             } catch (e) {
                 defaultError(e as Error, res, req);
             }
@@ -400,10 +405,10 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                     }
                 } else {
                     try {
-                        await FileHelper.deleteFiles(req.files);
+                        await fileHelper.deleteFiles(req.files);
                         notAdmin(res, req);
                     } catch (error) {
-                        logger.error(error as Error, `DeleteFiles not possible.\nFiles: ${FileHelper.getFiles(req.files).join('\n')}`);
+                        logger.error(error as Error, `DeleteFiles not possible.\nFiles: ${fileHelper.getFiles(req.files).join('\n')}`);
                         notInServer(res, result.id, req.body.serverId, req);
                     }
                 }
@@ -418,7 +423,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
             try {
                 const result = getPayload(res);
                 const meta = await databaseHelper.getSoundMeta(req.body.soundId);
-                const soundId = meta?._id ?? req.body.soundId;
+                const soundId: ObjectId | string | undefined = meta?._id ?? req.body.soundId;
                 let id: string;
                 let isAllowed: boolean;
 
@@ -475,7 +480,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
                 } else {
                     users = await discordBot.getUsersWhereIsAdmin(result.id, serverId);
                 }
-                const userInfo = await databaseHelper.getUsersInfo(users.map(user => user.id), serverId);
+                const userInfo = await databaseHelper.getUsersInfo(users.map((user) => user.id), serverId);
                 await discordBot.mapUsernames(userInfo, 'id');
                 res.status(200).json(userInfo);
             } catch (e) {
@@ -485,7 +490,7 @@ export function registerRoutes(discordBot: DiscordBot, router: rs, databaseHelpe
 }
 
 function notInServer(res: Response, userId: string, serverId: string, req: Request) {
-    logger.warn('User not in server', {userId, serverId});
+    logger.warn('User not in server', { userId, serverId });
     res.statusMessage = getResponseMessage(req, 'NOT_IN_SERVER');
     res.status(403).end();
 }

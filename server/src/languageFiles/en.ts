@@ -1,9 +1,9 @@
-import { IResponseMessages } from '../interfaces/response-messages';
+import type { IResponseMessages } from '../interfaces/response-messages';
 
 export const LanguageDictEN: IResponseMessages = {
-    NOT_ADMIN: "You don't have the administrator permission",
+    NOT_ADMIN: 'You don\'t have the administrator permission',
     DEFAULT_ERROR: 'Something went wrong :(',
-    NOT_IN_SERVER: "You don't have the permission to access this server",
+    NOT_IN_SERVER: 'You don\'t have the permission to access this server',
     USER_INTRO_SET: 'Intro updated',
     USER_VOLUME_UPDATED: 'Volume updated',
     SOUND_UPLOADED: 'Sound uploaded',
@@ -20,4 +20,4 @@ export const LanguageDictEN: IResponseMessages = {
     LOGIN_SUCCESSFUL: ' Successfully logged in',
     SOUND_DELETE_ERROR: 'Sound could not be deleted',
     SOUND_PLAY_NOT_ALLOWED: 'You are not allowed to play the desired sound',
-}
+};

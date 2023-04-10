@@ -1,5 +1,5 @@
-import { Snowflake } from 'discord.js';
-import { IServerSettings } from '../../../shared/interfaces/server-settings';
+import type { Snowflake } from 'discord.js';
+import type { IServerSettings } from '../../../shared/interfaces/server-settings';
 
 export function createServerSettings(serverId: Snowflake): IServerSettings {
     return {
@@ -11,5 +11,5 @@ export function createServerSettings(serverId: Snowflake): IServerSettings {
         leaveChannelAfterPlay: false,
         userSettings: [],
         recordVoice: false,
-    }
+    };
 }

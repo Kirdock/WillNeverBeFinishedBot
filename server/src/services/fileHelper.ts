@@ -2,76 +2,73 @@ import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { basename, extname, join } from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 import { rename, unlink } from 'fs/promises';
-import { logger } from './logHelper';
 import { EnvironmentConfig } from './config';
+import { scopedLogger } from './logHelper';
+import type { Readable } from 'stream';
+import { PassThrough } from 'stream';
+import { v4 as uuidv4 } from 'uuid';
 
-export namespace FileHelper {
-    export const rootDir: string = EnvironmentConfig?.ROOT_DIR || join(__dirname, '/../../../');
-    export const baseDir: string = join(rootDir, 'server', 'shared');
-    export const soundFolder: string = join(baseDir, 'sounds');
-    export const certFolder: string = join(baseDir, 'cert');
-    export const workFolder: string = join(soundFolder, 'work');
+const logger = scopedLogger('FILE_SYSTEM');
 
-    checkAndCreateFolderSystem();
+class FileHelper {
+    public readonly rootDir: string = EnvironmentConfig.ROOT_DIR || join(__dirname, '/../../../');
+    private readonly baseDir: string = join(this.rootDir, 'server', 'shared');
+    public readonly soundFolder: string = join(this.baseDir, 'sounds');
+    public readonly certFolder: string = join(this.baseDir, 'cert');
+    private readonly workFolder: string = join(this.soundFolder, 'work');
 
-    function checkAndCreateFolderSystem() {
-        for (const folder of [baseDir, soundFolder, workFolder]) {
-            checkAndCreateFolder(folder);
+    constructor() {
+        this.checkAndCreateFolderSystem();
+    }
+
+
+    private checkAndCreateFolderSystem() {
+        for (const folder of [this.baseDir, this.soundFolder, this.workFolder]) {
+            this.checkAndCreateFolder(folder);
         }
     }
 
-    function checkAndCreateFolder(folder: string): void {
+    private checkAndCreateFolder(folder: string): void {
         if (!existsSync(folder)) {
             mkdirSync(folder);
         }
     }
 
-    export function existsFile(path: string): boolean {
+    public existsFile(path: string): boolean {
         return existsSync(path);
     }
 
-    export async function deleteFile(path: string): Promise<boolean> {
+    public async deleteFile(path: string): Promise<boolean> {
         let deleted = false;
-        if (existsFile(path)) {
+        if (this.existsFile(path)) {
             try {
                 await unlink(path);
                 deleted = true;
             } catch (e) {
-                logger.error(e as Error, {path});
+                logger.error(e as Error, { path });
             }
         }
 
         return deleted;
     }
 
-    export async function deleteFilesByPath(files: string[]): Promise<boolean> {
+    public async deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
         let status = true;
-
-        for (const file of files) {
-            const stat = await deleteFile(file);
-            status &&= stat;
-
-        }
-        return status;
-    }
-
-    export async function deleteFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Promise<boolean> {
-        let status = true;
-        const files: Express.Multer.File[] = getFiles(fileArray);
+        const files: Express.Multer.File[] = this.getFiles(fileArray);
 
         for await (const file of files) {
-            const stat = await deleteFile(file.path);
+            const stat = await this.deleteFile(file.path);
             status &&= stat;
         }
         return status;
     }
 
-    export function getFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Express.Multer.File[] {
+    public getFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Express.Multer.File[] {
         let files: Express.Multer.File[] = [];
         if (fileArray instanceof Array) {
             files = fileArray as Express.Multer.File[];
         } else {
-            fileArray = fileArray as { [fieldname: string]: Express.Multer.File[]; }
+            fileArray = fileArray as { [fieldname: string]: Express.Multer.File[]; };
             for (const key in fileArray) {
                 files.push(...fileArray[key]);
             }
@@ -79,38 +76,84 @@ export namespace FileHelper {
         return files;
     }
 
-    export function getFileName(filePath: string): string {
+    public getFileName(filePath: string): string {
         return basename(filePath, extname(filePath));
     }
 
-    export function readFile(filePath: string): Buffer {
+    public readFile(filePath: string): Buffer {
         return readFileSync(filePath);
     }
 
-    export async function normalizeFiles(files: Express.Multer.File[]): Promise<void> {
+    public async normalizeFiles(files: Express.Multer.File[]): Promise<void> {
         for (const file of files) {
-            await new Promise(resolve => {
-                const newFileName = getFileName(file.filename) + '.mp3';
-                const tempPath = join(workFolder, newFileName);
-                ffmpeg(file.path)
-                    .audioFilter('loudnorm')
-                    .on('error', (e) => {
-                        logger.error(e, 'Normalize files');
-                        resolve(e);
-                    })
-                    .on('end', async () => {
-                        try {
-                            const newPath = join(file.destination, newFileName);
-                            await unlink(file.path);
-                            await rename(tempPath, newPath);
-                            file.path = newPath;
-                        } catch {
-                            await deleteFile(tempPath);
-                        }
-                        resolve(true);
-                    })
-                    .save(tempPath);
-            });
+            await this.normalizeFile(file);
         }
     }
+
+    public async normalizeFile(file: Express.Multer.File): Promise<boolean> {
+        return await new Promise((resolve) => {
+            const newFileName = this.getFileName(file.filename) + '.mp3';
+            const tempPath = join(this.workFolder, newFileName);
+            ffmpeg(file.path)
+                .audioFilter('loudnorm')
+                .on('error', (e) => {
+                    logger.error(e, 'Normalize files');
+                    resolve(e);
+                })
+                .on('end', async () => {
+                    try {
+                        const newPath = join(file.destination, newFileName);
+                        await unlink(file.path);
+                        await rename(tempPath, newPath);
+                        file.path = newPath;
+                    } catch {
+                        await this.deleteFile(tempPath);
+                    }
+                    resolve(true);
+                })
+                .save(tempPath);
+        });
+    }
+
+    public async normalizeStreamAndSave(file: Readable, path: string): Promise<boolean> {
+        return await new Promise((resolve) => {
+            ffmpeg(file)
+                .audioFilter('loudnorm')
+                .on('error', (e) => {
+                    logger.error(e, 'Normalize files');
+                    resolve(e);
+                })
+                .on('end', async () => {
+                    resolve(true);
+                })
+                .save(path);
+        });
+    }
+
+    public async normalizeStream(stream: Readable): Promise<PassThrough> {
+        const passThrough = new PassThrough();
+        await new Promise((resolve) => {
+            ffmpeg(stream)
+                .audioFilter('loudnorm')
+                .on('error', (e) => {
+                    logger.error(e, 'Normalize files');
+                    resolve(e);
+                })
+                .on('end', async () => {
+                    resolve(true);
+                })
+                .writeToStream(passThrough);
+        });
+        return passThrough;
+    }
+
+    public generateSoundPath(fileName: string): string {
+        return join(this.soundFolder, fileName);
+    }
+
+    public generateUniqueFileName(fileName: string): string {
+        return `${uuidv4()}${extname(fileName)}`;
+    }
 }
+
+export const fileHelper = new FileHelper();

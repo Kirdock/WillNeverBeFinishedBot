@@ -1,9 +1,12 @@
-import { IEnvironmentVariables, IRequiredEnvironmentVariables, KEnvironmentVariables } from '../interfaces/environment-variables';
-import { defaultLogLevel, logger } from './logHelper';
+import type { IEnvironmentVariables, IRequiredEnvironmentVariables } from '../interfaces/environment-variables';
+import { KEnvironmentVariables } from '../interfaces/environment-variables';
+import { scopedLogger } from './logHelper';
+
+const logger = scopedLogger('CONFIG');
 
 const env = process.env as Record<string, string | undefined>;
 
-let config: IEnvironmentVariables | undefined;
+let config: IEnvironmentVariables;
 
 if (checkRequiredEnvironmentVariables(env)) {
     config = setDefaultOptionalEnvironmentVariables(env);
@@ -18,7 +21,9 @@ function setDefaultOptionalEnvironmentVariables(envs: IRequiredEnvironmentVariab
         VERSION: envs.VERSION || 'develop',
         DATABASE_CONTAINER_NAME: envs.DATABASE_CONTAINER_NAME || 'mongodb',
         MAX_RECORD_TIME_MINUTES: envs.MAX_RECORD_TIME_MINUTES || '',
-        LOG_LEVEL: envs.LOG_LEVEL || defaultLogLevel,
+        LOG_LEVEL: envs.LOG_LEVEL ?? '',
+        OPENAI_API_KEY: env.OPENAI_API_KEY,
+        OPENAI_API_MODEL: env.OPENAI_API_MODEL,
     };
 }
 

@@ -1,0 +1,9 @@
+
+//region LIMITS
+export const APPLICATION_COMMAND_CHOICE_NAME = 100;
+export const APPLICATION_COMMAND_CHOICE_VALUE = 100;
+export const APPLICATION_COMMAND_MAX_CHOICES = 25;
+export const DISCORD_MAX_MESSAGE_LENGTH = 2000;
+//endregion
+
+export const AUDIO_CONTENT_TYPE = 'audio/mp3';

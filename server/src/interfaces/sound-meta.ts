@@ -1,5 +1,5 @@
-import { Snowflake } from 'discord.js';
-import { ObjectId } from 'mongodb';
+import type { Snowflake } from 'discord.js';
+import type { ObjectId } from 'mongodb';
 
 export interface ISoundMeta {
     _id: ObjectId;

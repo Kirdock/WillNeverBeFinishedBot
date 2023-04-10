@@ -1,31 +1,33 @@
-import { DatabaseHelper } from './databaseHelper';
+import { databaseHelper } from './databaseHelper';
 import semver from 'semver/preload';
-import { logger } from './logHelper';
 import { To_0_1_1_PR_87 } from '../migratorStrategies/to_0_1_1__p_r_87';
-import { IDatabaseMigrator } from '../interfaces/databaseMigrator';
-import { IEnvironmentVariables } from '../interfaces/environment-variables';
+import type { IDatabaseMigrator } from '../interfaces/databaseMigrator';
+import { scopedLogger } from './logHelper';
+import { EnvironmentConfig } from './config';
+
+const logger = scopedLogger('MIGRATOR');
 
 interface IMigrateStrategy {
     version: string;
     run: () => Promise<void>;
 }
 
-export async function migrateCheck(config: IEnvironmentVariables, databaseHelper: DatabaseHelper): Promise<void> {
+export async function migrateCheck(): Promise<void> {
     const oldVersion = await databaseHelper.getVersion();
-    if (semver.valid(oldVersion) && (!semver.valid(config.VERSION) || semver.gte(oldVersion, config.VERSION))) {
+    if (semver.valid(oldVersion) && (!semver.valid(EnvironmentConfig.VERSION) || semver.gte(oldVersion, EnvironmentConfig.VERSION))) {
         return;
     }
     logger.info('Old version detected. Starting migration...');
-    await migrate(config, oldVersion, databaseHelper);
-    await databaseHelper.setVersion(config.VERSION);
+    await migrate(oldVersion);
+    await databaseHelper.setVersion(EnvironmentConfig.VERSION);
     logger.info('Migration succeeded');
 }
 
-async function migrate(config: IEnvironmentVariables, oldVersion: string, databaseHelper: DatabaseHelper): Promise<void> {
+async function migrate(oldVersion: string): Promise<void> {
     let newDatabaseVersion = undefined;
     let latestExecutedStrategy = undefined;
     try {
-        for (const strategy of getMigrateStrategies(config)) {
+        for (const strategy of getMigrateStrategies()) {
             if (semver.lt(oldVersion, strategy.version)) {
                 latestExecutedStrategy = strategy.version;
 
@@ -43,13 +45,13 @@ async function migrate(config: IEnvironmentVariables, oldVersion: string, databa
     }
 }
 
-function getMigrateStrategies(config: IEnvironmentVariables): IMigrateStrategy[] {
+function getMigrateStrategies(): IMigrateStrategy[] {
     // why don't we just add new To_0_1_1_PR_87(config) to the array?
     //  because then a lot of potential not needed classes are generated (migrators and their mongo clients)
     return [
         {
             version: '0.1.1-dev-PR-87',
-            run: () => executeMigrator(new To_0_1_1_PR_87(config)),
+            run: () => executeMigrator(new To_0_1_1_PR_87()),
         }
     ].sort((a: IMigrateStrategy, b: IMigrateStrategy) => semver.compare(a.version, b.version));
 }

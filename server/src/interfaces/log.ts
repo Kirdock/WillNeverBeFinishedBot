@@ -1,5 +1,5 @@
-import { ObjectId } from 'mongodb';
-import { Snowflake } from 'discord.js';
+import type { ObjectId } from 'mongodb';
+import type { Snowflake } from 'discord.js';
 
 export interface ILog {
     _id: ObjectId;
