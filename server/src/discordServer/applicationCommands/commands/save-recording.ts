@@ -14,6 +14,7 @@ import {
     setLoading
 } from '../../utils/commonCommand.utils';
 import { AUDIO_CONTENT_TYPE } from '../../constants';
+import { PassThrough } from 'stream';
 
 type Choices = APIApplicationCommandOptionChoice & {value: AudioExportType};
 const choices: Choices[] = [
@@ -49,11 +50,13 @@ const command: Command = {
         const { guildId } = getInteractionMetadata(interaction);
         const message = await setLoading(interaction, false);
         const minutes = interaction.options.getInteger(minutesName) ?? undefined;
-        const exportType = (interaction.options.getString(typeName) as AudioExportType | null) ?? undefined;
+        const exportType = (interaction.options.getString(typeName) as AudioExportType | null) ?? 'single';
         const serverSettings = await databaseHelper.getServerSettings(guildId);
-        const readable = await recordHelper.getRecordedVoiceAsReadable(guildId, exportType, minutes, mapUserSettingsToDict(serverSettings));
         const date = new Date().toISOString();
+        const readable = new PassThrough();
         let fileType: string, fileName: string;
+
+        void recordHelper.getRecordedVoice(readable, guildId, exportType, minutes, mapUserSettingsToDict(serverSettings));
 
         if (exportType === 'single') {
             fileType = AUDIO_CONTENT_TYPE;
@@ -63,6 +66,7 @@ const command: Command = {
             fileName = `${date}.zip`;
         }
         await message.edit({
+            content: '',
             files: [ {
                 attachment: readable,
                 contentType: fileType,
