@@ -14,7 +14,6 @@ import {
     setLoading
 } from '../../utils/commonCommand.utils';
 import { AUDIO_CONTENT_TYPE } from '../../constants';
-import { PassThrough } from 'stream';
 
 type Choices = APIApplicationCommandOptionChoice & {value: AudioExportType};
 const choices: Choices[] = [
@@ -53,10 +52,10 @@ const command: Command = {
         const exportType = (interaction.options.getString(typeName) as AudioExportType | null) ?? 'single';
         const serverSettings = await databaseHelper.getServerSettings(guildId);
         const date = new Date().toISOString();
-        const readable = new PassThrough();
         let fileType: string, fileName: string;
 
-        void recordHelper.getRecordedVoice(readable, guildId, exportType, minutes, mapUserSettingsToDict(serverSettings));
+        // a stream will be transformed to a buffer anyway: https://github.com/discordjs/discord.js/blob/main/packages/discord.js/src/util/DataResolver.js#L117
+        const buffer = await recordHelper.getRecordedVoiceAsBuffer(guildId, exportType, minutes, mapUserSettingsToDict(serverSettings));
 
         if (exportType === 'single') {
             fileType = AUDIO_CONTENT_TYPE;
@@ -65,10 +64,11 @@ const command: Command = {
             fileType = 'application/zip';
             fileName = `${date}.zip`;
         }
+
         await message.edit({
             content: '',
             files: [ {
-                attachment: readable,
+                attachment: buffer,
                 contentType: fileType,
                 name: fileName,
             }],
