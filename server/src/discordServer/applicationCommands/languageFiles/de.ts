@@ -80,7 +80,7 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
 
     //region PLAY
     // [CommandLangKey.PLAY_NAME]: 'abspielen',
-    [CommandLangKey.PLAY_DESCRIPTION]: 'Spiele eine Audiodatei in Sprachkanal ab',
+    [CommandLangKey.PLAY_DESCRIPTION]: 'Spiele eine Audiodatei im Sprachkanal ab',
     [CommandLangKey.PLAY_FILE_NAME]: 'datei',
     [CommandLangKey.PLAY_FILE_DESCRIPTION]: 'Wähle einen Song aus, den du abspielen möchtest',
     [CommandLangKey.PLAY_VOLUME_NAME]: 'lautstärke',
