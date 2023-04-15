@@ -15,9 +15,9 @@ enum VoiceStateStatus {
 }
 
 const messages: Record<VoiceStateStatus, (oldState: VoiceState, newState: VoiceState) => string> = {
-    [VoiceStateStatus.USER_JOINED_CHANNEL]: (oldState: VoiceState, newState: VoiceState) =>  `joined channel ${newState.channelId && generateChannelMention(newState.channelId)}`,
-    [VoiceStateStatus.USER_SWITCHED_CHANNEL]: (oldState: VoiceState, newState: VoiceState) =>  `switched to channel ${newState.channelId && generateChannelMention(newState.channelId)}`,
-    [VoiceStateStatus.USER_LEFT_CHANNEL]: (oldState: VoiceState) =>  `left the channel ${oldState.channelId && generateChannelMention(oldState.channelId)}`,
+    [VoiceStateStatus.USER_JOINED_CHANNEL]: (oldState: VoiceState, newState: VoiceState) =>  `connected to channel ${newState.channelId && generateChannelMention(newState.channelId)}`,
+    [VoiceStateStatus.USER_SWITCHED_CHANNEL]: (oldState: VoiceState, newState: VoiceState) =>  `switched from channel ${oldState.channelId && generateChannelMention(oldState.channelId)} to ${newState.channelId && generateChannelMention(newState.channelId)}`,
+    [VoiceStateStatus.USER_LEFT_CHANNEL]: (oldState: VoiceState) =>  `left channel ${oldState.channelId && generateChannelMention(oldState.channelId)}`,
     [VoiceStateStatus.USER_MUTED]: () => 'muted',
     [VoiceStateStatus.USER_UNMUTED]: ()=> 'unmuted',
     [VoiceStateStatus.USER_DEAFENED]: () => 'deafened',
