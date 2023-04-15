@@ -376,7 +376,6 @@ export class DatabaseHelper {
     }
 
     private leftJoin<T extends object>(objectA: T, objectB: Partial<T>): Partial<T> {
-        // return objectA
         const result: Partial<T> = {};
         for (const key in objectA) {
             if (!Object.hasOwn(objectB, key)) {
