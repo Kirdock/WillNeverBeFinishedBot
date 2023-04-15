@@ -1,7 +1,6 @@
 import type { Client, VoiceState } from 'discord.js';
-import { Events, MessageFlags } from 'discord.js';
+import { channelMention, Events, MessageFlags, userMention } from 'discord.js';
 import { databaseHelper } from '../../services/databaseHelper';
-import { generateChannelMention, generateUserMention } from '../../utils/discord.utils';
 
 enum VoiceStateStatus {
     USER_JOINED_CHANNEL,
@@ -15,9 +14,9 @@ enum VoiceStateStatus {
 }
 
 const messages: Record<VoiceStateStatus, (oldState: VoiceState, newState: VoiceState) => string> = {
-    [VoiceStateStatus.USER_JOINED_CHANNEL]: (oldState: VoiceState, newState: VoiceState) =>  `connected to channel ${newState.channelId && generateChannelMention(newState.channelId)}`,
-    [VoiceStateStatus.USER_SWITCHED_CHANNEL]: (oldState: VoiceState, newState: VoiceState) =>  `switched from channel ${oldState.channelId && generateChannelMention(oldState.channelId)} to ${newState.channelId && generateChannelMention(newState.channelId)}`,
-    [VoiceStateStatus.USER_LEFT_CHANNEL]: (oldState: VoiceState) =>  `left channel ${oldState.channelId && generateChannelMention(oldState.channelId)}`,
+    [VoiceStateStatus.USER_JOINED_CHANNEL]: (oldState: VoiceState, newState: VoiceState) =>  `connected to channel ${newState.channelId && channelMention(newState.channelId)}`,
+    [VoiceStateStatus.USER_SWITCHED_CHANNEL]: (oldState: VoiceState, newState: VoiceState) =>  `switched from channel ${oldState.channelId && channelMention(oldState.channelId)} to ${newState.channelId && channelMention(newState.channelId)}`,
+    [VoiceStateStatus.USER_LEFT_CHANNEL]: (oldState: VoiceState) =>  `left channel ${oldState.channelId && channelMention(oldState.channelId)}`,
     [VoiceStateStatus.USER_MUTED]: () => 'muted',
     [VoiceStateStatus.USER_UNMUTED]: ()=> 'unmuted',
     [VoiceStateStatus.USER_DEAFENED]: () => 'deafened',
@@ -41,7 +40,7 @@ export default async function onVoiceStateUpdate(client: Client<true>) {
             const channel = await newState.guild.channels.fetch(serverInfo.logVoiceStateChannel);
             if (channel?.isTextBased()) {
                 channel.send({
-                    content: `${generateUserMention(newState.member.id)} ${messages[status](oldState, newState)}`,
+                    content: `${userMention(newState.member.id)} ${messages[status](oldState, newState)}`,
                     flags: [MessageFlags.SuppressNotifications],
                     allowedMentions: { users: [] }
                 });

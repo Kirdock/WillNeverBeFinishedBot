@@ -15,8 +15,10 @@ import type {
 } from 'discord.js';
 import {
     ActionRowBuilder,
+    bold,
     ButtonBuilder,
     ButtonStyle,
+    channelMention,
     ChannelType,
     ComponentType,
     PermissionsBitField
@@ -29,7 +31,6 @@ import type { PickByType } from '../../../../../../shared/models/types';
 import { chunkArray } from '../../../../utils/array.utils';
 import { MESSAGE_COMPONENTS_MAX_BUTTONS_PER_ROW, MESSAGE_COMPONENTS_MAX_ROWS } from '../../../constants';
 import { scopedLogger } from '../../../../services/logHelper';
-import { generateChannelMention } from '../../../../utils/discord.utils';
 
 
 const logger = scopedLogger('APPLICATION_COMMANDS');
@@ -112,9 +113,9 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
     const outroAudioFile = serverSettings.defaultOutro ? await databaseHelper.getSoundMeta(serverSettings.defaultOutro) : undefined;
     const messageContent: InteractionReplyOptions = {
         content: `
-**Intro:** ${introAudioFile?.fileName ?? 'none'}
-**Outro:** ${outroAudioFile?.fileName ?? 'none'}
-**Voice state logs channel:** ${serverSettings.logVoiceStateChannel ? generateChannelMention(serverSettings.logVoiceStateChannel) : 'none'}`,
+${bold('Intro:')} ${introAudioFile?.fileName ?? 'none'}
+${bold('Outro:')} ${outroAudioFile?.fileName ?? 'none'}
+${bold('Voice state logs channel:')} ${serverSettings.logVoiceStateChannel ? channelMention(serverSettings.logVoiceStateChannel) : 'none'}`,
         components: actionRows,
         ephemeral: true,
     };

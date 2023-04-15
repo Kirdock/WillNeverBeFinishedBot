@@ -1,13 +1,12 @@
-import { Events, PermissionsBitField } from 'discord.js';
+import { Events, PermissionsBitField, userMention } from 'discord.js';
 import { registerApplicationCommands } from '../applicationCommands/applicationManager';
 import type { DiscordBot } from '../DiscordBot';
 import { scopedLogger } from '../../services/logHelper';
-import { generateUserMention } from '../../utils/discord.utils';
 
 const logger = scopedLogger('ON_MESSAGE_CREATE');
 
 export default function onMessageCreate(discordBot: DiscordBot): void {
-    const clientMention = generateUserMention(discordBot.client.user.id);
+    const clientMention = userMention(discordBot.client.user.id);
 
     discordBot.client.on(Events.MessageCreate, async (message) => {
         if (!message.member || !message.guildId || !message.content.startsWith(clientMention)) {
