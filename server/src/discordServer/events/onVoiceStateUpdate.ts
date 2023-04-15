@@ -42,7 +42,8 @@ export default async function onVoiceStateUpdate(client: Client<true>) {
             if (channel?.isTextBased()) {
                 channel.send({
                     content: `${generateUserMention(newState.member.id)} ${messages[status](oldState, newState)}`,
-                    flags: [MessageFlags.SuppressNotifications]
+                    flags: [MessageFlags.SuppressNotifications],
+                    allowedMentions: { users: [] }
                 });
             }
         }
