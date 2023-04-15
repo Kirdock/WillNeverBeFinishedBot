@@ -169,6 +169,12 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.SETTINGS_OUTRO_REMOVE_DESCRIPTION]: 'Entfernt das standard Serveroutro',
     // [CommandLangKey.SETTINGS_CHECKS_NAME]: 'checks',
     [CommandLangKey.SETTINGS_CHECKS_DESCRIPTION]: 'Zeigt alle Servereinstellugen',
+    // [CommandLangKey.SETTINGS_LOG_VOICE_NAME]: 'log_voice',
+    [CommandLangKey.SETTINGS_LOG_VOICE_DESCRIPTION]: 'Sendet Sprachlogs in einen Textkanal',
+    // [CommandLangKey.SETTINGS_LOG_VOICE_SET_NAME]: 'set',
+    [CommandLangKey.SETTINGS_LOG_VOICE_SET_DESCRIPTION]: 'Setzt den Textkanal an den die Logs geschickt werden sollen',
+    // [CommandLangKey.SETTINGS_LOG_VOICE_REMOVE_NAME]: 'remove',
+    [CommandLangKey.SETTINGS_LOG_VOICE_REMOVE_DESCRIPTION]: 'Deaktiviert das Loggen von Sprachaktualisierungen',
     //endregion
 
     //region STOP
@@ -194,6 +200,9 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     //endregion
 
     //region COMPONENTS
+    // [CommandLangKey.CHANNEL_NAME]: 'channel',
+    [CommandLangKey.CHANNEL_DESCRIPTION]: 'Wähle einen Textkanal',
+
     // [CommandLangKey.COMMAND_SELECTION_NAME]: 'command_name',
     [CommandLangKey.COMMAND_SELECTION_DESCRIPTION]: 'Wähle ein Slash- oder Kontextmenü-Kommando aus',
     //endregion
@@ -212,6 +221,7 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.ERRORS_FILE_NOT_FOUND]: 'De Datei gibts nit du Volltrottl!',
     [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT ist vom Botbesicher deaktiviert worden',
     [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'Keine Antwort erhalten',
+    [CommandLangKey.ERRORS_INVALID_TEXT_CHANNEL]: 'Der angegebene Kanal ist kein Textkanal!',
     //endregion
 
     //region success messages

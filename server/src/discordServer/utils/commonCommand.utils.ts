@@ -5,6 +5,7 @@ import type {
     ChatInputCommandInteraction,
     InteractionResponse,
     MessageContextMenuCommandInteraction,
+    SlashCommandChannelOption,
     SlashCommandIntegerOption,
     SlashCommandStringOption,
     SlashCommandUserOption
@@ -26,6 +27,7 @@ type CommandOption<T extends ApplicationCommandOptionBase> = (command: T) => T;
 type UserOption = { userOption: CommandOption<SlashCommandUserOption>, userCommandName: string};
 type SoundSelection = { soundOption: CommandOption<SlashCommandStringOption>, soundCommandName: string, autocomplete: InteractionAutocomplete};
 type CommandSelection = { commandOption: CommandOption<SlashCommandStringOption>, commandSelectionName: string, autocomplete: InteractionAutocomplete};
+type ChannelSelection = {channelOption: CommandOption<SlashCommandChannelOption>, channelCommandName: string};
 type VolumeOption = {volumeOption: CommandOption<SlashCommandIntegerOption>, volumeCommandName: string}
 
 export function setLoading(interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction, ephemeral = true): Promise<InteractionResponse<boolean>> {
@@ -69,6 +71,19 @@ export function getSoundSelection(required = true, onlyWhereCreator = false): So
                 return [];
             }
         },
+    };
+}
+
+export function getChannelOption(required = true): ChannelSelection {
+    return {
+        channelOption: (option) =>
+            option
+                .setName(getDefaultCommandLang(CommandLangKey.CHANNEL_NAME))
+                .setNameLocalizations(getCommandLang(CommandLangKey.CHANNEL_NAME))
+                .setDescription(getDefaultCommandLang(CommandLangKey.CHANNEL_DESCRIPTION))
+                .setDescriptionLocalizations(getCommandLang(CommandLangKey.CHANNEL_DESCRIPTION))
+                .setRequired(required),
+        channelCommandName: getDefaultCommandLang(CommandLangKey.CHANNEL_NAME),
     };
 }
 
