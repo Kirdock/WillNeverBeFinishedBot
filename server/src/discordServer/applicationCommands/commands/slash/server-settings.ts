@@ -7,9 +7,11 @@ import {
 } from '../../../utils/commonCommand.utils';
 import { CommandLangKey } from '../../types/lang.types';
 import type {
+    ButtonInteraction,
     ChatInputCommandInteraction,
     InteractionReplyOptions,
-    MessageActionRowComponentBuilder
+    MessageActionRowComponentBuilder,
+    MessageComponentInteraction
 } from 'discord.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, PermissionsBitField } from 'discord.js';
 import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
@@ -19,7 +21,10 @@ import type { IServerSettings } from '../../../../../../shared/interfaces/server
 import type { PickByType } from '../../../../../../shared/models/types';
 import { chunkArray } from '../../../../utils/array.utils';
 import { MESSAGE_COMPONENTS_MAX_BUTTONS_PER_ROW, MESSAGE_COMPONENTS_MAX_ROWS } from '../../../constants';
+import { scopedLogger } from '../../../../services/logHelper';
 
+
+const logger = scopedLogger('APPLICATION_COMMANDS');
 const introGroupName = getDefaultCommandLang(CommandLangKey.SETTINGS_INTRO_NAME);
 const checkSubCommand = getDefaultCommandLang(CommandLangKey.SETTINGS_CHECKS_NAME);
 const introSetName = getDefaultCommandLang(CommandLangKey.SETTINGS_INTRO_SET_NAME);
@@ -88,26 +93,57 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
     const collector = reply.createMessageComponentCollector({ componentType: ComponentType.Button, time: 3_600_000 });
 
 
-    collector.on('collect', async (button) => {
+    collector.on('collect', async (buttonInteraction) => {
         try {
-            const settingsKey = button.customId as keyof PickByType<IServerSettings, boolean>;
-            const isEnabled = button.component.style === ButtonStyle.Success;
-            const newValue = !isEnabled;
+            const settingsKey = buttonInteraction.customId as keyof PickByType<IServerSettings, boolean>;
+            const isEnabled = buttonInteraction.component.style === ButtonStyle.Success;
+            const isEnabledNew = !isEnabled;
 
-            await databaseHelper.updateServerSetting(guildId, { [settingsKey]: newValue });
+            await databaseHelper.updateServerSetting(guildId, { [settingsKey]: isEnabledNew });
 
-            options[settingsKey] = newValue;
-            messageContent.components = getBooleanActionRows(options);
+            const newActionRows = updateComponent(buttonInteraction, (button) => button.setStyle(isEnabledNew ? ButtonStyle.Success : ButtonStyle.Danger));
 
-            await reply.edit(messageContent);
-            button.update({});
-        } catch {
-            button.reply({
+            await reply.edit({
+                content: buttonInteraction.message.content,
+                components: newActionRows,
+            });
+            buttonInteraction.update({});
+        } catch (e) {
+            logger.error(e, 'server settings button interaction');
+            buttonInteraction.reply({
                 content: 'Unknown error',
                 ephemeral: true,
             });
         }
     });
+}
+
+function updateComponent(interaction: ButtonInteraction, newButtonFunc: (component: ButtonBuilder) => ButtonBuilder, customId = interaction.customId): ActionRowBuilder<MessageActionRowComponentBuilder>[] {
+    const indices = findComponent(interaction, customId);
+    if (!indices) {
+        return [];
+    }
+
+    const actionRows = interaction.message.components.map<ActionRowBuilder<MessageActionRowComponentBuilder>>((row) => ActionRowBuilder.from(row));
+    actionRows[indices.actionRowIndex].components[indices.componentIndex] = newButtonFunc(ButtonBuilder.from(interaction.component));
+
+    return actionRows;
+}
+
+function findComponent(interaction: MessageComponentInteraction, customId: string): {actionRowIndex: number, componentIndex: number} | undefined {
+    const actionRows = interaction.message.components;
+    for (let actionRowIndex = 0; actionRowIndex < actionRows.length; ++actionRowIndex) {
+        const actionRow = actionRows[actionRowIndex];
+
+        for (let componentIndex = 0; componentIndex < actionRow.components.length; ++componentIndex) {
+            if (actionRow.components[componentIndex].customId === customId) {
+                return {
+                    actionRowIndex,
+                    componentIndex,
+                };
+            }
+        }
+    }
 }
 
 function getBooleanActionRows(options: Record<string, boolean>): ActionRowBuilder<MessageActionRowComponentBuilder>[] {
