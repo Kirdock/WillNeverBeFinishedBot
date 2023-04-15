@@ -25,6 +25,8 @@ import { scopedLogger } from '../../../../services/logHelper';
 
 
 const logger = scopedLogger('APPLICATION_COMMANDS');
+const baseComponentInteractionTimeout = 3_600_000; // 1 hour
+
 const introGroupName = getDefaultCommandLang(CommandLangKey.SETTINGS_INTRO_NAME);
 const checkSubCommand = getDefaultCommandLang(CommandLangKey.SETTINGS_CHECKS_NAME);
 const introSetName = getDefaultCommandLang(CommandLangKey.SETTINGS_INTRO_SET_NAME);
@@ -90,7 +92,7 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
     };
 
     const reply = await interaction.reply(messageContent);
-    const collector = reply.createMessageComponentCollector({ componentType: ComponentType.Button, time: 3_600_000 });
+    const collector = reply.createMessageComponentCollector({ componentType: ComponentType.Button, time: baseComponentInteractionTimeout });
 
 
     collector.on('collect', async (buttonInteraction) => {
@@ -115,6 +117,10 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
                 ephemeral: true,
             });
         }
+    });
+
+    collector.on('end', async () => {
+        await reply.delete();
     });
 }
 
