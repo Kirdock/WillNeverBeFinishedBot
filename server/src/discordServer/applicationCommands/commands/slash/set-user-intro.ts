@@ -1,27 +1,26 @@
-import type { Command } from '../../../interfaces/command';
-import { ApplicationCommandType, PermissionsBitField } from 'discord.js';
-import { getCommandLangKey } from '../commandLang';
-import { CommandLangKey } from '../types/lang.types';
-import { databaseHelper } from '../../../services/databaseHelper';
+import type { ChatCommand } from '../../../../interfaces/command';
+import { PermissionsBitField } from 'discord.js';
+import { getCommandLangKey } from '../../commandLang';
+import { CommandLangKey } from '../../types/lang.types';
+import { databaseHelper } from '../../../../services/databaseHelper';
 import {
     getInteractionMetadata,
-    getScopedSlashCommandBuilder,
+    getLangSlashCommandBuilder,
     getSoundSelection,
     getUserOption
-} from '../../utils/commonCommand.utils';
+} from '../../../utils/commonCommand.utils';
 
-const { fileNameOption, fileCommandName, autocomplete } = getSoundSelection();
+const { soundOption, soundCommandName, autocomplete } = getSoundSelection();
 const { userCommandName, userOption } = getUserOption();
 
-const command: Command = {
-    type: ApplicationCommandType.ChatInput,
-    data: getScopedSlashCommandBuilder(CommandLangKey.SET_USER_INTRO_NAME, CommandLangKey.SET_USER_INTRO_DESCRIPTION)
+const command: ChatCommand = {
+    data: getLangSlashCommandBuilder(CommandLangKey.SET_USER_INTRO_NAME, CommandLangKey.SET_USER_INTRO_DESCRIPTION)
         .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
-        .addStringOption(fileNameOption)
+        .addStringOption(soundOption)
         .addUserOption(userOption).toJSON(),
     async execute(interaction) {
         const { guildId } = getInteractionMetadata(interaction);
-        const fileName = interaction.options.getString(fileCommandName, true);
+        const fileName = interaction.options.getString(soundCommandName, true);
         const user = interaction.options.getUser(userCommandName, true);
 
         const meta = await databaseHelper.getSoundMetaByName(fileName, guildId);

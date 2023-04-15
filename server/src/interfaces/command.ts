@@ -1,14 +1,12 @@
 import type {
     APIApplicationCommandOptionChoice,
-    ApplicationCommandType,
     AutocompleteInteraction,
     BaseMessageOptions,
     ChatInputCommandInteraction,
     ContextMenuCommandBuilder,
     MessageContextMenuCommandInteraction,
     RESTPostAPIChatInputApplicationCommandsJSONBody,
-    RESTPostAPIContextMenuApplicationCommandsJSONBody,
-    SlashCommandBuilder
+    RESTPostAPIContextMenuApplicationCommandsJSONBody
 } from 'discord.js';
 
 export interface InteractionEphemeralResponse {
@@ -29,16 +27,14 @@ interface BaseCommand {
 }
 
 export interface ChatCommand extends BaseCommand{
-    data:  RESTPostAPIChatInputApplicationCommandsJSONBody | SlashCommandBuilder;
+    data:  RESTPostAPIChatInputApplicationCommandsJSONBody;
     execute: (interaction: ChatInputCommandInteraction) => InteractionExecuteResponse;
     autocomplete?: InteractionAutocomplete;
-    type: ApplicationCommandType.ChatInput,
 }
 
 export interface MessageCommand extends BaseCommand {
     data: RESTPostAPIContextMenuApplicationCommandsJSONBody | ContextMenuCommandBuilder;
     execute: (interaction: MessageContextMenuCommandInteraction) => InteractionExecuteResponse;
-    type: ApplicationCommandType.Message
     enabled?: boolean;
 }
 

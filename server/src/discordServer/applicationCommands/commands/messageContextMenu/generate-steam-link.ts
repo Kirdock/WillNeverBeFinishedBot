@@ -1,12 +1,11 @@
-import type { Command } from '../../../interfaces/command';
+import type { MessageCommand } from '../../../../interfaces/command';
 import { ApplicationCommandType } from 'discord.js';
-import { buildSteamLinkOutOfMessage } from '../../utils/steam.utils';
-import { getCommandLangKey } from '../commandLang';
-import { CommandLangKey } from '../types/lang.types';
-import { getScopedContextMenuBuilder } from '../../utils/commonCommand.utils';
+import { buildSteamLinkOutOfMessage } from '../../../utils/steam.utils';
+import { getCommandLangKey } from '../../commandLang';
+import { CommandLangKey } from '../../types/lang.types';
+import { getScopedContextMenuBuilder } from '../../../utils/commonCommand.utils';
 
-const command: Command = {
-    type: ApplicationCommandType.Message,
+const command: MessageCommand = {
     data: getScopedContextMenuBuilder(CommandLangKey.GENERATE_STEAM_LINK_NAME)
         .setType(ApplicationCommandType.Message)
         .toJSON(),

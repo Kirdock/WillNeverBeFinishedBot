@@ -7,7 +7,6 @@ import { stream as youtubeStream } from 'play-dl';
 import { createReadStream } from 'fs';
 import type { IServerSettings } from '../../../shared/interfaces/server-settings';
 import { fileHelper } from './fileHelper';
-import { InteractionError } from '../utils/InteractionError';
 import { ErrorTypes } from './ErrorTypes';
 import { scopedLogger } from './logHelper';
 
@@ -93,7 +92,7 @@ export async function requestSound(path: string, serverId: string, channelId: st
     if (fileHelper.existsFile(path)) {
         await playSound(serverId, channelId, path, volumeMultiplier, undefined, forcePlay);
     } else {
-        throw new InteractionError(ErrorTypes.FILE_NOT_FOUND);
+        throw new Error(ErrorTypes.FILE_NOT_FOUND);
     }
 }
 
@@ -104,9 +103,9 @@ export async function stopPlaying(serverId: Snowflake, isAdmin: boolean): Promis
             const player = getAudioPlayer(serverId);
             player.stop(true);
         } else {
-            throw new InteractionError(ErrorTypes.SERVER_ID_NOT_FOUND);
+            throw new Error(ErrorTypes.SERVER_ID_NOT_FOUND);
         }
     } else {
-        throw new InteractionError(ErrorTypes.PLAY_NOT_ALLOWED);
+        throw new Error(ErrorTypes.PLAY_NOT_ALLOWED);
     }
 }

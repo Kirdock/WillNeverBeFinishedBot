@@ -1,23 +1,25 @@
-import type { Command } from '../../../interfaces/command';
-import { ApplicationCommandType } from 'discord.js';
-import { getDefaultCommandLang } from '../commandLang';
-import { CommandLangKey } from '../types/lang.types';
-import { getInteractionMetadata, getScopedOption, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
-import { DISCORD_MAX_MESSAGE_LENGTH } from '../../constants';
+import type { ChatCommand } from '../../../../interfaces/command';
+import { getDefaultCommandLang } from '../../commandLang';
+import { CommandLangKey } from '../../types/lang.types';
+import {
+    getInteractionMetadata,
+    getLangComponent,
+    getLangSlashCommandBuilder
+} from '../../../utils/commonCommand.utils';
+import { DISCORD_MAX_MESSAGE_LENGTH } from '../../../constants';
 
 const popText = '||pop||';
 const rowName = getDefaultCommandLang(CommandLangKey.BUBBLE_ROW_NAME);
 const columnName = getDefaultCommandLang(CommandLangKey.BUBBLE_COLUMN_NAME);
 
-const command: Command = {
-    type: ApplicationCommandType.ChatInput,
-    data: getScopedSlashCommandBuilder(CommandLangKey.BUBBLE_NAME, CommandLangKey.BUBBLE_DESCRIPTION)
+const command: ChatCommand = {
+    data: getLangSlashCommandBuilder(CommandLangKey.BUBBLE_NAME, CommandLangKey.BUBBLE_DESCRIPTION)
         .addIntegerOption((option) =>
-            getScopedOption(option, CommandLangKey.BUBBLE_ROW_NAME, CommandLangKey.BUBBLE_ROW_DESCRIPTION)
+            getLangComponent(option, CommandLangKey.BUBBLE_ROW_NAME, CommandLangKey.BUBBLE_ROW_DESCRIPTION)
                 .setRequired(true)
         )
         .addIntegerOption((option) =>
-            getScopedOption(option, CommandLangKey.BUBBLE_COLUMN_NAME, CommandLangKey.BUBBLE_COLUMN_DESCRIPTION)
+            getLangComponent(option, CommandLangKey.BUBBLE_COLUMN_NAME, CommandLangKey.BUBBLE_COLUMN_DESCRIPTION)
                 .setRequired(true)
         ).toJSON(),
     async execute(interaction) {

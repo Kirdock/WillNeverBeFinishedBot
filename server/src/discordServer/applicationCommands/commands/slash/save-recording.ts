@@ -1,19 +1,18 @@
-import { recordHelper } from '../../../services/recordHelper';
-import type { Command } from '../../../interfaces/command';
+import { recordHelper } from '../../../../services/recordHelper';
+import type { ChatCommand } from '../../../../interfaces/command';
 import type { APIApplicationCommandOptionChoice } from 'discord.js';
-import { ApplicationCommandType } from 'discord.js';
 import type { AudioExportType } from '@kirdock/discordjs-voice-recorder';
-import { databaseHelper } from '../../../services/databaseHelper';
-import { mapUserSettingsToDict } from '../../../utils/convertion.utils';
-import { getCommandLang, getDefaultCommandLang } from '../commandLang';
-import { CommandLangKey } from '../types/lang.types';
+import { databaseHelper } from '../../../../services/databaseHelper';
+import { mapUserSettingsToDict } from '../../../../utils/convertion.utils';
+import { getCommandLang, getDefaultCommandLang } from '../../commandLang';
+import { CommandLangKey } from '../../types/lang.types';
 import {
     getInteractionMetadata,
-    getScopedOption,
-    getScopedSlashCommandBuilder,
+    getLangComponent,
+    getLangSlashCommandBuilder,
     setLoading
-} from '../../utils/commonCommand.utils';
-import { AUDIO_CONTENT_TYPE } from '../../constants';
+} from '../../../utils/commonCommand.utils';
+import { AUDIO_CONTENT_TYPE } from '../../../constants';
 
 type Choices = APIApplicationCommandOptionChoice & {value: AudioExportType};
 const choices: Choices[] = [
@@ -32,16 +31,15 @@ const choices: Choices[] = [
 const minutesName = getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_MINUTES_NAME);
 const typeName = getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_TYPE_NAME);
 
-const command: Command = {
-    type: ApplicationCommandType.ChatInput,
-    data: getScopedSlashCommandBuilder(CommandLangKey.SAVE_RECORDING_NAME, CommandLangKey.SAVE_RECORDING_DESCRIPTION)
+const command: ChatCommand = {
+    data: getLangSlashCommandBuilder(CommandLangKey.SAVE_RECORDING_NAME, CommandLangKey.SAVE_RECORDING_DESCRIPTION)
         .addIntegerOption((option) =>
-            getScopedOption(option, CommandLangKey.SAVE_RECORDING_MINUTES_NAME, CommandLangKey.SAVE_RECORDING_MINUTES_DESCRIPTION)
+            getLangComponent(option, CommandLangKey.SAVE_RECORDING_MINUTES_NAME, CommandLangKey.SAVE_RECORDING_MINUTES_DESCRIPTION)
                 .setMinValue(1)
                 .setMaxValue(10)
         )
         .addStringOption((option) =>
-            getScopedOption(option, CommandLangKey.SAVE_RECORDING_TYPE_NAME, CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION)
+            getLangComponent(option, CommandLangKey.SAVE_RECORDING_TYPE_NAME, CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION)
                 .setChoices(...choices)
         )
         .toJSON(),

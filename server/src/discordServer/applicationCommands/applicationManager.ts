@@ -1,14 +1,16 @@
 import type {
     APIApplicationCommandOptionChoice,
+    ApplicationCommand,
     AutocompleteInteraction,
     ChatInputCommandInteraction,
     Client,
     Collection,
+    CommandInteraction,
     GuildResolvable,
     InteractionReplyOptions,
     Message,
     MessageContextMenuCommandInteraction
-    , ApplicationCommand } from 'discord.js';
+} from 'discord.js';
 import { ApplicationCommandType, Events } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
@@ -32,24 +34,34 @@ let allCommands: Command[] = [];
 
 
 export async function readApplicationCommands(): Promise<void> {
-    chatCommands = [];
-    messageCommands = [];
+    chatCommands = await readCommands(commandsPath, ApplicationCommandType.ChatInput);
+    messageCommands = await readCommands(commandsPath, ApplicationCommandType.Message);
+    allCommands = [...chatCommands, ...messageCommands];
+}
 
-    const commandFiles = readdirSync(commandsPath).filter((file) => supportedExtensions.some((extension) => extname(file) === extension));
-    for (const file of commandFiles) {
-        const command: Command = (await import(join(commandsPath, file))).default;
+async function readCommands(src: string, type: ApplicationCommandType.ChatInput): Promise<ChatCommand[]>
+async function readCommands(src: string, type: ApplicationCommandType.Message): Promise<MessageCommand[]>
+async function readCommands<T extends Command>(src: string, type: ApplicationCommandType.ChatInput | ApplicationCommandType.Message): Promise<T[]> {
+    const subFolder = type === ApplicationCommandType.ChatInput ? 'slash' : 'messageContextMenu';
+    const path = join(src, subFolder);
+    const commandPaths = readdirSync(path).filter((file) => supportedExtensions.includes(extname(file)));
+    const commands: T[] = [];
+
+    for (const file of commandPaths) {
+        const filePath = join(path, file);
+        const command: T = (await import(filePath)).default;
         const isEnabled = command.enabled ?? true;
-        if (!isEnabled) {
+
+        if (command.data.type && command.data.type !== type) {
+            logger.warn('Invalid application type', { filePath, type: command.data.type });
             continue;
         }
 
-        if (command.type === ApplicationCommandType.ChatInput) {
-            chatCommands.push(command);
-        } else {
-            messageCommands.push(command);
+        if (isEnabled) {
+            commands.push(command);
         }
     }
-    allCommands = [...chatCommands, ...messageCommands];
+    return commands;
 }
 
 // DOC because Discord.js is unable to use JSDoc
@@ -60,16 +72,20 @@ export async function readApplicationCommands(): Promise<void> {
  */
 export async function setupApplicationCommands(client: Client<true>): Promise<void> {
     client.on(Events.InteractionCreate, async (interaction) => {
-        if (!interaction.isAutocomplete() && !interaction.isChatInputCommand() && !interaction.isMessageContextMenuCommand()) {
-            return;
-        }
-
         if (interaction.isMessageContextMenuCommand()) {
             await handleMessageCommand(interaction);
             return;
         }
 
-        await handleChatInputCommand(interaction);
+        if (interaction.isAutocomplete()) {
+            await handleAutocompleteCommand(interaction);
+            return;
+        }
+
+        if (interaction.isChatInputCommand()) {
+            await handleChatInputCommand(interaction);
+            return;
+        }
     });
 }
 
@@ -93,7 +109,7 @@ export async function registerApplicationCommands(client: Client<true>, guildId:
 export async function registerApplicationCommand(interaction: ChatInputCommandInteraction, guildId: string, commandName: string): Promise<void> {
     const command = allCommands.find((cmd) => cmd.data.name === commandName);
     if (!command) {
-        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_COMMAND));
+        throw new InteractionError(interaction, CommandLangKey.ERRORS_INVALID_COMMAND);
     }
     await interaction.client.application.commands.create(command.data, guildId);
 }
@@ -102,7 +118,7 @@ export async function deleteApplicationCommand(interaction: ChatInputCommandInte
     const availableCommand = await getRegisteredApplicationCommands(interaction.client, guildId);
     const command = availableCommand.find((cmd) => cmd.name === commandName);
     if (!command) {
-        throw new InteractionError(getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_COMMAND));
+        throw new InteractionError(interaction, CommandLangKey.ERRORS_INVALID_COMMAND);
     }
     await interaction.client.application.commands.delete(command.id, guildId);
 }
@@ -130,38 +146,46 @@ function normalizeChoices(choices: APIApplicationCommandOptionChoice[]): APIAppl
 }
 
 async function handleMessageCommand(interaction: MessageContextMenuCommandInteraction): Promise<void> {
-    const command = messageCommands.find((command) => command.data.name === interaction.commandName);
+    const command = findCommand(messageCommands, interaction.commandName);
     if (!command) {
-        logger.error(`No command matching message command ${interaction.commandName} was found.`);
         return;
     }
     await handleReply(command.execute(interaction), interaction);
 }
 
-async function handleChatInputCommand(interaction: AutocompleteInteraction | ChatInputCommandInteraction): Promise<void> {
-    const command = chatCommands.find((command) => command.data.name === interaction.commandName);
+function findCommand<T extends Command>(commands: T[], commandName: string): T | undefined {
+    const command = commands.find((command) => command.data.name === commandName);
 
     if (!command) {
-        logger.error(`No command matching chat command ${interaction.commandName} was found.`);
-        return;
+        logger.error(`No command matching command ${commandName} was found.`);
     }
+    return command;
+}
 
-    if (!interaction.isAutocomplete()) {
-        await handleReply(command.execute(interaction), interaction);
-        return;
-    }
+async function handleAutocompleteCommand(interaction: AutocompleteInteraction): Promise<void> {
+    const command = findCommand(chatCommands, interaction.commandName);
 
-    if (!command.autocomplete) {
+    if (!command?.autocomplete) {
+        command && logger.error('Found command does not have an autocomplete method', interaction.commandName);
         return;
     }
 
     const choices = await command.autocomplete(interaction);
-
     const normalizedChoices = normalizeChoices(choices);
     await interaction.respond(normalizedChoices);
 }
 
-async function handleReply(replyResponse: InteractionExecuteResponse, interaction:  ChatInputCommandInteraction | MessageContextMenuCommandInteraction) {
+async function handleChatInputCommand(interaction: ChatInputCommandInteraction): Promise<void> {
+    const command = findCommand(chatCommands, interaction.commandName);
+
+    if (!command) {
+        return;
+    }
+
+    await handleReply(command.execute(interaction), interaction);
+}
+
+async function handleReply(replyResponse: InteractionExecuteResponse, interaction:  CommandInteraction) {
     const reply = await getReply(replyResponse, interaction);
     if (!reply) {
         // reply is handled by command
@@ -175,7 +199,7 @@ async function handleReply(replyResponse: InteractionExecuteResponse, interactio
     }
 }
 
-async function getReply(reply: InteractionExecuteResponse, interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction): Promise<InteractionReplyOptions | void> {
+async function getReply(reply: InteractionExecuteResponse, interaction: CommandInteraction): Promise<InteractionReplyOptions | void> {
     try {
         const interactionReply = await reply;
         if (typeof interactionReply === 'string') {
@@ -195,7 +219,7 @@ async function getReply(reply: InteractionExecuteResponse, interaction: ChatInpu
     }
 }
 
-export function handleInteractionError(error: unknown, interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction): string {
+export function handleInteractionError(error: unknown, interaction: CommandInteraction): string {
     if (error instanceof InteractionError) {
         return error.message;
     }

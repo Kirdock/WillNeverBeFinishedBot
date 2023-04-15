@@ -1,13 +1,12 @@
-import { registerApplicationCommands, unregisterApplicationCommands } from '../applicationManager';
-import { ApplicationCommandType, PermissionsBitField } from 'discord.js';
-import type { Command } from '../../../interfaces/command';
-import { getCommandLangKey } from '../commandLang';
-import { CommandLangKey } from '../types/lang.types';
-import { getInteractionMetadata, getScopedSlashCommandBuilder } from '../../utils/commonCommand.utils';
+import { registerApplicationCommands, unregisterApplicationCommands } from '../../applicationManager';
+import { PermissionsBitField } from 'discord.js';
+import type { ChatCommand } from '../../../../interfaces/command';
+import { getCommandLangKey } from '../../commandLang';
+import { CommandLangKey } from '../../types/lang.types';
+import { getInteractionMetadata, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
 
-const command: Command =  {
-    type: ApplicationCommandType.ChatInput,
-    data: getScopedSlashCommandBuilder(CommandLangKey.RE_REGISTER_NAME, CommandLangKey.RE_REGISTER_DESCRIPTION)
+const command: ChatCommand =  {
+    data: getLangSlashCommandBuilder(CommandLangKey.RE_REGISTER_NAME, CommandLangKey.RE_REGISTER_DESCRIPTION)
         .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
         .toJSON(),
     async execute(interaction) {
