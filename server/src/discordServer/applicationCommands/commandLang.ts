@@ -1,6 +1,6 @@
 import { deCommandLanguage } from './languageFiles/de';
 import { enCommandLanguage } from './languageFiles/en';
-import type { Interaction, LocaleString } from 'discord.js';
+import type { BaseInteraction, LocaleString } from 'discord.js';
 import type { CommandLangKey, CommandLanguageFile, SupportedLang } from './types/lang.types';
 
 export const commandLang: { en: CommandLanguageFile, de: Partial<CommandLanguageFile> } = {
@@ -9,7 +9,7 @@ export const commandLang: { en: CommandLanguageFile, de: Partial<CommandLanguage
 };
 
 
-export function getCommandLangKey(interaction: Interaction | LocaleString, key: CommandLangKey): string {
+export function getCommandLangKey(interaction: BaseInteraction | LocaleString, key: CommandLangKey): string {
     const localeKey = typeof interaction === 'string' ? interaction : interaction.locale;
     const locale = localeKey in commandLang ? localeKey as SupportedLang : 'en';
     return commandLang[locale][key] ?? commandLang.en[key];

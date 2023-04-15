@@ -8,7 +8,6 @@ import { scopedLogger } from './logHelper';
 import { discordBot } from '../discordServer/DiscordBot';
 import { InteractionError } from '../utils/InteractionError';
 import { recordHelper } from './recordHelper';
-import { getCommandLangKey } from '../discordServer/applicationCommands/commandLang';
 import { CommandLangKey } from '../discordServer/applicationCommands/types/lang.types';
 
 const logger = scopedLogger('VOICE');
@@ -93,10 +92,9 @@ class VoiceHelper {
         }
     }
 
-    public async joinVoiceChannelThroughMember(member: GuildMember, guildId: string, locale?: LocaleString) {
+    public async joinVoiceChannelThroughMember(member: GuildMember, guildId: string, locale: LocaleString) {
         if (!member.voice.channelId) {
-            const message = locale ? getCommandLangKey(locale, CommandLangKey.ERRORS_NOT_IN_VOICE_CHANNEL) : `Member ${member.user.username} is not in a voice channel!`;
-            throw new InteractionError(message);
+            throw new InteractionError(locale, CommandLangKey.ERRORS_NOT_IN_VOICE_CHANNEL);
         }
         await this.joinVoiceChannelById(guildId, member.voice.channelId);
     }

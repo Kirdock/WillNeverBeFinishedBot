@@ -152,6 +152,25 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.SET_USER_VOLUME_DESCRIPTION]: 'Sets the record volume of the given user',
     //endregion
 
+    //region SETTINGS
+    [CommandLangKey.SETTINGS_NAME]: 'settings',
+    [CommandLangKey.SETTINGS_DESCRIPTION]: 'Bot settings',
+    [CommandLangKey.SETTINGS_INTRO_NAME]: 'intro',
+    [CommandLangKey.SETTINGS_INTRO_DESCRIPTION]: 'Intro updates (set/delete)',
+    [CommandLangKey.SETTINGS_INTRO_SET_NAME]: 'set',
+    [CommandLangKey.SETTINGS_INTRO_SET_DESCRIPTION]: 'Sets the default server intro',
+    [CommandLangKey.SETTINGS_INTRO_REMOVE_NAME]: 'remove',
+    [CommandLangKey.SETTINGS_INTRO_REMOVE_DESCRIPTION]: 'Removes the default server intro',
+    [CommandLangKey.SETTINGS_OUTRO_NAME]: 'outro',
+    [CommandLangKey.SETTINGS_OUTRO_DESCRIPTION]: 'Outro updates (set/delete)',
+    [CommandLangKey.SETTINGS_OUTRO_SET_NAME]: 'set',
+    [CommandLangKey.SETTINGS_OUTRO_SET_DESCRIPTION]: 'Sets the default server outro',
+    [CommandLangKey.SETTINGS_OUTRO_REMOVE_NAME]: 'remove',
+    [CommandLangKey.SETTINGS_OUTRO_REMOVE_DESCRIPTION]: 'Removes the default server outro',
+    [CommandLangKey.SETTINGS_CHECKS_NAME]: 'checks',
+    [CommandLangKey.SETTINGS_CHECKS_DESCRIPTION]: 'Returns all server settings',
+    //endregion
+
     //region STOP
     [CommandLangKey.STOP_NAME]: 'stop',
     [CommandLangKey.STOP_DESCRIPTION]: 'Stops the bot from playing',

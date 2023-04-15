@@ -1,15 +1,14 @@
-import type { ChatCommand } from '../../../interfaces/command';
-import { ApplicationCommandType, PermissionsBitField } from 'discord.js';
-import { getInteractionMetadata, getScopedSlashCommandBuilder, getVolumeInput } from '../../utils/commonCommand.utils';
-import { CommandLangKey } from '../types/lang.types';
-import { getCommandLangKey } from '../commandLang';
-import { databaseHelper } from '../../../services/databaseHelper';
+import type { ChatCommand } from '../../../../interfaces/command';
+import { PermissionsBitField } from 'discord.js';
+import { getInteractionMetadata, getLangSlashCommandBuilder, getVolumeInput } from '../../../utils/commonCommand.utils';
+import { CommandLangKey } from '../../types/lang.types';
+import { getCommandLangKey } from '../../commandLang';
+import { databaseHelper } from '../../../../services/databaseHelper';
 
 const { volumeCommandName, volumeOption } = getVolumeInput(true);
 
 const command: ChatCommand = {
-    type: ApplicationCommandType.ChatInput,
-    data: getScopedSlashCommandBuilder(CommandLangKey.SET_USER_VOLUME_NAME, CommandLangKey.SET_USER_VOLUME_DESCRIPTION)
+    data: getLangSlashCommandBuilder(CommandLangKey.SET_USER_VOLUME_NAME, CommandLangKey.SET_USER_VOLUME_DESCRIPTION)
         .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
         .addIntegerOption(volumeOption).toJSON(),
     async execute(interaction) {

@@ -152,6 +152,25 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.SET_USER_VOLUME_DESCRIPTION]: 'Setzt die Aufnahmelautstärke des ausgewählten Nutzers',
     //endregion
 
+    //region SETTINGS
+    // [CommandLangKey.SETTINGS_NAME]: 'settings',
+    [CommandLangKey.SETTINGS_DESCRIPTION]: 'Boteinstellungen',
+    // [CommandLangKey.SETTINGS_INTRO_NAME]: 'intro',
+    [CommandLangKey.SETTINGS_INTRO_DESCRIPTION]: 'Intro Aktualisierungen (setzen/löschen)',
+    // [CommandLangKey.SETTINGS_INTRO_SET_NAME]: 'set',
+    [CommandLangKey.SETTINGS_INTRO_SET_DESCRIPTION]: 'Setzt das standard Serverintro',
+    // [CommandLangKey.SETTINGS_INTRO_REMOVE_NAME]: 'remove',
+    [CommandLangKey.SETTINGS_INTRO_REMOVE_DESCRIPTION]: 'Entfernt das standard Serverintro',
+    // [CommandLangKey.SETTINGS_OUTRO_NAME]: 'outro',
+    [CommandLangKey.SETTINGS_OUTRO_DESCRIPTION]: 'Outro Aktualisierungen (setzen/löschen)',
+    // [CommandLangKey.SETTINGS_OUTRO_SET_NAME]: 'set',
+    [CommandLangKey.SETTINGS_OUTRO_SET_DESCRIPTION]: 'Setzt das standard Serveroutro',
+    // [CommandLangKey.SETTINGS_OUTRO_REMOVE_NAME]: 'remove',
+    [CommandLangKey.SETTINGS_OUTRO_REMOVE_DESCRIPTION]: 'Entfernt das standard Serveroutro',
+    // [CommandLangKey.SETTINGS_CHECKS_NAME]: 'checks',
+    [CommandLangKey.SETTINGS_CHECKS_DESCRIPTION]: 'Zeigt alle Servereinstellugen',
+    //endregion
+
     //region STOP
     // [CommandLangKey.STOP_NAME]: 'stop',
     [CommandLangKey.STOP_DESCRIPTION]: 'Sorgt dafia, dass da Bot sei Goschn holtat',

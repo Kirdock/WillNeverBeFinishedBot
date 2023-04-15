@@ -291,13 +291,21 @@ export class DatabaseHelper {
     }
 
     public async getServerSettings(serverId: Snowflake): Promise<IServerSettings> {
-        const result: IServerSettings | null = await this.serverInfoCollection.findOne({ id: serverId },
+        const result = await this.serverInfoCollection.findOneAndUpdate(
+            { id: serverId },
+            {
+                $setOnInsert: {
+                    ...createServerSettings(serverId),
+                }
+            },
             {
                 projection: {
                     _id: 0,
                 },
+                upsert: true,
+                returnDocument: 'after'
             });
-        return result ?? createServerSettings(serverId);
+        return result.value ?? createServerSettings(serverId);
     }
 
     public async updateServerSettings(serverInfo: IServerSettings): Promise<UpdateResult> {
@@ -344,6 +352,38 @@ export class DatabaseHelper {
                 },
             });
         }
+    }
+
+    public async updateServerIntro(serverId: string, soundId: string  | undefined): Promise<UpdateResult> {
+        return this.updateServerSetting(serverId, { defaultIntro: soundId });
+    }
+
+    public async updateServerOutro(serverId: string, soundId: string  | undefined): Promise<UpdateResult> {
+        return this.updateServerSetting(serverId, { defaultOutro: soundId });
+    }
+
+    public async updateServerSetting(serverId: string, partial: Partial<IServerSettings>): Promise<UpdateResult> {
+        return this.serverInfoCollection.updateOne({
+            id: serverId,
+        }, {
+            $set: {
+                ...partial,
+            },
+            $setOnInsert: {
+                ...this.leftJoin(createServerSettings(serverId), partial),
+            },
+        }, { upsert: true });
+    }
+
+    private leftJoin<T extends object>(objectA: T, objectB: Partial<T>): Partial<T> {
+        // return objectA
+        const result: Partial<T> = {};
+        for (const key in objectA) {
+            if (!Object.hasOwn(objectB, key)) {
+                result[key] = objectA[key];
+            }
+        }
+        return result;
     }
 
     private mapTime(soundsMeta: { time?: number, _id: ObjectId }[]): void {
