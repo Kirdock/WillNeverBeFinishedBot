@@ -100,10 +100,9 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
             const settingsKey = buttonInteraction.customId as keyof PickByType<IServerSettings, boolean>;
             const isEnabled = buttonInteraction.component.style === ButtonStyle.Success;
             const isEnabledNew = !isEnabled;
+            const newActionRows = updateComponent(buttonInteraction, (button) => button.setStyle(isEnabledNew ? ButtonStyle.Success : ButtonStyle.Danger));
 
             await databaseHelper.updateServerSetting(guildId, { [settingsKey]: isEnabledNew });
-
-            const newActionRows = updateComponent(buttonInteraction, (button) => button.setStyle(isEnabledNew ? ButtonStyle.Success : ButtonStyle.Danger));
 
             await reply.edit({
                 content: buttonInteraction.message.content,
