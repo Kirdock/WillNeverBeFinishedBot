@@ -14,4 +14,5 @@ export interface IServerSettings {
     userSettings: IServerUserSettings[],
     defaultIntro?: string;
     defaultOutro?: string;
+    logVoiceStateChannel?: string;
 }

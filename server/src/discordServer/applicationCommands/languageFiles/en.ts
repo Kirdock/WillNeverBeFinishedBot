@@ -169,6 +169,12 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.SETTINGS_OUTRO_REMOVE_DESCRIPTION]: 'Removes the default server outro',
     [CommandLangKey.SETTINGS_CHECKS_NAME]: 'checks',
     [CommandLangKey.SETTINGS_CHECKS_DESCRIPTION]: 'Returns all server settings',
+    [CommandLangKey.SETTINGS_LOG_VOICE_NAME]: 'log_voice',
+    [CommandLangKey.SETTINGS_LOG_VOICE_DESCRIPTION]: 'Logs voice state updates in a channel',
+    [CommandLangKey.SETTINGS_LOG_VOICE_SET_NAME]: 'set',
+    [CommandLangKey.SETTINGS_LOG_VOICE_SET_DESCRIPTION]: 'Sets the text channel the logs should be send to',
+    [CommandLangKey.SETTINGS_LOG_VOICE_REMOVE_NAME]: 'remove',
+    [CommandLangKey.SETTINGS_LOG_VOICE_REMOVE_DESCRIPTION]: 'Disables voice state logging',
     //endregion
 
     //region STOP
@@ -194,6 +200,9 @@ export const enCommandLanguage: CommandLanguageFile = {
     //endregion
 
     //region COMPONENTS
+    [CommandLangKey.CHANNEL_NAME]: 'channel',
+    [CommandLangKey.CHANNEL_DESCRIPTION]: 'Choose a text-channel',
+
     [CommandLangKey.COMMAND_SELECTION_NAME]: 'command_name',
     [CommandLangKey.COMMAND_SELECTION_DESCRIPTION]: 'Select the slash or context menu command',
     //endregion
@@ -213,6 +222,7 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.ERRORS_UNKNOWN]: 'Unknown error happened!',
     [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT is disabled by the bot owner',
     [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'I didn\'t get any response',
+    [CommandLangKey.ERRORS_INVALID_TEXT_CHANNEL]: 'Given channel is not a text-channel!',
     //endregion
 
     //region success messages

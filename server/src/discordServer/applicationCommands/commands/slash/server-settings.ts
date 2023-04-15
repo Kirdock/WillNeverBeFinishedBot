@@ -1,5 +1,6 @@
 import type { ChatCommand, InteractionExecuteResponse } from '../../../../interfaces/command';
 import {
+    getChannelOption,
     getInteractionMetadata,
     getLangComponent,
     getLangSlashCommandBuilder,
@@ -12,7 +13,16 @@ import type {
     MessageActionRowComponentBuilder,
     MessageComponentInteraction
 } from 'discord.js';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, PermissionsBitField } from 'discord.js';
+import {
+    ActionRowBuilder,
+    bold,
+    ButtonBuilder,
+    ButtonStyle,
+    channelMention,
+    ChannelType,
+    ComponentType,
+    PermissionsBitField
+} from 'discord.js';
 import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
 import { databaseHelper } from '../../../../services/databaseHelper';
 import { InteractionError } from '../../../../utils/InteractionError';
@@ -27,10 +37,20 @@ const logger = scopedLogger('APPLICATION_COMMANDS');
 const baseComponentInteractionTimeout = 3_600_000; // 1 hour
 
 const introGroupName = getDefaultCommandLang(CommandLangKey.SETTINGS_INTRO_NAME);
+const outroGroupName = getDefaultCommandLang(CommandLangKey.SETTINGS_OUTRO_NAME);
+const logVoiceGroupName = getDefaultCommandLang(CommandLangKey.SETTINGS_LOG_VOICE_NAME);
 const checkSubCommand = getDefaultCommandLang(CommandLangKey.SETTINGS_CHECKS_NAME);
 const introSetName = getDefaultCommandLang(CommandLangKey.SETTINGS_INTRO_SET_NAME);
 const outroSetName = getDefaultCommandLang(CommandLangKey.SETTINGS_OUTRO_SET_NAME);
+const logVoiceSetName = getDefaultCommandLang(CommandLangKey.SETTINGS_LOG_VOICE_SET_NAME);
 const { soundOption, soundCommandName, autocomplete } = getSoundSelection(true, false);
+const { channelOption, channelCommandName } = getChannelOption(true);
+
+const subCommandExecutes: Record<string, ChatCommand['execute']> = {
+    [introGroupName]: executeIntro,
+    [outroGroupName]: executeOutro,
+    [logVoiceGroupName]: executeLogVoice,
+};
 
 const command: ChatCommand = {
     data: getLangSlashCommandBuilder(CommandLangKey.SETTINGS_NAME, CommandLangKey.SETTINGS_DESCRIPTION)
@@ -53,6 +73,15 @@ const command: ChatCommand = {
                     getLangComponent(subCommand, CommandLangKey.SETTINGS_OUTRO_REMOVE_NAME, CommandLangKey.SETTINGS_OUTRO_REMOVE_DESCRIPTION)
                 )
         )
+        .addSubcommandGroup((group) =>
+            getLangComponent(group, CommandLangKey.SETTINGS_LOG_VOICE_NAME, CommandLangKey.SETTINGS_LOG_VOICE_DESCRIPTION)
+                .addSubcommand((subCommand) =>
+                    getLangComponent(subCommand, CommandLangKey.SETTINGS_LOG_VOICE_SET_NAME, CommandLangKey.SETTINGS_LOG_VOICE_SET_DESCRIPTION)
+                        .addChannelOption(channelOption)
+                ).addSubcommand((subCommand) =>
+                    getLangComponent(subCommand, CommandLangKey.SETTINGS_LOG_VOICE_REMOVE_NAME, CommandLangKey.SETTINGS_LOG_VOICE_REMOVE_DESCRIPTION)
+                )
+        )
         .addSubcommand((group) =>
             getLangComponent(group, CommandLangKey.SETTINGS_CHECKS_NAME, CommandLangKey.SETTINGS_CHECKS_DESCRIPTION)
         ).toJSON(),
@@ -64,8 +93,8 @@ const command: ChatCommand = {
             return executeCheck(interaction);
         }
 
-        const method = group === introGroupName ? executeIntro : executeOutro;
-        const result = await method(interaction);
+        const method = group ? subCommandExecutes[group] : undefined;
+        const result = await method?.(interaction);
 
         if (result) {
             return result;
@@ -84,8 +113,9 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
     const outroAudioFile = serverSettings.defaultOutro ? await databaseHelper.getSoundMeta(serverSettings.defaultOutro) : undefined;
     const messageContent: InteractionReplyOptions = {
         content: `
-**Intro:** ${introAudioFile?.fileName ?? 'none'}
-**Outro:** ${outroAudioFile?.fileName ?? 'none'}`,
+${bold('Intro:')} ${introAudioFile?.fileName ?? 'none'}
+${bold('Outro:')} ${outroAudioFile?.fileName ?? 'none'}
+${bold('Voice state logs channel:')} ${serverSettings.logVoiceStateChannel ? channelMention(serverSettings.logVoiceStateChannel) : 'none'}`,
         components: actionRows,
         ephemeral: true,
     };
@@ -218,5 +248,28 @@ async function executeOutroDelete(interaction: ChatInputCommandInteraction): Int
     await databaseHelper.updateServerOutro(guildId, undefined);
 }
 
+async function executeLogVoice(interaction: ChatInputCommandInteraction): InteractionExecuteResponse {
+    const subCommand= interaction.options.getSubcommand(true);
+    if (subCommand === logVoiceSetName) {
+        return executeLogVoiceSet(interaction);
+    }
+    return executeLogVoiceDelete(interaction);
+}
+
+async function executeLogVoiceDelete(interaction: ChatInputCommandInteraction): InteractionExecuteResponse {
+    const { guildId } = getInteractionMetadata(interaction);
+    await databaseHelper.updateServerSetting(guildId, { logVoiceStateChannel: undefined });
+}
+
+async function executeLogVoiceSet(interaction: ChatInputCommandInteraction): InteractionExecuteResponse {
+    const { guildId } = getInteractionMetadata(interaction);
+    const channel = interaction.options.getChannel(channelCommandName, true);
+
+    if (channel.type !== ChannelType.GuildText) {
+        throw new InteractionError(interaction, CommandLangKey.ERRORS_INVALID_TEXT_CHANNEL);
+    }
+
+    await databaseHelper.updateServerSetting(guildId, { logVoiceStateChannel: channel.id });
+}
 
 export default command;
