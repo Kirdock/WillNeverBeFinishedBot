@@ -7,7 +7,6 @@ import {
 } from '../../../utils/commonCommand.utils';
 import { CommandLangKey } from '../../types/lang.types';
 import type {
-    ButtonInteraction,
     ChatInputCommandInteraction,
     InteractionReplyOptions,
     MessageActionRowComponentBuilder,
@@ -100,7 +99,7 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
             const settingsKey = buttonInteraction.customId as keyof PickByType<IServerSettings, boolean>;
             const isEnabled = buttonInteraction.component.style === ButtonStyle.Success;
             const isEnabledNew = !isEnabled;
-            const newActionRows = updateComponent(buttonInteraction, (button) => button.setStyle(isEnabledNew ? ButtonStyle.Success : ButtonStyle.Danger));
+            const newActionRows = updateComponent<ButtonBuilder>(buttonInteraction, (button) => button.setStyle(isEnabledNew ? ButtonStyle.Success : ButtonStyle.Danger));
 
             await databaseHelper.updateServerSetting(guildId, { [settingsKey]: isEnabledNew });
 
@@ -123,14 +122,14 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
     });
 }
 
-function updateComponent(interaction: ButtonInteraction, newButtonFunc: (component: ButtonBuilder) => ButtonBuilder, customId = interaction.customId): ActionRowBuilder<MessageActionRowComponentBuilder>[] {
+function updateComponent<T extends MessageActionRowComponentBuilder>(interaction: MessageComponentInteraction, newButtonFunc: (component: T) => T, customId = interaction.customId): ActionRowBuilder<MessageActionRowComponentBuilder>[] {
     const indices = findComponent(interaction, customId);
     if (!indices) {
         return [];
     }
 
     const actionRows = interaction.message.components.map<ActionRowBuilder<MessageActionRowComponentBuilder>>((row) => ActionRowBuilder.from(row));
-    actionRows[indices.actionRowIndex].components[indices.componentIndex] = newButtonFunc(ButtonBuilder.from(interaction.component));
+    newButtonFunc(actionRows[indices.actionRowIndex].components[indices.componentIndex] as T);
 
     return actionRows;
 }
