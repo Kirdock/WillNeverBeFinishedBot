@@ -112,7 +112,7 @@ async function executeCheck(interaction: ChatInputCommandInteraction): Interacti
         } catch (e) {
             logger.error(e, 'server settings button interaction');
             buttonInteraction.reply({
-                content: 'Unknown error',
+                content:  getCommandLangKey(buttonInteraction, CommandLangKey.ERRORS_UNKNOWN),
                 ephemeral: true,
             });
         }
