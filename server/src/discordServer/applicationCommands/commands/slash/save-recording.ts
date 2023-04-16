@@ -9,8 +9,7 @@ import { CommandLangKey } from '../../types/lang.types';
 import {
     getInteractionMetadata,
     getLangComponent,
-    getLangSlashCommandBuilder,
-    setLoading
+    getLangSlashCommandBuilder
 } from '../../../utils/commonCommand.utils';
 import { AUDIO_CONTENT_TYPE } from '../../../constants';
 
@@ -45,7 +44,7 @@ const command: ChatCommand = {
         .toJSON(),
     async execute (interaction) {
         const { guildId } = getInteractionMetadata(interaction);
-        const message = await setLoading(interaction, false);
+        await interaction.deferReply();
         const minutes = interaction.options.getInteger(minutesName) ?? undefined;
         const exportType = (interaction.options.getString(typeName) as AudioExportType | null) ?? 'single';
         const serverSettings = await databaseHelper.getServerSettings(guildId);
@@ -63,7 +62,7 @@ const command: ChatCommand = {
             fileName = `${date}.zip`;
         }
 
-        await message.edit({
+        await interaction.editReply({
             content: '',
             files: [ {
                 attachment: buffer,

@@ -1,5 +1,5 @@
 import type { ChatCommand } from '../../../../interfaces/command';
-import { getLangComponent, getLangSlashCommandBuilder, setLoading } from '../../../utils/commonCommand.utils';
+import { getLangComponent, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
 import { CommandLangKey } from '../../types/lang.types';
 import openAI from '../../../../services/openAI';
 import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
@@ -19,10 +19,10 @@ const command: ChatCommand = {
             return getCommandLangKey(interaction, CommandLangKey.ERRORS_OPEN_AI_DISABLED);
         }
         const text = interaction.options.getString(textCommand, true);
-        const message = await setLoading(interaction, false);
+        await interaction.deferReply();
         const response = await openAI.getResponse(text);
 
-        await message.edit(response?.substring(0, DISCORD_MAX_MESSAGE_LENGTH) ?? getCommandLangKey(interaction, CommandLangKey.ERRORS_EMPTY_RESPONSE));
+        await interaction.editReply(response?.substring(0, DISCORD_MAX_MESSAGE_LENGTH) ?? getCommandLangKey(interaction, CommandLangKey.ERRORS_EMPTY_RESPONSE));
     }
 };
 

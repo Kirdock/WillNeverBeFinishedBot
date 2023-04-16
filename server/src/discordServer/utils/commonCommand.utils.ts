@@ -3,8 +3,6 @@ import { CommandLangKey } from '../applicationCommands/types/lang.types';
 import type {
     BaseInteraction,
     ChatInputCommandInteraction,
-    InteractionResponse,
-    MessageContextMenuCommandInteraction,
     SlashCommandChannelOption,
     SlashCommandIntegerOption,
     SlashCommandStringOption,
@@ -29,13 +27,6 @@ type SoundSelection = { soundOption: CommandOption<SlashCommandStringOption>, so
 type CommandSelection = { commandOption: CommandOption<SlashCommandStringOption>, commandSelectionName: string, autocomplete: InteractionAutocomplete};
 type ChannelSelection = {channelOption: CommandOption<SlashCommandChannelOption>, channelCommandName: string};
 type VolumeOption = {volumeOption: CommandOption<SlashCommandIntegerOption>, volumeCommandName: string}
-
-export function setLoading(interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction, ephemeral = true): Promise<InteractionResponse<boolean>> {
-    return interaction.reply({
-        content: getCommandLangKey(interaction, CommandLangKey.LOADING),
-        ephemeral: ephemeral,
-    });
-}
 
 export function getUserOption(required = true): UserOption {
     return {
