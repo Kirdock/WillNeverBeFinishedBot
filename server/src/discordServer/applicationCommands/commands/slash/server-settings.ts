@@ -34,7 +34,7 @@ import { scopedLogger } from '../../../../services/logHelper';
 
 
 const logger = scopedLogger('APPLICATION_COMMANDS');
-const baseComponentInteractionTimeout = 3_600_000; // 1 hour
+const baseComponentInteractionTimeout = 14 * 60 * 1_000 ; // 14 minutes. Interaction timeout 15 minutes
 
 const introGroupName = getDefaultCommandLang(CommandLangKey.SETTINGS_INTRO_NAME);
 const outroGroupName = getDefaultCommandLang(CommandLangKey.SETTINGS_OUTRO_NAME);
