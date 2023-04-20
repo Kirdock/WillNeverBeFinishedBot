@@ -25,11 +25,6 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.DELETE_COMMAND_DESCRIPTION]: 'Löscht eines registriertes Slash- oder Kontextmenü-Kommando',
     //endregion
 
-    //region DELETE_INTRO
-    // [CommandLangKey.DELETE_INTRO_NAME]: 'delete_intro',
-    [CommandLangKey.DELETE_INTRO_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
-    //endregion
-
     //region DELETE_SOUND
     // [CommandLangKey.DELETE_SOUND_NAME]: 'delete_sound',
     [CommandLangKey.DELETE_SOUND_DESCRIPTION]: 'Löscht die angegebene Audiodatei',
@@ -54,6 +49,15 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
 
     //region GENERATE_STEAM_LINK
     [CommandLangKey.GENERATE_STEAM_LINK_NAME]: 'In Steam öffnen',
+    //endregion
+
+    //region INTRO
+    // [CommandLangKey.INTRO_NAME]: 'intro',
+    [CommandLangKey.INTRO_DESCRIPTION]: 'Setzt oder entfernt dein Intro',
+    // [CommandLangKey.INTRO_SET_NAME]: 'set',
+    [CommandLangKey.INTRO_SET_DESCRIPTION]: 'Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst',
+    // [CommandLangKey.INTRO_REMOVE_NAME]: 'remove',
+    [CommandLangKey.INTRO_REMOVE_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
     //endregion
 
     //region JOIN
@@ -133,11 +137,6 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION]: 'Eine Datei oder als ZIP mit allen Benutzeraufnahmen',
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_SINGLE]: 'Eine Datei',
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_MULTIPLE]: 'ZIP Datei mit allen Benutzeraufnahmen',
-    //endregion
-
-    //region SET_INTRO
-    // [CommandLangKey.SET_INTRO_NAME]: 'set_intro',
-    [CommandLangKey.SET_INTRO_DESCRIPTION]: 'Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst',
     //endregion
 
     //region SET_USER_INTRO

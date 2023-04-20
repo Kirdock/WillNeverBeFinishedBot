@@ -25,11 +25,6 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.DELETE_COMMAND_DESCRIPTION]: 'Deletes a registered slash or context menu command',
     //endregion
 
-    //region DELETE_INTRO
-    [CommandLangKey.DELETE_INTRO_NAME]: 'remove_intro',
-    [CommandLangKey.DELETE_INTRO_DESCRIPTION]: 'Removes your intro. The file will still be here',
-    //endregion
-
     //region DELETE_SOUND
     [CommandLangKey.DELETE_SOUND_NAME]: 'delete_sound',
     [CommandLangKey.DELETE_SOUND_DESCRIPTION]: 'Deletes the given sound',
@@ -135,9 +130,13 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_MULTIPLE]: 'ZIP file with all user recordings',
     //endregion
 
-    //region SET_INTRO
-    [CommandLangKey.SET_INTRO_NAME]: 'set_intro',
-    [CommandLangKey.SET_INTRO_DESCRIPTION]: 'Sets the intro that is played when you join a voice channel',
+    //region INTRO
+    [CommandLangKey.INTRO_NAME]: 'intro',
+    [CommandLangKey.INTRO_DESCRIPTION]: 'Sets or removes your intro',
+    [CommandLangKey.INTRO_SET_NAME]: 'set',
+    [CommandLangKey.INTRO_SET_DESCRIPTION]: 'Sets the intro that is played when you join a voice channel',
+    [CommandLangKey.INTRO_REMOVE_NAME]: 'remove',
+    [CommandLangKey.INTRO_REMOVE_DESCRIPTION]: 'Removes your intro. The file will still be here',
     //endregion
 
     //region SET_USER_INTRO

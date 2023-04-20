@@ -22,11 +22,6 @@ export enum CommandLangKey {
     DELETE_COMMAND_DESCRIPTION,
     //endregion
 
-    //region DELETE_INTRO
-    DELETE_INTRO_NAME,
-    DELETE_INTRO_DESCRIPTION,
-    //endregion
-
     //region DELETE_SOUND
     DELETE_SOUND_NAME,
     DELETE_SOUND_DESCRIPTION,
@@ -51,6 +46,15 @@ export enum CommandLangKey {
 
     //region GENERATE_STEAM_LINK
     GENERATE_STEAM_LINK_NAME,
+    //endregion
+
+    //region INTRO
+    INTRO_NAME,
+    INTRO_DESCRIPTION,
+    INTRO_SET_NAME,
+    INTRO_SET_DESCRIPTION,
+    INTRO_REMOVE_NAME,
+    INTRO_REMOVE_DESCRIPTION,
     //endregion
 
     //region JOIN
@@ -130,11 +134,6 @@ export enum CommandLangKey {
     SAVE_RECORDING_TYPE_DESCRIPTION,
     SAVE_RECORDING_TYPE_CHOICE_SINGLE,
     SAVE_RECORDING_TYPE_CHOICE_MULTIPLE,
-    //endregion
-
-    //region SET_INTRO
-    SET_INTRO_NAME,
-    SET_INTRO_DESCRIPTION,
     //endregion
 
     //region SET_USER_INTRO
