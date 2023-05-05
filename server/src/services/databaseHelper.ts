@@ -75,9 +75,9 @@ export class DatabaseHelper {
     public async run(): Promise<void> {
         await this.client.connect();
         this.database = this.client.db(this.databaseName);
-        await this.soundMetaCollection.createIndex({ 'category': 1 });
-        await this.userCollection.createIndex({ 'id': 1 });
-        await this.serverInfoCollection.createIndex({ 'id': 1 });
+        await this.soundMetaCollection.createIndex({ category: 1, fileName: 1 });
+        await this.userCollection.createIndex({ id: 1 });
+        await this.serverInfoCollection.createIndex({ id: 1 });
     }
 
     public async getVersion(): Promise<string> {

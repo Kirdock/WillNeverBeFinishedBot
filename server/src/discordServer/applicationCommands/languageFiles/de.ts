@@ -20,9 +20,13 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.CHAT_GPT_TEXT_DESCRIPTION]: 'Was willst du wissen?',
     //endregion
 
-    //region DELETE_COMMAND
-    // [CommandLangKey.DELETE_COMMAND_NAME]: 'delete_command',
-    [CommandLangKey.DELETE_COMMAND_DESCRIPTION]: 'Löscht eines registriertes Slash- oder Kontextmenü-Kommando',
+    //region COMMAND
+    // [CommandLangKey.COMMAND_NAME]: 'command',
+    [CommandLangKey.COMMAND_DESCRIPTION]: 'Registrieren und löschen von Slash- und Kontextmenü-Kommandos',
+    // [CommandLangKey.COMMAND_SET_NAME]: 'register',
+    [CommandLangKey.COMMAND_REGISTER_DESCRIPTION]: 'Registriert das angegebene Slash- oder Kontextmenü-Kommando',
+    // [CommandLangKey.COMMAND_REMOVE_NAME]: 'delete',
+    [CommandLangKey.COMMAND_REMOVE_DESCRIPTION]: 'Löscht eines registriertes Slash- oder Kontextmenü-Kommando',
     //endregion
 
     //region DELETE_SOUND
@@ -121,11 +125,6 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     //region RE_REGISTER
     // [CommandLangKey.RE_REGISTER_NAME]: 'neu_registrieren',
     [CommandLangKey.RE_REGISTER_DESCRIPTION]: 'Löscht alle Kommandos und registriert sie erneut',
-    //endregion
-
-    //region REGISTER_COMMAND_NAME
-    // [CommandLangKey.REGISTER_COMMAND_NAME]: 'register_command',
-    [CommandLangKey.REGISTER_COMMAND_DESCRIPTION]: 'Löscht das eingegebene Slash- oder Kontextmenü-Kommando',
     //endregion
 
     //region SAVE_RECORDING

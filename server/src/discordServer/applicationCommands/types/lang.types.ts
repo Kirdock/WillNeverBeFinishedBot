@@ -17,9 +17,13 @@ export enum CommandLangKey {
     CHAT_GPT_TEXT_DESCRIPTION,
     //endregion
 
-    //region DELETE_COMMAND
-    DELETE_COMMAND_NAME,
-    DELETE_COMMAND_DESCRIPTION,
+    //region COMMAND
+    COMMAND_NAME,
+    COMMAND_DESCRIPTION,
+    COMMAND_REGISTER_NAME,
+    COMMAND_REGISTER_DESCRIPTION,
+    COMMAND_REMOVE_NAME,
+    COMMAND_REMOVE_DESCRIPTION,
     //endregion
 
     //region DELETE_SOUND
@@ -118,11 +122,6 @@ export enum CommandLangKey {
     //region RE_REGISTER
     RE_REGISTER_NAME,
     RE_REGISTER_DESCRIPTION,
-    //endregion
-
-    //region REGISTER_COMMAND_NAME
-    REGISTER_COMMAND_NAME,
-    REGISTER_COMMAND_DESCRIPTION,
     //endregion
 
     //region SAVE_RECORDING
