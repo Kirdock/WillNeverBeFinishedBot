@@ -1,6 +1,6 @@
 import type { CommandLanguageFile } from '../types/lang.types';
 import { CommandLangKey } from '../types/lang.types';
-import { MAX_INTRO_LENGTH_SECONDS } from '../../../utils/limits';
+import { EnvironmentConfig } from '../../../services/config';
 
 export const enCommandLanguage: CommandLanguageFile = {
     //region commands
@@ -148,7 +148,7 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.INTRO_NAME]: 'intro',
     [CommandLangKey.INTRO_DESCRIPTION]: 'Sets or removes your intro',
     [CommandLangKey.INTRO_SET_NAME]: 'set',
-    [CommandLangKey.INTRO_SET_DESCRIPTION]: `Sets the intro that is played when you join a voice channel (max. ${MAX_INTRO_LENGTH_SECONDS} seconds)`,
+    [CommandLangKey.INTRO_SET_DESCRIPTION]: `Sets the intro that is played when you join a voice channel (max. ${EnvironmentConfig.MAX_INTRO_LENGTH_SECONDS} seconds)`,
     [CommandLangKey.INTRO_REMOVE_NAME]: 'remove',
     [CommandLangKey.INTRO_REMOVE_DESCRIPTION]: 'Removes your intro. The file will still be here',
     //endregion
@@ -229,7 +229,7 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT is disabled by the bot owner',
     [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'I didn\'t get any response',
     [CommandLangKey.ERRORS_INVALID_TEXT_CHANNEL]: 'Given channel is not a text-channel!',
-    [CommandLangKey.ERRORS_INTRO_TOO_LONG]: `The given intro duration must not exceed ${MAX_INTRO_LENGTH_SECONDS} seconds`,
+    [CommandLangKey.ERRORS_INTRO_TOO_LONG]: `The given intro duration must not exceed ${EnvironmentConfig.MAX_INTRO_LENGTH_SECONDS} seconds`,
     //endregion
 
     //region success messages

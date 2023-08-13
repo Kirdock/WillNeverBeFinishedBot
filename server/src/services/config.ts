@@ -1,6 +1,7 @@
 import type { IEnvironmentVariables, IRequiredEnvironmentVariables } from '../interfaces/environment-variables';
 import { KEnvironmentVariables } from '../interfaces/environment-variables';
 import { scopedLogger } from './logHelper';
+import { asNumberOrUndefined } from '../utils/convertion.utils';
 
 const logger = scopedLogger('CONFIG');
 
@@ -24,6 +25,7 @@ function setDefaultOptionalEnvironmentVariables(envs: IRequiredEnvironmentVariab
         LOG_LEVEL: envs.LOG_LEVEL ?? '',
         OPENAI_API_KEY: env.OPENAI_API_KEY,
         OPENAI_API_MODEL: env.OPENAI_API_MODEL,
+        MAX_INTRO_LENGTH_SECONDS: asNumberOrUndefined(env.MAX_INTRO_LENGTH_SECONDS) ?? 8,
     };
 }
 

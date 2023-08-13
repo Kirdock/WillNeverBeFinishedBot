@@ -36,6 +36,7 @@ Environment Variables (.env file in root):
 - DATABASE_PASSWORD: Password for mongodb.
 - DATABASE_CONTAINER_NAME: Container or host name for mongodb. Default `mongodb`. Use `localhost` if you want to access it on localhost
 - MAX_RECORD_TIME_MINUTES: Max amount of minutes recorded voice should be tracked.
+- MAX_INTRO_LENGTH_SECONDS: Max duration for an intro (-1: deactivated, default: 8 seconds)
 - LOG_LEVEL: Log level for logs. Available variables
   ```
   error

@@ -25,15 +25,17 @@ export interface IRequiredEnvironmentVariables {
     VERSION?: string;
     DATABASE_CONTAINER_NAME?: string;
     MAX_RECORD_TIME_MINUTES?: string;
+    MAX_INTRO_LENGTH_SECONDS?: string;
     ROOT_DIR?: string;
 }
 
-export interface IEnvironmentVariables extends IRequiredEnvironmentVariables {
+export type IEnvironmentVariables = Omit<IRequiredEnvironmentVariables, 'MAX_INTRO_LENGTH_SECONDS'> & {
     OWNERS: string;
     VERSION: string;
     DATABASE_CONTAINER_NAME: string;
     MAX_RECORD_TIME_MINUTES: string;
     LOG_LEVEL: string;
+    MAX_INTRO_LENGTH_SECONDS: number;
     OPENAI_API_KEY?: string;
     OPENAI_API_MODEL?: string;
 }

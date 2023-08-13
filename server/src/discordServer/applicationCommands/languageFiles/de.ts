@@ -1,6 +1,6 @@
 import type { CommandLanguageFile } from '../types/lang.types';
 import { CommandLangKey } from '../types/lang.types';
-import { MAX_INTRO_LENGTH_SECONDS } from '../../../utils/limits';
+import { EnvironmentConfig } from '../../../services/config';
 
 export const deCommandLanguage: Partial<CommandLanguageFile> = {
     //region commands
@@ -71,7 +71,7 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     // [CommandLangKey.INTRO_NAME]: 'intro',
     [CommandLangKey.INTRO_DESCRIPTION]: 'Setzt oder entfernt dein Intro',
     // [CommandLangKey.INTRO_SET_NAME]: 'set',
-    [CommandLangKey.INTRO_SET_DESCRIPTION]: `Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst (max. ${MAX_INTRO_LENGTH_SECONDS} Sekunden)`,
+    [CommandLangKey.INTRO_SET_DESCRIPTION]: `Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst (max. ${EnvironmentConfig.MAX_INTRO_LENGTH_SECONDS} Sekunden)`,
     // [CommandLangKey.INTRO_REMOVE_NAME]: 'remove',
     [CommandLangKey.INTRO_REMOVE_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
     //endregion
@@ -227,7 +227,7 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT ist vom Botbesicher deaktiviert worden',
     [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'Keine Antwort erhalten',
     [CommandLangKey.ERRORS_INVALID_TEXT_CHANNEL]: 'Der angegebene Kanal ist kein Textkanal!',
-    [CommandLangKey.ERRORS_INTRO_TOO_LONG]: `Stöll kan Roman als Intro ein! ${MAX_INTRO_LENGTH_SECONDS} Sekundn is max!`,
+    [CommandLangKey.ERRORS_INTRO_TOO_LONG]: `Stöll kan Roman als Intro ein! ${EnvironmentConfig.MAX_INTRO_LENGTH_SECONDS} Sekundn is max!`,
     //endregion
 
     //region success messages

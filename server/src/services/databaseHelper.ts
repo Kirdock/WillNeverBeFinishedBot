@@ -27,7 +27,6 @@ import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-s
 import { EnvironmentConfig } from './config';
 import { fileHelper } from './fileHelper';
 import type { Readable } from 'stream';
-import { MAX_INTRO_LENGTH_SECONDS } from '../utils/limits';
 
 
 export class DatabaseHelper {
@@ -133,7 +132,7 @@ export class DatabaseHelper {
     }
 
     private async isValidIntroLength(soundId?: ObjectId | string): Promise<boolean> {
-        if (!soundId) {
+        if (!soundId || EnvironmentConfig.MAX_INTRO_LENGTH_SECONDS === -1) {
             return true;
         }
         try {
@@ -143,7 +142,7 @@ export class DatabaseHelper {
             }
 
             const duration = await fileHelper.getFileDuration(meta.path);
-            return duration <= MAX_INTRO_LENGTH_SECONDS;
+            return duration <= EnvironmentConfig.MAX_INTRO_LENGTH_SECONDS;
         } catch (e) {
             return false;
         }
