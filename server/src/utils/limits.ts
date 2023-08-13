@@ -1,1 +1,1 @@
-export const MAX_INTRO_LENGTH_SECONDS = 5;
+export const MAX_INTRO_LENGTH_SECONDS = 8;
