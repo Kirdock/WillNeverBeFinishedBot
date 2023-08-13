@@ -29,6 +29,7 @@ const choices: Choices[] = [
 
 const minutesName = getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_MINUTES_NAME);
 const typeName = getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_TYPE_NAME);
+const shareName = getDefaultCommandLang(CommandLangKey.SAVE_RECORDING_SHARE_NAME);
 
 const command: ChatCommand = {
     data: getLangSlashCommandBuilder(CommandLangKey.SAVE_RECORDING_NAME, CommandLangKey.SAVE_RECORDING_DESCRIPTION)
@@ -41,10 +42,14 @@ const command: ChatCommand = {
             getLangComponent(option, CommandLangKey.SAVE_RECORDING_TYPE_NAME, CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION)
                 .setChoices(...choices)
         )
+        .addBooleanOption((option) => getLangComponent(option, CommandLangKey.SAVE_RECORDING_SHARE_NAME, CommandLangKey.SAVE_RECORDING_SHARE_DESCRIPTION))
         .toJSON(),
     async execute (interaction) {
         const { guildId } = getInteractionMetadata(interaction);
-        await interaction.deferReply();
+        const hidden = interaction.options.getBoolean(shareName) ?? true;
+        await interaction.deferReply({
+            ephemeral: !hidden,
+        });
         const minutes = interaction.options.getInteger(minutesName) ?? undefined;
         const exportType = (interaction.options.getString(typeName) as AudioExportType | null) ?? 'single';
         const serverSettings = await databaseHelper.getServerSettings(guildId);

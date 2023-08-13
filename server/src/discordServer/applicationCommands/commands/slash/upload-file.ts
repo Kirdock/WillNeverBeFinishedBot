@@ -37,6 +37,10 @@ const command: ChatCommand = {
             return getCommandLangKey(interaction, CommandLangKey.ERRORS_INVALID_AUDIO_CONTENT_TYPE);
         }
 
+        await interaction.deferReply({
+            ephemeral: true
+        });
+
         const name = fileHelper.generateUniqueFileName(attachment.url);
         const fileName = interaction.options.getString(fileNameOptionName) || fileHelper.getFileName(attachment.url);
         const response = await fetch(attachment.url);
@@ -44,7 +48,7 @@ const command: ChatCommand = {
 
         await databaseHelper.addSoundMetaThroughStream(stream, fileHelper.generateSoundPath(name), fileName, category, interaction.user.id, guildId);
 
-        return getCommandLangKey(interaction, CommandLangKey.SUCCESS_UPLOAD);
+        await interaction.editReply(getCommandLangKey(interaction, CommandLangKey.SUCCESS_UPLOAD));
     },
     async autocomplete(interaction) {
         if (!interaction.guildId) {

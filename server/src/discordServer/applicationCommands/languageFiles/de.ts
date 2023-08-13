@@ -1,8 +1,25 @@
 import type { CommandLanguageFile } from '../types/lang.types';
 import { CommandLangKey } from '../types/lang.types';
+import { MAX_INTRO_LENGTH_SECONDS } from '../../../utils/limits';
 
 export const deCommandLanguage: Partial<CommandLanguageFile> = {
     //region commands
+    // region Admin
+    // region USER_INTRO
+    [CommandLangKey.ADMIN_USER_INTRO_NAME]: 'admin_user_intro',
+    [CommandLangKey.ADMIN_USER_INTRO_DESCRIPTION]: 'Sets or removes the intro of a given user',
+    //region DELETE_USER_INTRO
+    // [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove',
+    [CommandLangKey.ADMIN_DELETE_USER_INTRO_DESCRIPTION]: 'Entfernt das Intro des angegebenen Benutzers',
+    //endregion
+    //region SET_USER_INTRO
+    // [CommandLangKey.ADMIN_SET_USER_INTRO_NAME]: 'set',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_DESCRIPTION]: 'Setzt das Intro eines anderen Benutzers (keine Längenbeschränkung)',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_USER_NAME]: 'benutzer',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_USER_DESCRIPTION]: 'Wähle einen Benutzer',
+    //endregion
+    // endregion
+    // endregion
 
     //region BUBBLE
     // [CommandLangKey.BUBBLE_NAME]: 'luftpolsterfolie',
@@ -20,24 +37,18 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.CHAT_GPT_TEXT_DESCRIPTION]: 'Was willst du wissen?',
     //endregion
 
-    //region DELETE_COMMAND
-    // [CommandLangKey.DELETE_COMMAND_NAME]: 'delete_command',
-    [CommandLangKey.DELETE_COMMAND_DESCRIPTION]: 'Löscht eines registriertes Slash- oder Kontextmenü-Kommando',
-    //endregion
-
-    //region DELETE_INTRO
-    // [CommandLangKey.DELETE_INTRO_NAME]: 'delete_intro',
-    [CommandLangKey.DELETE_INTRO_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
+    //region COMMAND
+    // [CommandLangKey.COMMAND_NAME]: 'command',
+    [CommandLangKey.COMMAND_DESCRIPTION]: 'Registrieren und löschen von Slash- und Kontextmenü-Kommandos',
+    // [CommandLangKey.COMMAND_SET_NAME]: 'register',
+    [CommandLangKey.COMMAND_REGISTER_DESCRIPTION]: 'Registriert das angegebene Slash- oder Kontextmenü-Kommando',
+    // [CommandLangKey.COMMAND_REMOVE_NAME]: 'delete',
+    [CommandLangKey.COMMAND_REMOVE_DESCRIPTION]: 'Löscht eines registriertes Slash- oder Kontextmenü-Kommando',
     //endregion
 
     //region DELETE_SOUND
     // [CommandLangKey.DELETE_SOUND_NAME]: 'delete_sound',
     [CommandLangKey.DELETE_SOUND_DESCRIPTION]: 'Löscht die angegebene Audiodatei',
-    //endregion
-
-    //region DELETE_USER_INTRO
-    // [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove_user_intro',
-    [CommandLangKey.DELETE_USER_INTRO_DESCRIPTION]: 'Entfernt das Intro des angegebenen Benutzers',
     //endregion
 
     //region DOWNLOAD
@@ -54,6 +65,15 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
 
     //region GENERATE_STEAM_LINK
     [CommandLangKey.GENERATE_STEAM_LINK_NAME]: 'In Steam öffnen',
+    //endregion
+
+    //region INTRO
+    // [CommandLangKey.INTRO_NAME]: 'intro',
+    [CommandLangKey.INTRO_DESCRIPTION]: 'Setzt oder entfernt dein Intro',
+    // [CommandLangKey.INTRO_SET_NAME]: 'set',
+    [CommandLangKey.INTRO_SET_DESCRIPTION]: `Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst (max. ${MAX_INTRO_LENGTH_SECONDS} Sekunden)`,
+    // [CommandLangKey.INTRO_REMOVE_NAME]: 'remove',
+    [CommandLangKey.INTRO_REMOVE_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
     //endregion
 
     //region JOIN
@@ -119,11 +139,6 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.RE_REGISTER_DESCRIPTION]: 'Löscht alle Kommandos und registriert sie erneut',
     //endregion
 
-    //region REGISTER_COMMAND_NAME
-    // [CommandLangKey.REGISTER_COMMAND_NAME]: 'register_command',
-    [CommandLangKey.REGISTER_COMMAND_DESCRIPTION]: 'Löscht das eingegebene Slash- oder Kontextmenü-Kommando',
-    //endregion
-
     //region SAVE_RECORDING
     // [CommandLangKey.SAVE_RECORDING_NAME]: 'speichern',
     [CommandLangKey.SAVE_RECORDING_DESCRIPTION]: 'Speichere die letzten (bis zu 10) Minuten',
@@ -133,18 +148,8 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION]: 'Eine Datei oder als ZIP mit allen Benutzeraufnahmen',
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_SINGLE]: 'Eine Datei',
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_MULTIPLE]: 'ZIP Datei mit allen Benutzeraufnahmen',
-    //endregion
-
-    //region SET_INTRO
-    // [CommandLangKey.SET_INTRO_NAME]: 'set_intro',
-    [CommandLangKey.SET_INTRO_DESCRIPTION]: 'Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst',
-    //endregion
-
-    //region SET_USER_INTRO
-    // [CommandLangKey.SET_USER_INTRO_NAME]: 'set_user_intro',
-    [CommandLangKey.SET_USER_INTRO_DESCRIPTION]: 'Setzt das Intro eines anderen Benutzers',
-    [CommandLangKey.SET_USER_INTRO_USER_NAME]: 'benutzer',
-    [CommandLangKey.SET_USER_INTRO_USER_DESCRIPTION]: 'Wähle einen Benutzer',
+    [CommandLangKey.SAVE_RECORDING_SHARE_NAME]: 'teilen',
+    [CommandLangKey.SAVE_RECORDING_SHARE_DESCRIPTION]: 'Die Aufnahme auch anderen zur Verfügung stellen? (Default: Ja)',
     //endregion
 
     //region SET_USER_VOLUME
@@ -222,6 +227,7 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT ist vom Botbesicher deaktiviert worden',
     [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'Keine Antwort erhalten',
     [CommandLangKey.ERRORS_INVALID_TEXT_CHANNEL]: 'Der angegebene Kanal ist kein Textkanal!',
+    [CommandLangKey.ERRORS_INTRO_TOO_LONG]: `Stöll kan Roman als Intro ein! ${MAX_INTRO_LENGTH_SECONDS} Sekundn is max!`,
     //endregion
 
     //region success messages

@@ -1,6 +1,8 @@
 import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../applicationCommands/commandLang';
 import { CommandLangKey } from '../applicationCommands/types/lang.types';
 import type {
+    APIApplicationCommandOptionChoice,
+    AutocompleteInteraction,
     BaseInteraction,
     ChatInputCommandInteraction,
     SlashCommandChannelOption,
@@ -24,16 +26,16 @@ import escapeStringRegexp from '../../utils/regex.utils';
 type CommandOption<T extends ApplicationCommandOptionBase> = (command: T) => T;
 type UserOption = { userOption: CommandOption<SlashCommandUserOption>, userCommandName: string};
 type SoundSelection = { soundOption: CommandOption<SlashCommandStringOption>, soundCommandName: string, autocomplete: InteractionAutocomplete};
-type CommandSelection = { commandOption: CommandOption<SlashCommandStringOption>, commandSelectionName: string, autocomplete: InteractionAutocomplete};
+type CommandSelection = { commandOption: CommandOption<SlashCommandStringOption>, commandSelectionName: string};
 type ChannelSelection = {channelOption: CommandOption<SlashCommandChannelOption>, channelCommandName: string};
 type VolumeOption = {volumeOption: CommandOption<SlashCommandIntegerOption>, volumeCommandName: string}
 
 export function getUserOption(required = true): UserOption {
     return {
         userOption: (option) =>
-            getLangComponent(option, CommandLangKey.SET_USER_INTRO_USER_NAME, CommandLangKey.SET_USER_INTRO_USER_DESCRIPTION)
+            getLangComponent(option, CommandLangKey.ADMIN_SET_USER_INTRO_USER_NAME, CommandLangKey.ADMIN_SET_USER_INTRO_USER_DESCRIPTION)
                 .setRequired(required),
-        userCommandName: getDefaultCommandLang(CommandLangKey.SET_USER_INTRO_USER_NAME),
+        userCommandName: getDefaultCommandLang(CommandLangKey.ADMIN_SET_USER_INTRO_USER_NAME),
     };
 }
 
@@ -78,44 +80,39 @@ export function getChannelOption(required = true): ChannelSelection {
     };
 }
 
-export function getCommandSelection(onlyRegisteredOnes: boolean, required = true): CommandSelection {
+export function getCommandSelection(required = true): CommandSelection {
     return {
         commandSelectionName: getDefaultCommandLang(CommandLangKey.COMMAND_SELECTION_NAME),
         commandOption: (option) =>
             getLangComponent(option, CommandLangKey.COMMAND_SELECTION_NAME, CommandLangKey.COMMAND_SELECTION_DESCRIPTION)
                 .setRequired(required)
                 .setAutocomplete(true),
-        autocomplete: onlyRegisteredOnes ? getCommandSelectionAutocompleteRegistered() : getCommandSelectionAutocompleteAvailable(),
     };
 }
 
-function getCommandSelectionAutocompleteRegistered(): InteractionAutocomplete {
-    return async (interaction) => {
-        const { guildId } = getInteractionMetadata(interaction);
-        const value = interaction.options.getFocused();
-        const regex = new RegExp(escapeStringRegexp(value), 'i');
+export async function getCommandSelectionAutocompleteRegistered(interaction: AutocompleteInteraction) {
+    const { guildId } = getInteractionMetadata(interaction);
+    const value = interaction.options.getFocused();
+    const regex = new RegExp(escapeStringRegexp(value), 'i');
 
-        const commands =  await getRegisteredApplicationCommands(interaction.client, guildId);
-        const foundCommands = commands.filter((cmd) => (cmd.nameLocalizations?.[interaction.locale] ?? cmd.name).match(regex));
-        return [...foundCommands.values()].slice(0, APPLICATION_COMMAND_MAX_CHOICES).map((cmd) => ({
-            value: cmd.name,
-            name: cmd.nameLocalizations?.[interaction.locale] ?? cmd.name,
-        }));
-    };
+    const commands =  await getRegisteredApplicationCommands(interaction.client, guildId);
+    const foundCommands = commands.filter((cmd) => (cmd.nameLocalizations?.[interaction.locale] ?? cmd.name).match(regex));
+    return [...foundCommands.values()].slice(0, APPLICATION_COMMAND_MAX_CHOICES).map((cmd) => ({
+        value: cmd.name,
+        name: cmd.nameLocalizations?.[interaction.locale] ?? cmd.name,
+    }));
 }
 
-function getCommandSelectionAutocompleteAvailable(): InteractionAutocomplete {
-    return async (interaction) => {
-        const value = interaction.options.getFocused();
-        const regex = new RegExp(escapeStringRegexp(value), 'i');
+export function getCommandSelectionAutocompleteAvailable(interaction: AutocompleteInteraction): APIApplicationCommandOptionChoice[] {
+    const value = interaction.options.getFocused();
+    const regex = new RegExp(escapeStringRegexp(value), 'i');
 
-        const allCommands = getAvailableApplicationCommands();
-        const foundCommands = allCommands.filter((cmd) => (cmd.data.name_localizations?.[interaction.locale] ?? cmd.data.name).match(regex));
-        return foundCommands.slice(0, APPLICATION_COMMAND_MAX_CHOICES).map((cmd) => ({
-            value: cmd.data.name,
-            name: cmd.data.name_localizations?.[interaction.locale] ?? cmd.data.name,
-        }));
-    };
+    const allCommands = getAvailableApplicationCommands();
+    const foundCommands = allCommands.filter((cmd) => (cmd.data.name_localizations?.[interaction.locale] ?? cmd.data.name).match(regex));
+    return foundCommands.slice(0, APPLICATION_COMMAND_MAX_CHOICES).map((cmd) => ({
+        value: cmd.data.name,
+        name: cmd.data.name_localizations?.[interaction.locale] ?? cmd.data.name,
+    }));
 }
 
 export function getVolumeInput(required = false): VolumeOption {
