@@ -1,6 +1,23 @@
 export enum CommandLangKey {
     //region Commands
 
+    // region Admin
+    // region USER_INTRO
+    ADMIN_USER_INTRO_NAME,
+    ADMIN_USER_INTRO_DESCRIPTION,
+    //region DELETE_USER_INTRO
+    ADMIN_DELETE_USER_INTRO_NAME,
+    ADMIN_DELETE_USER_INTRO_DESCRIPTION,
+    //endregion
+    //region SET_USER_INTRO
+    ADMIN_SET_USER_INTRO_NAME,
+    ADMIN_SET_USER_INTRO_DESCRIPTION,
+    ADMIN_SET_USER_INTRO_USER_NAME,
+    ADMIN_SET_USER_INTRO_USER_DESCRIPTION,
+    //endregion
+    // endregion
+    // endregion
+
     //region BUBBLE
     BUBBLE_NAME,
     BUBBLE_DESCRIPTION,
@@ -29,11 +46,6 @@ export enum CommandLangKey {
     //region DELETE_SOUND
     DELETE_SOUND_NAME,
     DELETE_SOUND_DESCRIPTION,
-    //endregion
-
-    //region DELETE_USER_INTRO
-    DELETE_USER_INTRO_NAME,
-    DELETE_USER_INTRO_DESCRIPTION,
     //endregion
 
     //region DOWNLOAD
@@ -133,13 +145,8 @@ export enum CommandLangKey {
     SAVE_RECORDING_TYPE_DESCRIPTION,
     SAVE_RECORDING_TYPE_CHOICE_SINGLE,
     SAVE_RECORDING_TYPE_CHOICE_MULTIPLE,
-    //endregion
-
-    //region SET_USER_INTRO
-    SET_USER_INTRO_NAME,
-    SET_USER_INTRO_DESCRIPTION,
-    SET_USER_INTRO_USER_NAME,
-    SET_USER_INTRO_USER_DESCRIPTION,
+    SAVE_RECORDING_SHARE_NAME,
+    SAVE_RECORDING_SHARE_DESCRIPTION,
     //endregion
 
     //region SET_USER_VOLUME
@@ -217,6 +224,7 @@ export enum CommandLangKey {
     ERRORS_OPEN_AI_DISABLED,
     ERRORS_EMPTY_RESPONSE,
     ERRORS_INVALID_TEXT_CHANNEL,
+    ERRORS_INTRO_TOO_LONG,
     //endregion
 
     //region Success messages

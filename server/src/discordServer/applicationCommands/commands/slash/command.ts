@@ -38,9 +38,9 @@ const command: ChatCommand = {
         const subCommandName = interaction.options.getSubcommand(true);
 
         if (subCommandName === registerCommandName) {
-            return getCommandSelectionAutocompleteRegistered(interaction);
+            return getCommandSelectionAutocompleteAvailable(interaction);
         }
-        return getCommandSelectionAutocompleteAvailable(interaction);
+        return getCommandSelectionAutocompleteRegistered(interaction);
     }
 };
 

@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { basename, extname, join } from 'path';
-import ffmpeg from 'fluent-ffmpeg';
+import ffmpeg, { ffprobe } from 'fluent-ffmpeg';
 import { rename, unlink } from 'fs/promises';
 import { EnvironmentConfig } from './config';
 import { scopedLogger } from './logHelper';
@@ -153,6 +153,18 @@ class FileHelper {
 
     public generateUniqueFileName(fileName: string): string {
         return `${uuidv4()}${extname(fileName)}`;
+    }
+
+    public async getFileDuration(filePath: string): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            ffprobe(filePath, (err, data) => {
+                if (err || data.format.duration === undefined) {
+                    reject(err);
+                    return;
+                }
+                resolve(data.format.duration);
+            });
+        });
     }
 }
 

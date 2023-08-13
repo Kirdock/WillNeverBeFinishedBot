@@ -41,9 +41,12 @@ async function setIntro(interaction: ChatInputCommandInteraction): Promise<Inter
         return getCommandLangKey(interaction, CommandLangKey.ERRORS_FILE_NOT_FOUND);
     }
 
-    await databaseHelper.setIntro(member.id, meta._id, guildId);
-
-    return getCommandLangKey(interaction, CommandLangKey.SUCCESS);
+    try {
+        await databaseHelper.setIntro(member.id, meta._id, guildId);
+        return getCommandLangKey(interaction, CommandLangKey.SUCCESS);
+    } catch {
+        return getCommandLangKey(interaction, CommandLangKey.ERRORS_INTRO_TOO_LONG);
+    }
 }
 
 async function removeIntro(interaction: ChatInputCommandInteraction): Promise<InteractionExecuteResponse> {

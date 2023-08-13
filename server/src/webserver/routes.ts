@@ -8,7 +8,7 @@ import type { GuildMember } from 'discord.js';
 import type { AudioExportType } from '../../../shared/models/types';
 import type { IServerSettings } from '../../../shared/interfaces/server-settings';
 import type { ILog } from '../interfaces/log';
-import { getResponseMessage } from '../services/localeService';
+import { getRequestBaseLocale, getResponseMessage } from '../services/localeService';
 import type { IResponseMessages } from '../interfaces/response-messages';
 import type { IUserPayload } from '../interfaces/user-payload';
 import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
@@ -24,6 +24,8 @@ import { mapUserSettingsToDict } from '../utils/convertion.utils';
 import { recordHelper } from '../services/recordHelper';
 import type { ObjectId } from 'mongodb';
 import dataService from '../services/data.service';
+import { getCommandLangKey } from '../discordServer/applicationCommands/commandLang';
+import { CommandLangKey } from '../discordServer/applicationCommands/types/lang.types';
 
 const logger = scopedLogger('API');
 
@@ -426,9 +428,10 @@ export function registerRoutes(router: rs) {
                 const soundId: ObjectId | string | undefined = meta?._id ?? req.body.soundId;
                 let id: string;
                 let isAllowed: boolean;
+                let isAdmin = false;
 
                 if (req.body.userId) {
-                    isAllowed = await discordBot.isUserAdminWhereAnotherUser(result.id, req.body.userId, req.body.serverId);
+                    isAdmin = isAllowed = await discordBot.isUserAdminWhereAnotherUser(result.id, req.body.userId, req.body.serverId);
                     id = isAllowed ? req.body.userId : result.id;
                 } else {
                     isAllowed = await discordBot.isUserInServer(result.id, req.body.serverId);
@@ -436,9 +439,14 @@ export function registerRoutes(router: rs) {
                 }
 
                 if (isAllowed && (!meta || meta.serverId === req.body.serverId)) {
-                    await databaseHelper.setIntro(id, soundId, req.body.serverId);
-                    res.statusMessage = getResponseMessage(req, 'USER_INTRO_SET');
-                    res.status(200).end();
+                    try {
+                        await databaseHelper.setIntro(id, soundId, req.body.serverId, !isAdmin);
+                        res.statusMessage = getResponseMessage(req, 'USER_INTRO_SET');
+                        res.status(200).end();
+                    } catch {
+                        res.statusMessage = getCommandLangKey(getRequestBaseLocale(req), CommandLangKey.ERRORS_INTRO_TOO_LONG);
+                        res.status(400).end();
+                    }
                 } else {
                     res.status(500).end();
                 }

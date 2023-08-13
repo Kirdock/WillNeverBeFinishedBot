@@ -1,8 +1,26 @@
 import type { CommandLanguageFile } from '../types/lang.types';
 import { CommandLangKey } from '../types/lang.types';
+import { MAX_INTRO_LENGTH_SECONDS } from '../../../utils/limits';
 
 export const enCommandLanguage: CommandLanguageFile = {
     //region commands
+
+    // region Admin
+    // region USER_INTRO
+    [CommandLangKey.ADMIN_USER_INTRO_NAME]: 'admin_user_intro',
+    [CommandLangKey.ADMIN_USER_INTRO_DESCRIPTION]: 'Sets or removes the intro of a given user',
+    //region DELETE_USER_INTRO
+    [CommandLangKey.ADMIN_DELETE_USER_INTRO_NAME]: 'remove',
+    [CommandLangKey.ADMIN_DELETE_USER_INTRO_DESCRIPTION]: 'Removes the intro of the given user',
+    //endregion
+    //region SET_USER_INTRO
+    [CommandLangKey.ADMIN_SET_USER_INTRO_NAME]: 'set',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_DESCRIPTION]: 'Sets the intro of the given user (no duration limitation)',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_USER_NAME]: 'user',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_USER_DESCRIPTION]: 'Choose a user',
+    //endregion
+    // endregion
+    // endregion
 
     //region BUBBLE
     [CommandLangKey.BUBBLE_NAME]: 'bubble_wrap',
@@ -32,11 +50,6 @@ export const enCommandLanguage: CommandLanguageFile = {
     //region DELETE_SOUND
     [CommandLangKey.DELETE_SOUND_NAME]: 'delete_sound',
     [CommandLangKey.DELETE_SOUND_DESCRIPTION]: 'Deletes the given sound',
-    //endregion
-
-    //region DELETE_USER_INTRO
-    [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove_user_intro',
-    [CommandLangKey.DELETE_USER_INTRO_DESCRIPTION]: 'Removes the intro of the given user',
     //endregion
 
     //region DOWNLOAD
@@ -127,22 +140,17 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION]: 'Save as single file or as zip file with a file per user',
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_SINGLE]: 'Single file',
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_MULTIPLE]: 'ZIP file with all user recordings',
+    [CommandLangKey.SAVE_RECORDING_SHARE_NAME]: 'share',
+    [CommandLangKey.SAVE_RECORDING_SHARE_DESCRIPTION]: 'Share the recording with others? (Default: Yes)',
     //endregion
 
     //region INTRO
     [CommandLangKey.INTRO_NAME]: 'intro',
     [CommandLangKey.INTRO_DESCRIPTION]: 'Sets or removes your intro',
     [CommandLangKey.INTRO_SET_NAME]: 'set',
-    [CommandLangKey.INTRO_SET_DESCRIPTION]: 'Sets the intro that is played when you join a voice channel',
+    [CommandLangKey.INTRO_SET_DESCRIPTION]: `Sets the intro that is played when you join a voice channel (max. ${MAX_INTRO_LENGTH_SECONDS} seconds)`,
     [CommandLangKey.INTRO_REMOVE_NAME]: 'remove',
     [CommandLangKey.INTRO_REMOVE_DESCRIPTION]: 'Removes your intro. The file will still be here',
-    //endregion
-
-    //region SET_USER_INTRO
-    [CommandLangKey.SET_USER_INTRO_NAME]: 'set_user_intro',
-    [CommandLangKey.SET_USER_INTRO_DESCRIPTION]: 'Sets the intro of another user',
-    [CommandLangKey.SET_USER_INTRO_USER_NAME]: 'user',
-    [CommandLangKey.SET_USER_INTRO_USER_DESCRIPTION]: 'Choose a user',
     //endregion
 
     //region SET_USER_VOLUME
@@ -221,6 +229,7 @@ export const enCommandLanguage: CommandLanguageFile = {
     [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT is disabled by the bot owner',
     [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'I didn\'t get any response',
     [CommandLangKey.ERRORS_INVALID_TEXT_CHANNEL]: 'Given channel is not a text-channel!',
+    [CommandLangKey.ERRORS_INTRO_TOO_LONG]: `The given intro duration must not exceed ${MAX_INTRO_LENGTH_SECONDS} seconds`,
     //endregion
 
     //region success messages

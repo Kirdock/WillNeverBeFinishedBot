@@ -27,6 +27,7 @@ import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-s
 import { EnvironmentConfig } from './config';
 import { fileHelper } from './fileHelper';
 import type { Readable } from 'stream';
+import { MAX_INTRO_LENGTH_SECONDS } from '../utils/limits';
 
 
 export class DatabaseHelper {
@@ -131,9 +132,30 @@ export class DatabaseHelper {
         )).value?._id;
     }
 
-    public setIntro(userId: Snowflake, soundId: ObjectId | undefined | string, serverId: Snowflake): Promise<UpdateResult> {
+    private async isValidIntroLength(soundId?: ObjectId | string): Promise<boolean> {
+        if (!soundId) {
+            return true;
+        }
+        try {
+            const meta = await this.getSoundMeta(soundId);
+            if (!meta) {
+                return false;
+            }
+
+            const duration = await fileHelper.getFileDuration(meta.path);
+            return duration <= MAX_INTRO_LENGTH_SECONDS;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    public async setIntro(userId: Snowflake, soundId: ObjectId | undefined | string, serverId: Snowflake, isDurationRestricted = true): Promise<UpdateResult> {
         const updateFilter: UpdateFilter<IUser> = { $set: { [`intros.${serverId}`]: soundId } };
-        return this.userCollection.updateOne({ id: userId }, updateFilter, { upsert: true });
+        if (!isDurationRestricted || await this.isValidIntroLength(soundId)) {
+            return this.userCollection.updateOne({ id: userId }, updateFilter, { upsert: true });
+        } else {
+            throw new Error('invalid intro length');
+        }
     }
 
     public async getIntro(userId: Snowflake, serverId: Snowflake): Promise<string | undefined> {
@@ -184,7 +206,7 @@ export class DatabaseHelper {
         return soundsMeta;
     }
 
-    public async getSoundMeta(id: string): Promise<ISoundMeta | undefined> {
+    public async getSoundMeta(id: string | ObjectId): Promise<ISoundMeta | undefined> {
         const soundMeta: ISoundMeta | null = await this.soundMetaCollection.findOne({ _id: new ObjectId(id) });
         if (soundMeta) {
             this.mapTime([soundMeta]);

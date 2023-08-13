@@ -1,8 +1,25 @@
 import type { CommandLanguageFile } from '../types/lang.types';
 import { CommandLangKey } from '../types/lang.types';
+import { MAX_INTRO_LENGTH_SECONDS } from '../../../utils/limits';
 
 export const deCommandLanguage: Partial<CommandLanguageFile> = {
     //region commands
+    // region Admin
+    // region USER_INTRO
+    [CommandLangKey.ADMIN_USER_INTRO_NAME]: 'admin_user_intro',
+    [CommandLangKey.ADMIN_USER_INTRO_DESCRIPTION]: 'Sets or removes the intro of a given user',
+    //region DELETE_USER_INTRO
+    // [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove',
+    [CommandLangKey.ADMIN_DELETE_USER_INTRO_DESCRIPTION]: 'Entfernt das Intro des angegebenen Benutzers',
+    //endregion
+    //region SET_USER_INTRO
+    // [CommandLangKey.ADMIN_SET_USER_INTRO_NAME]: 'set',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_DESCRIPTION]: 'Setzt das Intro eines anderen Benutzers (keine Längenbeschränkung)',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_USER_NAME]: 'benutzer',
+    [CommandLangKey.ADMIN_SET_USER_INTRO_USER_DESCRIPTION]: 'Wähle einen Benutzer',
+    //endregion
+    // endregion
+    // endregion
 
     //region BUBBLE
     // [CommandLangKey.BUBBLE_NAME]: 'luftpolsterfolie',
@@ -34,11 +51,6 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.DELETE_SOUND_DESCRIPTION]: 'Löscht die angegebene Audiodatei',
     //endregion
 
-    //region DELETE_USER_INTRO
-    // [CommandLangKey.DELETE_USER_INTRO_NAME]: 'remove_user_intro',
-    [CommandLangKey.DELETE_USER_INTRO_DESCRIPTION]: 'Entfernt das Intro des angegebenen Benutzers',
-    //endregion
-
     //region DOWNLOAD
     // [CommandLangKey.DOWNLOAD_NAME]: 'download_sound',
     [CommandLangKey.DOWNLOAD_DESCRIPTION]: 'Lädt die Audiodatei in Discord hoch damit du sie herunterladen kannst (nur sichtbar für dich)',
@@ -59,7 +71,7 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     // [CommandLangKey.INTRO_NAME]: 'intro',
     [CommandLangKey.INTRO_DESCRIPTION]: 'Setzt oder entfernt dein Intro',
     // [CommandLangKey.INTRO_SET_NAME]: 'set',
-    [CommandLangKey.INTRO_SET_DESCRIPTION]: 'Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst',
+    [CommandLangKey.INTRO_SET_DESCRIPTION]: `Setzt das Intro, das abgespielt wird, wenn du einem Sprachkanal beitrittst (max. ${MAX_INTRO_LENGTH_SECONDS} Sekunden)`,
     // [CommandLangKey.INTRO_REMOVE_NAME]: 'remove',
     [CommandLangKey.INTRO_REMOVE_DESCRIPTION]: 'Entfernt dein Intro. Die Audiodatei bleibt erhalten',
     //endregion
@@ -136,13 +148,8 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.SAVE_RECORDING_TYPE_DESCRIPTION]: 'Eine Datei oder als ZIP mit allen Benutzeraufnahmen',
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_SINGLE]: 'Eine Datei',
     [CommandLangKey.SAVE_RECORDING_TYPE_CHOICE_MULTIPLE]: 'ZIP Datei mit allen Benutzeraufnahmen',
-    //endregion
-
-    //region SET_USER_INTRO
-    // [CommandLangKey.SET_USER_INTRO_NAME]: 'set_user_intro',
-    [CommandLangKey.SET_USER_INTRO_DESCRIPTION]: 'Setzt das Intro eines anderen Benutzers',
-    [CommandLangKey.SET_USER_INTRO_USER_NAME]: 'benutzer',
-    [CommandLangKey.SET_USER_INTRO_USER_DESCRIPTION]: 'Wähle einen Benutzer',
+    [CommandLangKey.SAVE_RECORDING_SHARE_NAME]: 'teilen',
+    [CommandLangKey.SAVE_RECORDING_SHARE_DESCRIPTION]: 'Die Aufnahme auch anderen zur Verfügung stellen? (Default: Ja)',
     //endregion
 
     //region SET_USER_VOLUME
@@ -220,6 +227,7 @@ export const deCommandLanguage: Partial<CommandLanguageFile> = {
     [CommandLangKey.ERRORS_OPEN_AI_DISABLED]: 'ChatGPT ist vom Botbesicher deaktiviert worden',
     [CommandLangKey.ERRORS_EMPTY_RESPONSE]: 'Keine Antwort erhalten',
     [CommandLangKey.ERRORS_INVALID_TEXT_CHANNEL]: 'Der angegebene Kanal ist kein Textkanal!',
+    [CommandLangKey.ERRORS_INTRO_TOO_LONG]: `Stöll kan Roman als Intro ein! ${MAX_INTRO_LENGTH_SECONDS} Sekundn is max!`,
     //endregion
 
     //region success messages

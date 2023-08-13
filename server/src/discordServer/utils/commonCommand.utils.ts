@@ -33,9 +33,9 @@ type VolumeOption = {volumeOption: CommandOption<SlashCommandIntegerOption>, vol
 export function getUserOption(required = true): UserOption {
     return {
         userOption: (option) =>
-            getLangComponent(option, CommandLangKey.SET_USER_INTRO_USER_NAME, CommandLangKey.SET_USER_INTRO_USER_DESCRIPTION)
+            getLangComponent(option, CommandLangKey.ADMIN_SET_USER_INTRO_USER_NAME, CommandLangKey.ADMIN_SET_USER_INTRO_USER_DESCRIPTION)
                 .setRequired(required),
-        userCommandName: getDefaultCommandLang(CommandLangKey.SET_USER_INTRO_USER_NAME),
+        userCommandName: getDefaultCommandLang(CommandLangKey.ADMIN_SET_USER_INTRO_USER_NAME),
     };
 }
 
