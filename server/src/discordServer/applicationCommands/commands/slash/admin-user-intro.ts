@@ -18,7 +18,6 @@ const { userCommandName, userOption } = getUserOption(true);
 const setCommandName = getDefaultCommandLang(CommandLangKey.ADMIN_SET_USER_INTRO_NAME);
 
 const command: ChatCommand = {
-    // data: getLangSlashCommandBuilder(CommandLangKey.DELETE_USER_INTRO_NAME, CommandLangKey.DELETE_USER_INTRO_DESCRIPTION)
     data: getLangSlashCommandBuilder(CommandLangKey.ADMIN_USER_INTRO_NAME, CommandLangKey.ADMIN_USER_INTRO_DESCRIPTION)
         .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
         .addSubcommand((option) =>

@@ -92,7 +92,6 @@ export function getCommandSelection(required = true): CommandSelection {
 
 export async function getCommandSelectionAutocompleteRegistered(interaction: AutocompleteInteraction) {
     const { guildId } = getInteractionMetadata(interaction);
-    // interaction.options.getSubcommand()
     const value = interaction.options.getFocused();
     const regex = new RegExp(escapeStringRegexp(value), 'i');
 
