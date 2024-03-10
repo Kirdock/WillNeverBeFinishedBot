@@ -5,11 +5,7 @@ import { fileHelper } from '../../../../services/fileHelper';
 import { Readable } from 'stream';
 import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
 import { CommandLangKey } from '../../types/lang.types';
-import {
-    getInteractionMetadata,
-    getLangComponent,
-    getLangSlashCommandBuilder
-} from '../../../utils/commonCommand.utils';
+import { getInteractionMetadata, getLangComponent, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
 
 const attachmentName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_NAME);
 const categoryName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_CATEGORY_NAME);
@@ -40,9 +36,9 @@ const command: ChatCommand = {
         await interaction.deferReply({
             ephemeral: true
         });
-
-        const name = fileHelper.generateUniqueFileName(attachment.url);
-        const fileName = interaction.options.getString(fileNameOptionName) || fileHelper.getFileName(attachment.url);
+        const urlBasePath = new URL(attachment.url).pathname;
+        const name = fileHelper.generateUniqueFileName(urlBasePath);
+        const fileName = interaction.options.getString(fileNameOptionName) || fileHelper.getFileName(urlBasePath);
         const response = await fetch(attachment.url);
         const stream = Readable.from(Buffer.from(await response.arrayBuffer()));
 

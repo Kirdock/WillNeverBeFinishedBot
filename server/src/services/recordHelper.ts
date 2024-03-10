@@ -4,5 +4,5 @@ import { EnvironmentConfig } from './config';
 import { discordBot } from '../discordServer/DiscordBot';
 
 export const recordHelper = new VoiceRecorder({
-    maxRecordTimeMs: asNumberOrUndefined(EnvironmentConfig.MAX_RECORD_TIME_MINUTES),
+    maxRecordTimeMinutes: asNumberOrUndefined(EnvironmentConfig.MAX_RECORD_TIME_MINUTES),
 }, discordBot.client);
