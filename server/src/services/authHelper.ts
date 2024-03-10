@@ -52,13 +52,13 @@ class AuthHelper {
         return sign(JSON.stringify(payload), this.secret);
     }
 
-    private async refreshToken(refresh_token: string, scope: string): Promise<IUserToken> {
+    private async refreshToken(refresh_token: string): Promise<IUserToken> {
         const formData = new URLSearchParams();
         formData.append('client_id', discordBot.id);
         formData.append('client_secret', this.clientSecret);
         formData.append('grant_type', 'refresh_token');
         formData.append('redirect_uri', this.redirectUrl);
-        formData.append('scope', scope);
+        formData.append('scope', 'identify');
         formData.append('refresh_token', refresh_token);
 
         const { data } = await axios.post('https://discord.com/api/oauth2/token', formData,
@@ -109,7 +109,7 @@ class AuthHelper {
             //reset time just in case there are several requests by the user
             //else there will be several refresh request if the first one has not received a response
 
-            userToken = await this.refreshToken(userToken.refresh_token, userToken.scope);
+            userToken = await this.refreshToken(userToken.refresh_token);
             await databaseHelper.updateUserToken(payload.id, userToken);
         }
     }

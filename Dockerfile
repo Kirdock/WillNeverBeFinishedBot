@@ -7,7 +7,7 @@ COPY client/ ./
 RUN yarn run build
 
 
-FROM node:18.7 AS main-build
+FROM node:20 AS main-build
 WORKDIR /app/bot
 COPY --from=client-build /app/client/dist ./client/dist
 COPY shared/ ./shared

@@ -1,18 +1,7 @@
 import type { Snowflake } from 'discord.js';
 import { createServerSettings } from '../utils/ServerSettings';
 import type { IUserToken } from '../interfaces/UserToken';
-import type {
-    Collection,
-    Db,
-    DeleteResult,
-    Document,
-    Filter,
-    FindOptions,
-    InsertManyResult,
-    InsertOneResult,
-    UpdateFilter,
-    UpdateResult
-} from 'mongodb';
+import type { Collection, Db, DeleteResult, Document, Filter, FindOptions, InsertManyResult, InsertOneResult, UpdateFilter, UpdateResult } from 'mongodb';
 import { MongoClient, ObjectId } from 'mongodb';
 import { createUser } from '../utils/User';
 import { ErrorTypes } from './ErrorTypes';
@@ -128,7 +117,7 @@ export class DatabaseHelper {
                     _id: 1,
                 },
             }
-        )).value?._id;
+        ))?._id;
     }
 
     private async isValidIntroLength(soundId?: ObjectId | string): Promise<boolean> {
@@ -326,7 +315,7 @@ export class DatabaseHelper {
                 upsert: true,
                 returnDocument: 'after'
             });
-        return result.value ?? createServerSettings(serverId);
+        return result ?? createServerSettings(serverId);
     }
 
     public async updateServerSettings(serverInfo: IServerSettings): Promise<UpdateResult> {
