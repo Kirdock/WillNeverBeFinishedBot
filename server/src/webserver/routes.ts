@@ -390,6 +390,7 @@ export function registerRoutes(router: rs) {
         });
 
     router.route('/uploadFile')
+        // @ts-ignore (ip: string => string | undefined (express vs multer)
         .post(upload.array('files'), async (req, res) => {
             try {
                 if (!req.files) {
