@@ -3,7 +3,7 @@ import type { AudioPlayer, AudioPlayerError, AudioResource, VoiceConnection } fr
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, StreamType } from '@discordjs/voice';
 import { voiceHelper } from './voiceHelper';
 import { databaseHelper } from './databaseHelper';
-import { stream as youtubeStream } from 'play-dl';
+import ytdl from '@distube/ytdl-core';
 import { createReadStream } from 'fs';
 import type { IServerSettings } from '../../../shared/interfaces/server-settings';
 import { fileHelper } from './fileHelper';
@@ -31,8 +31,7 @@ export async function playSound(serverId: Snowflake, channelId: string, file?: s
     let resource: AudioResource | undefined;
     const streamOptions = { inlineVolume: true, inputType: StreamType.OggOpus };
     if (!file && url) {
-        const stream = await youtubeStream(url);
-        resource = createAudioResource(stream.stream, { ...streamOptions, inputType: stream.type });
+        resource = createAudioResource(ytdl(url, { filter: 'audioonly' }), { ...streamOptions, inputType: StreamType.WebmOpus });
     } else if (file) {
         resource = createAudioResource(createReadStream(file), streamOptions);
     }
