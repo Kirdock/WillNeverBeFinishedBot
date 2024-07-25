@@ -13,8 +13,8 @@ COPY --from=client-build /app/client/dist ./client/dist
 COPY shared/ ./shared
 
 WORKDIR /app/bot/server
-COPY server/package.json server/yarn.lock ./
-RUN yarn install
+COPY server/package.json server/package-lock.json ./
+RUN npm ci
 COPY server/ shared/ ./
 
 ARG rootDir="/app/bot"
@@ -45,6 +45,6 @@ ENV WEBTOKEN_SECRET=$webtoken_secret
 RUN apt-get -y update\
     && apt-get -y upgrade\
     && apt-get install -y ffmpeg
-RUN yarn run build
+RUN npm run build
 EXPOSE $port
-CMD [ "yarn", "run", "start:production"]
+CMD [ "npm", "run", "start:production"]
