@@ -33,7 +33,7 @@
     "axios": "1.8.2",
     "bufferutil": "4.0.8",
     "connect-history-api-fallback": "2.0.0",
-    "discord.js": "14.18.0",
+    "discord.js": "14.21.0",
     "erlpack": "discord/erlpack",
     "express": "4.21.2",
     "fluent-ffmpeg": "2.1.3",
