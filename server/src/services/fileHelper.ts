@@ -56,7 +56,7 @@ class FileHelper {
         let status = true;
         const files: Express.Multer.File[] = this.getFiles(fileArray);
 
-        for await (const file of files) {
+        for (const file of files) {
             const stat = await this.deleteFile(file.path);
             status &&= stat;
         }
@@ -98,7 +98,7 @@ class FileHelper {
                 .audioFilter('loudnorm')
                 .on('error', (e) => {
                     logger.error(e, 'Normalize files');
-                    resolve(e);
+                    resolve(false);
                 })
                 .on('end', async () => {
                     try {
@@ -121,7 +121,7 @@ class FileHelper {
                 .audioFilter('loudnorm')
                 .on('error', (e) => {
                     logger.error(e, 'Normalize files');
-                    resolve(e);
+                    resolve(false);
                 })
                 .on('end', async () => {
                     resolve(true);

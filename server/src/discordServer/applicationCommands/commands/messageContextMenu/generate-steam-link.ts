@@ -16,7 +16,6 @@ const command: MessageCommand = {
         }
         return {
             content: steamLink,
-            ephemeral: false,
         };
     },
 };

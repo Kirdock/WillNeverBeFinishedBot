@@ -9,8 +9,8 @@ import type {
     GuildResolvable,
     InteractionReplyOptions,
     Message,
-    MessageContextMenuCommandInteraction
-} from 'discord.js';
+    MessageContextMenuCommandInteraction } from 'discord.js';
+import { MessageFlags } from 'discord.js';
 import { ApplicationCommandType, Events } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
@@ -165,8 +165,12 @@ function findCommand<T extends Command>(commands: T[], commandName: string): T |
 async function handleAutocompleteCommand(interaction: AutocompleteInteraction): Promise<void> {
     const command = findCommand(chatCommands, interaction.commandName);
 
-    if (!command?.autocomplete) {
-        command && logger.error('Found command does not have an autocomplete method', interaction.commandName);
+    if (!command) {
+        return;
+    }
+
+    if (!command.autocomplete) {
+        logger.error('Found command does not have an autocomplete method', interaction.commandName);
         return;
     }
 
@@ -205,7 +209,7 @@ async function getReply(reply: InteractionExecuteResponse, interaction: CommandI
         if (typeof interactionReply === 'string') {
             return {
                 content: interactionReply,
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             };
         } else {
             return interactionReply;
@@ -214,7 +218,7 @@ async function getReply(reply: InteractionExecuteResponse, interaction: CommandI
         logger.error(error, `Error executing ${interaction.commandName}`);
         return {
             content: handleInteractionError(error, interaction),
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         };
     }
 }

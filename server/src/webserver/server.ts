@@ -21,7 +21,6 @@ export function startServer(router: express.Router) {
     app.use(cors);
     app.use(express.json({ limit: '20mb' }));
     app.use(staticFileMiddleware);
-    // @ts-ignore (ip: string => string | undefined (express vs connect-history-fallback)
     app.use(history());
     app.use(staticFileMiddleware);
     authHelper.registerAuthentication(app, baseUrl);

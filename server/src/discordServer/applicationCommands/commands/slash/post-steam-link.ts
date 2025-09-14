@@ -22,7 +22,6 @@ const command: ChatCommand = {
 
         return {
             content: steamLink,
-            ephemeral: false,
         };
     },
 };

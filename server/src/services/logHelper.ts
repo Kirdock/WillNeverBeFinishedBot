@@ -8,7 +8,7 @@ enum LogLevel {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type Tail<T extends unknown[]> = T extends [infer Head, ...infer Tail] ? Tail : never;
 
-type LogScopes = 'SERVER' | 'BOT' | 'VOICE' | 'AUTH' | 'FILE_SYSTEM' | 'MIGRATOR' | 'PLAY_SOUND' | 'CONFIG' | 'API' | 'APPLICATION_COMMANDS' | 'ON_MESSAGE_CREATE' | 'DATA_SERVICE';
+type LogScopes = 'SERVER' | 'BOT' | 'VOICE' | 'AUTH' | 'FILE_SYSTEM' | 'MIGRATOR' | 'PLAY_SOUND' | 'CONFIG' | 'API' | 'APPLICATION_COMMANDS' | 'ON_MESSAGE_CREATE' | 'DATA_SERVICE' | 'DATABASE';
 export type LogFunction = (scope: LogScopes, message: unknown, additionalInfo?: unknown) => void;
 export type LogKeys = 'debug' | 'info' | 'warn' | 'error';
 type LoggerMethods = {[key in LogKeys]: LogFunction};
