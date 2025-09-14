@@ -345,7 +345,7 @@ export function registerRoutes(router: rs) {
 
                         res.statusMessage = getResponseMessage(req, 'SOUND_DELETED');
                         res.status(200).end();
-                    } catch (error) {
+                    } catch {
                         res.statusMessage = getResponseMessage(req, 'SOUND_DELETE_ERROR');
                         res.status(500).end();
                     }
@@ -390,7 +390,6 @@ export function registerRoutes(router: rs) {
         });
 
     router.route('/uploadFile')
-        // @ts-ignore (ip: string => string | undefined (express vs multer)
         .post(upload.array('files'), async (req, res) => {
             try {
                 if (!req.files) {

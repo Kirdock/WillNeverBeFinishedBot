@@ -3,7 +3,7 @@ import type {
     AutocompleteInteraction,
     BaseMessageOptions,
     ChatInputCommandInteraction,
-    ContextMenuCommandBuilder,
+    ContextMenuCommandBuilder, InteractionReplyOptions,
     MessageContextMenuCommandInteraction,
     RESTPostAPIChatInputApplicationCommandsJSONBody,
     RESTPostAPIContextMenuApplicationCommandsJSONBody
@@ -11,12 +11,12 @@ import type {
 
 export interface InteractionEphemeralResponse {
     content: string;
-    ephemeral: false;
+    flags?: InteractionReplyOptions['flags'];
 }
 
 export interface InteractionFileResponse {
     files: BaseMessageOptions['files'];
-    ephemeral: false;
+    flags?: InteractionReplyOptions['flags'];
 }
 
 export type InteractionExecuteResponse = Promise<string | InteractionEphemeralResponse | InteractionFileResponse | void>;

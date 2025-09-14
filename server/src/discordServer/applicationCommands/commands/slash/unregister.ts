@@ -1,5 +1,5 @@
 import type { ChatCommand } from '../../../../interfaces/command';
-import { PermissionsBitField } from 'discord.js';
+import { MessageFlags, PermissionsBitField } from 'discord.js';
 import { unregisterApplicationCommands } from '../../applicationManager';
 import { getCommandLangKey } from '../../commandLang';
 import { CommandLangKey } from '../../types/lang.types';
@@ -15,7 +15,7 @@ const command: ChatCommand =  {
 
         await interaction.reply({
             content:getCommandLangKey(interaction, CommandLangKey.TRYING_MY_BEST),
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         });
         const statusMessage = await member.send(getCommandLangKey(interaction, CommandLangKey.LOADING));
         await unregisterApplicationCommands(interaction.client, guildId, statusMessage);

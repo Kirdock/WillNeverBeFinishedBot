@@ -1,6 +1,7 @@
 import { recordHelper } from '../../../../services/recordHelper';
 import type { ChatCommand } from '../../../../interfaces/command';
-import type { APIApplicationCommandOptionChoice } from 'discord.js';
+import {APIApplicationCommandOptionChoice, MessageEditOptions} from 'discord.js';
+import { MessageFlags } from 'discord.js';
 import type { AudioExportType } from '@kirdock/discordjs-voice-recorder';
 import { databaseHelper } from '../../../../services/databaseHelper';
 import { mapUserSettingsToDict } from '../../../../utils/convertion.utils';
@@ -46,10 +47,8 @@ const command: ChatCommand = {
         .toJSON(),
     async execute (interaction) {
         const { guildId } = getInteractionMetadata(interaction);
-        const hidden = interaction.options.getBoolean(shareName) ?? true;
-        await interaction.deferReply({
-            ephemeral: !hidden,
-        });
+        const share = interaction.options.getBoolean(shareName) ?? true;
+        await interaction.deferReply({ flags: share ? undefined : MessageFlags.Ephemeral });
         const minutes = interaction.options.getInteger(minutesName) ?? undefined;
         const exportType = (interaction.options.getString(typeName) as AudioExportType | null) ?? 'single';
         const serverSettings = await databaseHelper.getServerSettings(guildId);

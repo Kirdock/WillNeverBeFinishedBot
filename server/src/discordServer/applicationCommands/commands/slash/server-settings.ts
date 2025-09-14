@@ -11,7 +11,11 @@ import type {
     ChatInputCommandInteraction,
     InteractionReplyOptions,
     MessageActionRowComponentBuilder,
-    MessageComponentInteraction
+    MessageComponentInteraction } from 'discord.js';
+import { MessageFlags
+} from 'discord.js';
+import {
+    ActionRow
 } from 'discord.js';
 import {
     ActionRowBuilder,
@@ -117,7 +121,7 @@ ${bold('Intro:')} ${introAudioFile?.fileName ?? 'none'}
 ${bold('Outro:')} ${outroAudioFile?.fileName ?? 'none'}
 ${bold('Voice state logs channel:')} ${serverSettings.logVoiceStateChannel ? channelMention(serverSettings.logVoiceStateChannel) : 'none'}`,
         components: actionRows,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
     };
 
     const reply = await interaction.reply(messageContent);
@@ -142,7 +146,7 @@ ${bold('Voice state logs channel:')} ${serverSettings.logVoiceStateChannel ? cha
             logger.error(e, 'server settings button interaction');
             buttonInteraction.reply({
                 content:  getCommandLangKey(buttonInteraction, CommandLangKey.ERRORS_UNKNOWN),
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         }
     });
@@ -158,14 +162,16 @@ function updateComponent<T extends MessageActionRowComponentBuilder>(interaction
         return [];
     }
 
-    const actionRows = interaction.message.components.map<ActionRowBuilder<MessageActionRowComponentBuilder>>((row) => ActionRowBuilder.from(row));
+    const actionRows = interaction.message.components
+        .filter((row) => row instanceof ActionRow)
+        .map<ActionRowBuilder<MessageActionRowComponentBuilder>>((row) => ActionRowBuilder.from(row));
     newButtonFunc(actionRows[indices.actionRowIndex].components[indices.componentIndex] as T);
 
     return actionRows;
 }
 
 function findComponent(interaction: MessageComponentInteraction, customId: string): {actionRowIndex: number, componentIndex: number} | undefined {
-    const actionRows = interaction.message.components;
+    const actionRows = interaction.message.components.filter((row) => row instanceof ActionRow);
     for (let actionRowIndex = 0; actionRowIndex < actionRows.length; ++actionRowIndex) {
         const actionRow = actionRows[actionRowIndex];
 

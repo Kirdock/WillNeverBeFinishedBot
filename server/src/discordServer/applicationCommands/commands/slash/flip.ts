@@ -9,7 +9,6 @@ const command: ChatCommand = {
     async execute(interaction) {
         return {
             content: getCommandLangKey(interaction, takeRandom([CommandLangKey.FLIP_CHOICE_HEAD, CommandLangKey.FLIP_CHOICE_TAILS])),
-            ephemeral: false,
         };
     },
 };

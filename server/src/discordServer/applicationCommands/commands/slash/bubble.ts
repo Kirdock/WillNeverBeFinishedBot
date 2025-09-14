@@ -40,7 +40,6 @@ const command: ChatCommand = {
         }
         return {
             content: stringBuilder.join(''),
-            ephemeral: false,
         };
     },
 };

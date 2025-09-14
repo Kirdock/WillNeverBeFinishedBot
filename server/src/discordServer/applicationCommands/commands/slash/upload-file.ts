@@ -6,6 +6,7 @@ import { Readable } from 'stream';
 import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
 import { CommandLangKey } from '../../types/lang.types';
 import { getInteractionMetadata, getLangComponent, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
+import { MessageFlags } from 'discord.js';
 
 const attachmentName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_NAME);
 const categoryName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_CATEGORY_NAME);
@@ -34,7 +35,7 @@ const command: ChatCommand = {
         }
 
         await interaction.deferReply({
-            ephemeral: true
+            flags: MessageFlags.Ephemeral,
         });
         const urlBasePath = new URL(attachment.url).pathname;
         const name = fileHelper.generateUniqueFileName(urlBasePath);

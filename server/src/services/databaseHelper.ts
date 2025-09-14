@@ -16,6 +16,9 @@ import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-s
 import { EnvironmentConfig } from './config';
 import { fileHelper } from './fileHelper';
 import type { Readable } from 'stream';
+import { scopedLogger } from './logHelper';
+
+const logger = scopedLogger('DATABASE');
 
 
 export class DatabaseHelper {
@@ -133,6 +136,7 @@ export class DatabaseHelper {
             const duration = await fileHelper.getFileDuration(meta.path);
             return duration <= EnvironmentConfig.MAX_INTRO_LENGTH_SECONDS;
         } catch (e) {
+            logger.error(e, 'Error while fetching sound metadata');
             return false;
         }
     }

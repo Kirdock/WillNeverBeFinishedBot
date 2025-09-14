@@ -9,6 +9,7 @@ import { databaseHelper } from '../../../../services/databaseHelper';
 import { getCommandLangKey } from '../../commandLang';
 import { createReadStream } from 'fs';
 import { AUDIO_CONTENT_TYPE } from '../../../constants';
+import { MessageFlags } from 'discord.js';
 
 const { soundOption, soundCommandName, autocomplete } = getSoundSelection(true);
 
@@ -31,7 +32,7 @@ const command: ChatCommand = {
                 contentType: AUDIO_CONTENT_TYPE,
                 name: `${fileName}.mp3`,
             }],
-            ephemeral: true
+            flags: MessageFlags.Ephemeral,
         });
     },
     autocomplete,
