@@ -30,7 +30,7 @@
     "@distube/ytdl-core": "latest",
     "@kirdock/discordjs-voice-recorder": "1.1.1",
     "@snazzah/davey": "^0.1.6",
-    "archiver": "7.0.1",
+    "archiver": "8.0.0",
     "axios": "1.20.0",
     "bufferutil": "4.0.9",
     "connect-history-api-fallback": "2.0.0",
