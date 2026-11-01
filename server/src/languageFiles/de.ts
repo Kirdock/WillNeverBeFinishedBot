@@ -1,4 +1,4 @@
-import type { IResponseMessages } from '../interfaces/response-messages';
+import type { IResponseMessages } from '../interfaces/response-messages.js';
 
 export const LanguageDictDE: IResponseMessages = {
     NOT_ADMIN: 'Du Piefke bist kein Administrator. Schleich dich',

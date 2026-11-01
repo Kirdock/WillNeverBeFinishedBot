@@ -1,8 +1,8 @@
 import type { Request } from 'express';
-import { LanguageDictAT } from '../languageFiles/at';
-import { LanguageDictDE } from '../languageFiles/de';
-import { LanguageDictEN } from '../languageFiles/en';
-import type { IResponseMessages } from '../interfaces/response-messages';
+import { LanguageDictAT } from '../languageFiles/at.js';
+import { LanguageDictDE } from '../languageFiles/de.js';
+import { LanguageDictEN } from '../languageFiles/en.js';
+import type { IResponseMessages } from '../interfaces/response-messages.js';
 import type { LocaleString } from 'discord.js';
 
 enum ESupportedLanguages {

@@ -1,23 +1,19 @@
-import type { ChatCommand, InteractionExecuteResponse } from '../../../../interfaces/command';
+import type { ChatCommand, InteractionExecuteResponse } from '../../../../interfaces/command.js';
 import {
     getChannelOption,
     getInteractionMetadata,
     getLangComponent,
     getLangSlashCommandBuilder,
     getSoundSelection
-} from '../../../utils/commonCommand.utils';
-import { CommandLangKey } from '../../types/lang.types';
+} from '../../../utils/commonCommand.utils.js';
+import { CommandLangKey } from '../../types/lang.types.js';
 import type {
     ChatInputCommandInteraction,
     InteractionReplyOptions,
     MessageActionRowComponentBuilder,
     MessageComponentInteraction } from 'discord.js';
-import { MessageFlags
-} from 'discord.js';
 import {
-    ActionRow
-} from 'discord.js';
-import {
+    MessageFlags, ActionRow,
     ActionRowBuilder,
     bold,
     ButtonBuilder,
@@ -27,14 +23,14 @@ import {
     ComponentType,
     PermissionsBitField
 } from 'discord.js';
-import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
-import { databaseHelper } from '../../../../services/databaseHelper';
-import { InteractionError } from '../../../../utils/InteractionError';
-import type { IServerSettings } from '../../../../../../shared/interfaces/server-settings';
-import type { PickByType } from '../../../../../../shared/models/types';
-import { chunkArray } from '../../../../utils/array.utils';
-import { MESSAGE_COMPONENTS_MAX_BUTTONS_PER_ROW, MESSAGE_COMPONENTS_MAX_ROWS } from '../../../constants';
-import { scopedLogger } from '../../../../services/logHelper';
+import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang.js';
+import { databaseHelper } from '../../../../services/databaseHelper.js';
+import { InteractionError } from '../../../../utils/InteractionError.js';
+import type { IServerSettings } from '../../../../../../shared/interfaces/server-settings.js';
+import type { PickByType } from '../../../../../../shared/models/types.js';
+import { chunkArray } from '../../../../utils/array.utils.js';
+import { MESSAGE_COMPONENTS_MAX_BUTTONS_PER_ROW, MESSAGE_COMPONENTS_MAX_ROWS } from '../../../constants.js';
+import { scopedLogger } from '../../../../services/logHelper.js';
 
 
 const logger = scopedLogger('APPLICATION_COMMANDS');
@@ -165,7 +161,11 @@ function updateComponent<T extends MessageActionRowComponentBuilder>(interaction
     const actionRows = interaction.message.components
         .filter((row) => row instanceof ActionRow)
         .map<ActionRowBuilder<MessageActionRowComponentBuilder>>((row) => ActionRowBuilder.from(row));
-    newButtonFunc(actionRows[indices.actionRowIndex].components[indices.componentIndex] as T);
+    const comp = actionRows[indices.actionRowIndex]?.components[indices.componentIndex];
+    if (!comp) {
+        return [];
+    }
+    newButtonFunc(comp as T);
 
     return actionRows;
 }
@@ -173,10 +173,10 @@ function updateComponent<T extends MessageActionRowComponentBuilder>(interaction
 function findComponent(interaction: MessageComponentInteraction, customId: string): {actionRowIndex: number, componentIndex: number} | undefined {
     const actionRows = interaction.message.components.filter((row) => row instanceof ActionRow);
     for (let actionRowIndex = 0; actionRowIndex < actionRows.length; ++actionRowIndex) {
-        const actionRow = actionRows[actionRowIndex];
+        const actionRow = actionRows[actionRowIndex]!;
 
         for (let componentIndex = 0; componentIndex < actionRow.components.length; ++componentIndex) {
-            if (actionRow.components[componentIndex].customId === customId) {
+            if (actionRow.components[componentIndex]!.customId === customId) {
                 return {
                     actionRowIndex,
                     componentIndex,

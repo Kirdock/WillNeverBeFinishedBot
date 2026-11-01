@@ -1,7 +1,7 @@
-import type { IEnvironmentVariables, IRequiredEnvironmentVariables } from '../interfaces/environment-variables';
-import { KEnvironmentVariables } from '../interfaces/environment-variables';
-import { scopedLogger } from './logHelper';
-import { asNumberOrUndefined } from '../utils/convertion.utils';
+import type { IEnvironmentVariables, IRequiredEnvironmentVariables } from '../interfaces/environment-variables.js';
+import { KEnvironmentVariables } from '../interfaces/environment-variables.js';
+import { scopedLogger } from './logHelper.js';
+import { asNumberOrUndefined } from '../utils/convertion.utils.js';
 
 const logger = scopedLogger('CONFIG');
 

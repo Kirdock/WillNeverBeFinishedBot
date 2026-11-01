@@ -1,14 +1,14 @@
-import { sign, verify } from 'jsonwebtoken';
+import webToken from 'jsonwebtoken';
 import axios from 'axios';
-import { databaseHelper } from './databaseHelper';
-import { discordBot } from '../discordServer/DiscordBot';
+import { databaseHelper } from './databaseHelper.js';
+import { discordBot } from '../discordServer/DiscordBot.js';
 import type { Express, NextFunction, Request, Response } from 'express';
-import type { IUserToken } from '../interfaces/UserToken';
-import { createUserPayload } from '../utils/UserPayload';
-import type { IUserPayload } from '../interfaces/user-payload';
-import { scopedLogger } from './logHelper';
-import { EnvironmentConfig } from './config';
-import { fileHelper } from './fileHelper';
+import type { IUserToken } from '../interfaces/UserToken.js';
+import { createUserPayload } from '../utils/UserPayload.js';
+import type { IUserPayload } from '../interfaces/user-payload.js';
+import { scopedLogger } from './logHelper.js';
+import { EnvironmentConfig } from './config.js';
+import { fileHelper } from './fileHelper.js';
 
 const logger = scopedLogger('AUTH');
 
@@ -49,7 +49,7 @@ class AuthHelper {
             throw new Error('Updating user token did not work');
         }
         const payload = createUserPayload(_id.toHexString(), user.id, user.username, discordBot.isSuperAdmin(user.id));
-        return sign(JSON.stringify(payload), this.secret);
+        return webToken.sign(JSON.stringify(payload), this.secret);
     }
 
     private async refreshToken(refresh_token: string): Promise<IUserToken> {
@@ -97,7 +97,7 @@ class AuthHelper {
      * @returns Payload (decoded Token)
      */
     private getPayload(authToken: string): IUserPayload {
-        return verify(authToken, this.secret) as IUserPayload;
+        return webToken.verify(authToken, this.secret) as IUserPayload;
     }
 
     private async checkTokenExpired(payload: IUserPayload, userToken: IUserToken): Promise<void> {

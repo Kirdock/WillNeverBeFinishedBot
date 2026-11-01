@@ -1,8 +1,8 @@
-import type { ChatCommand } from '../../../../interfaces/command';
-import { buildSteamLinkOutOfMessage } from '../../../utils/steam.utils';
-import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import { getLangComponent, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { buildSteamLinkOutOfMessage } from '../../../utils/steam.utils.js';
+import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getLangComponent, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils.js';
 
 const urlOptionName = getDefaultCommandLang(CommandLangKey.POST_STEAM_LINK_URL_NAME);
 

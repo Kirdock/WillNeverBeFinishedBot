@@ -1,5 +1,5 @@
-import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../applicationCommands/commandLang';
-import { CommandLangKey } from '../applicationCommands/types/lang.types';
+import { getCommandLang, getCommandLangKey, getDefaultCommandLang } from '../applicationCommands/commandLang.js';
+import { CommandLangKey } from '../applicationCommands/types/lang.types.js';
 import type {
     APIApplicationCommandOptionChoice,
     AutocompleteInteraction,
@@ -11,17 +11,17 @@ import type {
     SlashCommandUserOption
 } from 'discord.js';
 import { ContextMenuCommandBuilder, GuildMember, PermissionsBitField, SlashCommandBuilder } from 'discord.js';
-import { databaseHelper } from '../../services/databaseHelper';
-import { APPLICATION_COMMAND_MAX_CHOICES } from '../constants';
-import type { InteractionAutocomplete } from '../../interfaces/command';
+import { databaseHelper } from '../../services/databaseHelper.js';
+import { APPLICATION_COMMAND_MAX_CHOICES } from '../constants.js';
+import type { InteractionAutocomplete } from '../../interfaces/command.js';
 import type { ApplicationCommandOptionBase, SharedNameAndDescription } from '@discordjs/builders';
-import { playSound } from '../../services/musicPlayer';
-import { InteractionError } from '../../utils/InteractionError';
+import { playSound } from '../../services/musicPlayer.js';
+import { InteractionError } from '../../utils/InteractionError.js';
 import {
     getAvailableApplicationCommands,
     getRegisteredApplicationCommands
-} from '../applicationCommands/applicationManager';
-import escapeStringRegexp from '../../utils/regex.utils';
+} from '../applicationCommands/applicationManager.js';
+import escapeStringRegexp from '../../utils/regex.utils.js';
 
 type CommandOption<T extends ApplicationCommandOptionBase> = (command: T) => T;
 type UserOption = { userOption: CommandOption<SlashCommandUserOption>, userCommandName: string};
@@ -203,5 +203,9 @@ function getGuildIdOfInteraction(interaction: BaseInteraction): string {
 
 export function takeRandom<T>(array: T[]): T {
     const randomIndex = Math.floor(Math.random() * array.length);
-    return array[randomIndex];
+    const item = array[randomIndex];
+    if (item === undefined) {
+        throw new Error(`Cannot take random array item: ${array}`);
+    }
+    return item;
 }

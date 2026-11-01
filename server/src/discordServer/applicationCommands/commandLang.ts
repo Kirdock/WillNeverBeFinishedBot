@@ -1,7 +1,7 @@
-import { deCommandLanguage } from './languageFiles/de';
-import { enCommandLanguage } from './languageFiles/en';
+import { deCommandLanguage } from './languageFiles/de.js';
+import { enCommandLanguage } from './languageFiles/en.js';
 import type { BaseInteraction, LocaleString } from 'discord.js';
-import type { CommandLangKey, CommandLanguageFile, SupportedLang } from './types/lang.types';
+import type { CommandLangKey, CommandLanguageFile, SupportedLang } from './types/lang.types.js';
 
 export const commandLang: { en: CommandLanguageFile, de: Partial<CommandLanguageFile> } = {
     de: deCommandLanguage,

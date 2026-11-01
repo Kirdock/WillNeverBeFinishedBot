@@ -1,9 +1,9 @@
-import type { ChatCommand } from '../../../../interfaces/command';
-import { stopPlaying } from '../../../../services/musicPlayer';
-import { discordBot } from '../../../DiscordBot';
-import { getCommandLangKey } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import { getInteractionMetadata, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { stopPlaying } from '../../../../services/musicPlayer.js';
+import { discordBot } from '../../../DiscordBot.js';
+import { getCommandLangKey } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getInteractionMetadata, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils.js';
 
 const command: ChatCommand = {
     data: getLangSlashCommandBuilder(CommandLangKey.STOP_NAME, CommandLangKey.STOP_DESCRIPTION)

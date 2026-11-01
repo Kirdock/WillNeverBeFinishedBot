@@ -1,5 +1,3 @@
-// @ts-check
-
 import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import eslintPluginPrettier from 'eslint-config-prettier';
@@ -44,6 +42,6 @@ export default defineConfig(
         },
     },
     {
-        ignores: ["node_modules", "eslint.config.mjs"]
+        ignores: ["node_modules", "eslint.config.mjs", "dist"]
     }
 );

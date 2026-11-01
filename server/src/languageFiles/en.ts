@@ -1,4 +1,4 @@
-import type { IResponseMessages } from '../interfaces/response-messages';
+import type { IResponseMessages } from '../interfaces/response-messages.js';
 
 export const LanguageDictEN: IResponseMessages = {
     NOT_ADMIN: 'You don\'t have the administrator permission',

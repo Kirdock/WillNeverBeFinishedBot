@@ -1,7 +1,7 @@
-import { databaseHelper } from './databaseHelper';
-import { fileHelper } from './fileHelper';
-import type { ISoundMeta } from '../interfaces/sound-meta';
-import { scopedLogger } from './logHelper';
+import { databaseHelper } from './databaseHelper.js';
+import { fileHelper } from './fileHelper.js';
+import type { ISoundMeta } from '../interfaces/sound-meta.js';
+import { scopedLogger } from './logHelper.js';
 
 const logger = scopedLogger('DATA_SERVICE');
 

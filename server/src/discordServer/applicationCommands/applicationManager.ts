@@ -14,19 +14,19 @@ import { MessageFlags } from 'discord.js';
 import { ApplicationCommandType, Events } from 'discord.js';
 import { extname, join } from 'path';
 import { readdirSync } from 'fs';
-import { scopedLogger } from '../../services/logHelper';
-import { InteractionError } from '../../utils/InteractionError';
-import type { ChatCommand, Command, InteractionExecuteResponse, MessageCommand } from '../../interfaces/command';
+import { scopedLogger } from '../../services/logHelper.js';
+import { InteractionError } from '../../utils/InteractionError.js';
+import type { ChatCommand, Command, InteractionExecuteResponse, MessageCommand } from '../../interfaces/command.js';
 import {
     APPLICATION_COMMAND_CHOICE_NAME,
     APPLICATION_COMMAND_CHOICE_VALUE,
     APPLICATION_COMMAND_MAX_CHOICES
-} from '../constants';
-import { getCommandLangKey } from './commandLang';
-import { CommandLangKey } from './types/lang.types';
+} from '../constants.js';
+import { getCommandLangKey } from './commandLang.js';
+import { CommandLangKey } from './types/lang.types.js';
 
 const logger = scopedLogger('APPLICATION_COMMANDS');
-const commandsPath = join(__dirname, './commands');
+const commandsPath = join(import.meta.dirname, './commands');
 const supportedExtensions: string[] = ['.js', '.ts'];
 let chatCommands: ChatCommand[] = [];
 let messageCommands: MessageCommand[] = [];

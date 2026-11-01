@@ -1,18 +1,18 @@
-import { recordHelper } from '../../../../services/recordHelper';
-import type { ChatCommand } from '../../../../interfaces/command';
-import {APIApplicationCommandOptionChoice, MessageEditOptions} from 'discord.js';
+import { recordHelper } from '../../../../services/recordHelper.js';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import type { APIApplicationCommandOptionChoice } from 'discord.js';
 import { MessageFlags } from 'discord.js';
 import type { AudioExportType } from '@kirdock/discordjs-voice-recorder';
-import { databaseHelper } from '../../../../services/databaseHelper';
-import { mapUserSettingsToDict } from '../../../../utils/convertion.utils';
-import { getCommandLang, getDefaultCommandLang } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
+import { databaseHelper } from '../../../../services/databaseHelper.js';
+import { mapUserSettingsToDict } from '../../../../utils/convertion.utils.js';
+import { getCommandLang, getDefaultCommandLang } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
 import {
     getInteractionMetadata,
     getLangComponent,
     getLangSlashCommandBuilder
-} from '../../../utils/commonCommand.utils';
-import { AUDIO_CONTENT_TYPE } from '../../../constants';
+} from '../../../utils/commonCommand.utils.js';
+import { AUDIO_CONTENT_TYPE } from '../../../constants.js';
 
 type Choices = APIApplicationCommandOptionChoice & {value: AudioExportType};
 const choices: Choices[] = [

@@ -1,9 +1,9 @@
-import type { ChatCommand } from '../../../../interfaces/command';
+import type { ChatCommand } from '../../../../interfaces/command.js';
 import { PermissionsBitField } from 'discord.js';
-import { getInteractionMetadata, getLangSlashCommandBuilder, getVolumeInput } from '../../../utils/commonCommand.utils';
-import { CommandLangKey } from '../../types/lang.types';
-import { getCommandLangKey } from '../../commandLang';
-import { databaseHelper } from '../../../../services/databaseHelper';
+import { getInteractionMetadata, getLangSlashCommandBuilder, getVolumeInput } from '../../../utils/commonCommand.utils.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getCommandLangKey } from '../../commandLang.js';
+import { databaseHelper } from '../../../../services/databaseHelper.js';
 
 const { volumeCommandName, volumeOption } = getVolumeInput(true);
 

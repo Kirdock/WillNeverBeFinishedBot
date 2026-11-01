@@ -1,6 +1,6 @@
-import type { CommandLanguageFile } from '../types/lang.types';
-import { CommandLangKey } from '../types/lang.types';
-import { EnvironmentConfig } from '../../../services/config';
+import type { CommandLanguageFile } from '../types/lang.types.js';
+import { CommandLangKey } from '../types/lang.types.js';
+import { EnvironmentConfig } from '../../../services/config.js';
 
 export const enCommandLanguage: CommandLanguageFile = {
     //region commands

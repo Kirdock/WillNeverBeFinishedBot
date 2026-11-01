@@ -1,4 +1,4 @@
-import type { IResponseMessages } from '../interfaces/response-messages';
+import type { IResponseMessages } from '../interfaces/response-messages.js';
 
 export const LanguageDictAT: IResponseMessages = {
     NOT_ADMIN: 'Nur der Hochadel hat Zugriff auf diese Funktion',

@@ -1,4 +1,4 @@
-import type { IUserPayload } from '../interfaces/user-payload';
+import type { IUserPayload } from '../interfaces/user-payload.js';
 import type { Snowflake } from 'discord.js';
 
 

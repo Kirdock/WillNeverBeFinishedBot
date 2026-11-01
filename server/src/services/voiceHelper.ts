@@ -1,14 +1,14 @@
 import type { GuildMember, LocaleString, Snowflake } from 'discord.js';
 import { VoiceChannel } from 'discord.js';
-import { ErrorTypes } from './ErrorTypes';
+import { ErrorTypes } from './ErrorTypes.js';
 import type { VoiceConnection } from '@discordjs/voice';
 import { joinVoiceChannel, VoiceConnectionStatus } from '@discordjs/voice';
-import { databaseHelper } from './databaseHelper';
-import { scopedLogger } from './logHelper';
-import { discordBot } from '../discordServer/DiscordBot';
-import { InteractionError } from '../utils/InteractionError';
-import { recordHelper } from './recordHelper';
-import { CommandLangKey } from '../discordServer/applicationCommands/types/lang.types';
+import { databaseHelper } from './databaseHelper.js';
+import { scopedLogger } from './logHelper.js';
+import { discordBot } from '../discordServer/DiscordBot.js';
+import { InteractionError } from '../utils/InteractionError.js';
+import { recordHelper } from './recordHelper.js';
+import { CommandLangKey } from '../discordServer/applicationCommands/types/lang.types.js';
 
 const logger = scopedLogger('VOICE');
 

@@ -1,5 +1,5 @@
 import type { Snowflake } from 'discord.js';
-import type { IServerSettings } from '../../../shared/interfaces/server-settings';
+import type { IServerSettings } from '../../../shared/interfaces/server-settings.js';
 
 export function createServerSettings(serverId: Snowflake): IServerSettings {
     return {

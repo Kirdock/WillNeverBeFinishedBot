@@ -1,7 +1,7 @@
-import type { ChatCommand } from '../../../../interfaces/command';
-import { getCommandLangKey } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import { getLangComponent, getLangSlashCommandBuilder, takeRandom } from '../../../utils/commonCommand.utils';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { getCommandLangKey } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getLangComponent, getLangSlashCommandBuilder, takeRandom } from '../../../utils/commonCommand.utils.js';
 
 const answers: CommandLangKey[] = [CommandLangKey.QUESTION_CHOICE_YES, CommandLangKey.QUESTION_CHOICE_NO, CommandLangKey.QUESTION_CHOICE_ASK_AGAIN];
 

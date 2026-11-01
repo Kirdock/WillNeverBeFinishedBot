@@ -1,14 +1,14 @@
 import type { Snowflake, VoiceState } from 'discord.js';
 import type { AudioPlayer, AudioPlayerError, AudioResource, VoiceConnection } from '@discordjs/voice';
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, StreamType } from '@discordjs/voice';
-import { voiceHelper } from './voiceHelper';
-import { databaseHelper } from './databaseHelper';
-import ytdl from '@distube/ytdl-core';
+import { voiceHelper } from './voiceHelper.js';
+import { databaseHelper } from './databaseHelper.js';
+import { Ytdl } from '@distube/ytdl-core';
 import { createReadStream } from 'fs';
-import type { IServerSettings } from '../../../shared/interfaces/server-settings';
-import { fileHelper } from './fileHelper';
-import { ErrorTypes } from './ErrorTypes';
-import { scopedLogger } from './logHelper';
+import type { IServerSettings } from '../../../shared/interfaces/server-settings.js';
+import { fileHelper } from './fileHelper.js';
+import { ErrorTypes } from './ErrorTypes.js';
+import { scopedLogger } from './logHelper.js';
 
 const forcePlayLock: { [key: string]: boolean | undefined } = {};
 const audioPlayers: { [serverId: string]: AudioPlayer | undefined } = {};
@@ -31,7 +31,9 @@ export async function playSound(serverId: Snowflake, channelId: string, file?: s
     let resource: AudioResource | undefined;
     const streamOptions = { inlineVolume: true, inputType: StreamType.OggOpus };
     if (!file && url) {
-        resource = createAudioResource(ytdl(url, { filter: 'audioonly' }), { ...streamOptions, inputType: StreamType.WebmOpus });
+        const yt = new Ytdl();
+
+        resource = createAudioResource(yt.download(url, { filter: { hasAudio: true, hasVideo: false } }), { ...streamOptions, inputType: StreamType.WebmOpus });
     } else if (file) {
         resource = createAudioResource(createReadStream(file), streamOptions);
     }

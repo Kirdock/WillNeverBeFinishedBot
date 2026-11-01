@@ -3,10 +3,10 @@ import {
     getLangSlashCommandBuilder,
     getVolumeInput,
     playYoutubeThroughInteraction
-} from '../../../utils/commonCommand.utils';
-import type { ChatCommand } from '../../../../interfaces/command';
-import { CommandLangKey } from '../../types/lang.types';
-import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
+} from '../../../utils/commonCommand.utils.js';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang.js';
 
 const urlOptionName = getDefaultCommandLang(CommandLangKey.POST_STEAM_LINK_URL_NAME);
 const { volumeCommandName, volumeOption } = getVolumeInput();

@@ -1,4 +1,4 @@
-import type { ChatCommand, InteractionExecuteResponse } from '../../../../interfaces/command';
+import type { ChatCommand, InteractionExecuteResponse } from '../../../../interfaces/command.js';
 import type { AutocompleteInteraction, ChatInputCommandInteraction } from 'discord.js';
 import { PermissionsBitField } from 'discord.js';
 import {
@@ -8,10 +8,10 @@ import {
     getInteractionMetadata,
     getLangComponent,
     getLangSlashCommandBuilder
-} from '../../../utils/commonCommand.utils';
-import { CommandLangKey } from '../../types/lang.types';
-import { deleteApplicationCommand, registerApplicationCommand } from '../../applicationManager';
-import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
+} from '../../../utils/commonCommand.utils.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { deleteApplicationCommand, registerApplicationCommand } from '../../applicationManager.js';
+import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang.js';
 
 const { commandSelectionName, commandOption } = getCommandSelection(true);
 const registerCommandName = getDefaultCommandLang(CommandLangKey.COMMAND_REGISTER_NAME);

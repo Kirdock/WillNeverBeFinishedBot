@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-import type { IUser } from '../interfaces/user';
-import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
-import type { IServerUserSettings } from '../../../shared/interfaces/server-settings';
+import type { IUser } from '../interfaces/user.js';
+import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings.js';
+import type { IServerUserSettings } from '../../../shared/interfaces/server-settings.js';
 
 type IUserVoiceSettingsWithoutUsername = Omit<IUserVoiceSettings, 'username'>;
 
