@@ -1,7 +1,7 @@
-import type { ChatCommand } from '../../../../interfaces/command';
-import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import { getLangComponent, getLangSlashCommandBuilder, takeRandom } from '../../../utils/commonCommand.utils';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getLangComponent, getLangSlashCommandBuilder, takeRandom } from '../../../utils/commonCommand.utils.js';
 
 const choicesName = getDefaultCommandLang(CommandLangKey.PICK_CHOICE_NAME);
 

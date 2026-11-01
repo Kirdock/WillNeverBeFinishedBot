@@ -1,16 +1,16 @@
 import axios from 'axios';
 import type { Guild, GuildMember, Snowflake, User, VoiceChannel } from 'discord.js';
 import { ChannelType, Client, Events, GatewayIntentBits, PermissionFlagsBits } from 'discord.js';
-import type { IUserObject } from '../interfaces/UserObject';
-import type { IUserServerInformation } from '../interfaces/IUserServerInformation';
-import { databaseHelper } from '../services/databaseHelper';
+import type { IUserObject } from '../interfaces/UserObject.js';
+import type { IUserServerInformation } from '../interfaces/IUserServerInformation.js';
+import { databaseHelper } from '../services/databaseHelper.js';
 import type { VoiceConnection } from '@discordjs/voice';
 import { getVoiceConnection } from '@discordjs/voice';
-import { scopedLogger } from '../services/logHelper';
-import { EnvironmentConfig } from '../services/config';
-import { setupApplicationCommands } from './applicationCommands/applicationManager';
-import onMessageCreate from './events/onMessageCreate';
-import onVoiceStateUpdate from './events/onVoiceStateUpdate';
+import { scopedLogger } from '../services/logHelper.js';
+import { EnvironmentConfig } from '../services/config.js';
+import { setupApplicationCommands } from './applicationCommands/applicationManager.js';
+import onMessageCreate from './events/onMessageCreate.js';
+import onVoiceStateUpdate from './events/onVoiceStateUpdate.js';
 
 const logger = scopedLogger('BOT');
 

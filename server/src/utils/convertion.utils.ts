@@ -1,5 +1,5 @@
 import type { UserVolumesDict } from '@kirdock/discordjs-voice-recorder';
-import type { IServerSettings } from '../../../shared/interfaces/server-settings';
+import type { IServerSettings } from '../../../shared/interfaces/server-settings.js';
 
 export function asNumberOrUndefined(value?: string): number | undefined {
     if (value === undefined || value === '') {

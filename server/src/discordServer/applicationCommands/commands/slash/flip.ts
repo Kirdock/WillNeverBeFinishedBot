@@ -1,7 +1,7 @@
-import type { ChatCommand } from '../../../../interfaces/command';
-import { getCommandLangKey } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import { getLangSlashCommandBuilder, takeRandom } from '../../../utils/commonCommand.utils';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { getCommandLangKey } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getLangSlashCommandBuilder, takeRandom } from '../../../utils/commonCommand.utils.js';
 
 const command: ChatCommand = {
     data: getLangSlashCommandBuilder(CommandLangKey.FLIP_NAME, CommandLangKey.FLIP_DESCRIPTION)

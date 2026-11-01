@@ -1,12 +1,12 @@
-import { getCommandLangKey } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import type { ChatCommand } from '../../../../interfaces/command';
+import { getCommandLangKey } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import type { ChatCommand } from '../../../../interfaces/command.js';
 import {
     getLangSlashCommandBuilder,
     getSoundSelection,
     getVolumeInput,
     playSoundThroughInteraction
-} from '../../../utils/commonCommand.utils';
+} from '../../../utils/commonCommand.utils.js';
 
 
 const { soundCommandName, soundOption, autocomplete } = getSoundSelection();

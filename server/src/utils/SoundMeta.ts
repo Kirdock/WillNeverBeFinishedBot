@@ -1,6 +1,6 @@
 import type { Snowflake } from 'discord.js';
 import { ObjectId } from 'mongodb';
-import type { ISoundMeta } from '../interfaces/sound-meta';
+import type { ISoundMeta } from '../interfaces/sound-meta.js';
 
 export function createSoundMeta(path: string, fileName: string, category: string, userId: Snowflake, serverId: Snowflake): ISoundMeta {
     return {

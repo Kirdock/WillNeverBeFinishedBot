@@ -1,11 +1,11 @@
-import type { ChatCommand } from '../../../../interfaces/command';
-import { databaseHelper } from '../../../../services/databaseHelper';
-import { APPLICATION_COMMAND_MAX_CHOICES } from '../../../constants';
-import { fileHelper } from '../../../../services/fileHelper';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { databaseHelper } from '../../../../services/databaseHelper.js';
+import { APPLICATION_COMMAND_MAX_CHOICES } from '../../../constants.js';
+import { fileHelper } from '../../../../services/fileHelper.js';
 import { Readable } from 'stream';
-import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import { getInteractionMetadata, getLangComponent, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
+import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getInteractionMetadata, getLangComponent, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils.js';
 import { MessageFlags } from 'discord.js';
 
 const attachmentName = getDefaultCommandLang(CommandLangKey.UPLOAD_FILE_ATTACHMENT_NAME);

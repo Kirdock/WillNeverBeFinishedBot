@@ -1,13 +1,13 @@
-import type { ChatCommand, InteractionExecuteResponse } from '../../../../interfaces/command';
+import type { ChatCommand, InteractionExecuteResponse } from '../../../../interfaces/command.js';
 import {
     getInteractionMetadata,
     getLangComponent,
     getLangSlashCommandBuilder,
     getSoundSelection
-} from '../../../utils/commonCommand.utils';
-import { CommandLangKey } from '../../types/lang.types';
-import { databaseHelper } from '../../../../services/databaseHelper';
-import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang';
+} from '../../../utils/commonCommand.utils.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { databaseHelper } from '../../../../services/databaseHelper.js';
+import { getCommandLangKey, getDefaultCommandLang } from '../../commandLang.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 
 const { soundCommandName, soundOption, autocomplete } = getSoundSelection();

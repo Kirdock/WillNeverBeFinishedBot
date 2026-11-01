@@ -1,4 +1,4 @@
-import type { ChatCommand } from '../../../../interfaces/command';
+import type { ChatCommand } from '../../../../interfaces/command.js';
 import { SlashCommandBuilder } from 'discord.js';
 
 const command: ChatCommand = {

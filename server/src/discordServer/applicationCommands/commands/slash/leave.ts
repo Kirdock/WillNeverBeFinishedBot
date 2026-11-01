@@ -1,10 +1,10 @@
-import type { ChatCommand } from '../../../../interfaces/command';
-import { hasPlayLock } from '../../../../services/musicPlayer';
-import { voiceHelper } from '../../../../services/voiceHelper';
-import { discordBot } from '../../../DiscordBot';
-import { getCommandLangKey } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import { getInteractionMetadata, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { hasPlayLock } from '../../../../services/musicPlayer.js';
+import { voiceHelper } from '../../../../services/voiceHelper.js';
+import { discordBot } from '../../../DiscordBot.js';
+import { getCommandLangKey } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getInteractionMetadata, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils.js';
 
 const command: ChatCommand = {
     data: getLangSlashCommandBuilder(CommandLangKey.LEAVE_NAME, CommandLangKey.LEAVE_DESCRIPTION)

@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { basename, extname, join } from 'path';
-import ffmpeg, { ffprobe } from 'fluent-ffmpeg';
+import ffmpeg from 'fluent-ffmpeg';
 import { rename, unlink } from 'fs/promises';
-import { EnvironmentConfig } from './config';
-import { scopedLogger } from './logHelper';
+import { EnvironmentConfig } from './config.js';
+import { scopedLogger } from './logHelper.js';
 import type { Readable } from 'stream';
 import { PassThrough } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 const logger = scopedLogger('FILE_SYSTEM');
 
 class FileHelper {
-    public readonly rootDir: string = EnvironmentConfig.ROOT_DIR || join(__dirname, '/../../../');
+    public readonly rootDir: string = EnvironmentConfig.ROOT_DIR || join(import.meta.dirname, '/../../../');
     private readonly baseDir: string = join(this.rootDir, 'server', 'shared');
     public readonly soundFolder: string = join(this.baseDir, 'sounds');
     public readonly certFolder: string = join(this.baseDir, 'cert');
@@ -64,16 +64,11 @@ class FileHelper {
     }
 
     public getFiles(fileArray: { [fieldname: string]: Express.Multer.File[]; } | Express.Multer.File[]): Express.Multer.File[] {
-        let files: Express.Multer.File[] = [];
         if (fileArray instanceof Array) {
-            files = fileArray as Express.Multer.File[];
-        } else {
-            fileArray = fileArray as { [fieldname: string]: Express.Multer.File[]; };
-            for (const key in fileArray) {
-                files.push(...fileArray[key]);
-            }
+            return fileArray as Express.Multer.File[];
         }
-        return files;
+
+        return Object.entries(fileArray).map(([, file]) => file).flat();
     }
 
     public getFileName(filePath: string): string {
@@ -157,7 +152,7 @@ class FileHelper {
 
     public async getFileDuration(filePath: string): Promise<number> {
         return new Promise<number>((resolve, reject) => {
-            ffprobe(filePath, (err, data) => {
+            ffmpeg.ffprobe(filePath, (err, data) => {
                 if (err || data.format.duration === undefined) {
                     reject(err);
                     return;

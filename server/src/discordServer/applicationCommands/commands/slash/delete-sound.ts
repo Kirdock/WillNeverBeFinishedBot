@@ -1,14 +1,14 @@
-import type { ChatCommand } from '../../../../interfaces/command';
+import type { ChatCommand } from '../../../../interfaces/command.js';
 import { PermissionsBitField } from 'discord.js';
 import {
     getInteractionMetadata,
     getLangSlashCommandBuilder,
     getSoundSelection
-} from '../../../utils/commonCommand.utils';
-import { CommandLangKey } from '../../types/lang.types';
-import { databaseHelper } from '../../../../services/databaseHelper';
-import { getCommandLangKey } from '../../commandLang';
-import dataService from '../../../../services/data.service';
+} from '../../../utils/commonCommand.utils.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { databaseHelper } from '../../../../services/databaseHelper.js';
+import { getCommandLangKey } from '../../commandLang.js';
+import dataService from '../../../../services/data.service.js';
 
 const { soundCommandName, soundOption, autocomplete } = getSoundSelection(true, true);
 

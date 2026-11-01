@@ -1,22 +1,22 @@
 import type { Snowflake } from 'discord.js';
-import { createServerSettings } from '../utils/ServerSettings';
-import type { IUserToken } from '../interfaces/UserToken';
+import { createServerSettings } from '../utils/ServerSettings.js';
+import type { IUserToken } from '../interfaces/UserToken.js';
 import type { Collection, Db, DeleteResult, Document, Filter, FindOptions, InsertManyResult, InsertOneResult, UpdateFilter, UpdateResult } from 'mongodb';
 import { MongoClient, ObjectId } from 'mongodb';
-import { createUser } from '../utils/User';
-import { ErrorTypes } from './ErrorTypes';
-import type { IDatabaseMetadata } from '../interfaces/database-metadata';
-import { createLog } from '../models/Log';
-import type { ILog } from '../interfaces/log';
-import type { IServerSettings } from '../../../shared/interfaces/server-settings';
-import type { IUser } from '../interfaces/user';
-import type { ISoundMeta } from '../interfaces/sound-meta';
-import { createSoundMeta } from '../utils/SoundMeta';
-import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings';
-import { EnvironmentConfig } from './config';
-import { fileHelper } from './fileHelper';
+import { createUser } from '../utils/User.js';
+import { ErrorTypes } from './ErrorTypes.js';
+import type { IDatabaseMetadata } from '../interfaces/database-metadata.js';
+import { createLog } from '../models/Log.js';
+import type { ILog } from '../interfaces/log.js';
+import type { IServerSettings } from '../../../shared/interfaces/server-settings.js';
+import type { IUser } from '../interfaces/user.js';
+import type { ISoundMeta } from '../interfaces/sound-meta.js';
+import { createSoundMeta } from '../utils/SoundMeta.js';
+import type { IUserVoiceSettings } from '../../../shared/interfaces/user-voice-settings.js';
+import { EnvironmentConfig } from './config.js';
+import { fileHelper } from './fileHelper.js';
 import type { Readable } from 'stream';
-import { scopedLogger } from './logHelper';
+import { scopedLogger } from './logHelper.js';
 
 const logger = scopedLogger('DATABASE');
 

@@ -1,7 +1,7 @@
 import { Events, PermissionsBitField, userMention } from 'discord.js';
-import { registerApplicationCommands } from '../applicationCommands/applicationManager';
-import type { DiscordBot } from '../DiscordBot';
-import { scopedLogger } from '../../services/logHelper';
+import { registerApplicationCommands } from '../applicationCommands/applicationManager.js';
+import type { DiscordBot } from '../DiscordBot.js';
+import { scopedLogger } from '../../services/logHelper.js';
 
 const logger = scopedLogger('ON_MESSAGE_CREATE');
 

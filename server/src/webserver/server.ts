@@ -2,11 +2,11 @@ import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
 import history from 'connect-history-api-fallback';
 import https from 'https';
-import { authHelper } from '../services/authHelper';
+import { authHelper } from '../services/authHelper.js';
 import { join } from 'path';
-import { EnvironmentConfig } from '../services/config';
-import { fileHelper } from '../services/fileHelper';
-import { scopedLogger } from '../services/logHelper';
+import { EnvironmentConfig } from '../services/config.js';
+import { fileHelper } from '../services/fileHelper.js';
+import { scopedLogger } from '../services/logHelper.js';
 
 const baseUrl = '/api';
 const logger = scopedLogger('SERVER');
@@ -30,10 +30,11 @@ export function startServer(router: express.Router) {
         logger.debug('start local');
         app.listen(port);
     } else {
-        https.createServer({
+        const options = {
             key: fileHelper.readFile(privateKeyPath),
             cert: fileHelper.readFile(certPath),
-        }, app)
+        };
+        https.createServer(options, app)
             .listen(port);
     }
 }

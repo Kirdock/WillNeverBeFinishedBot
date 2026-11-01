@@ -1,9 +1,9 @@
-import { registerApplicationCommands, unregisterApplicationCommands } from '../../applicationManager';
+import { registerApplicationCommands, unregisterApplicationCommands } from '../../applicationManager.js';
 import { MessageFlags, PermissionsBitField } from 'discord.js';
-import type { ChatCommand } from '../../../../interfaces/command';
-import { getCommandLangKey } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
-import { getInteractionMetadata, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { getCommandLangKey } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getInteractionMetadata, getLangSlashCommandBuilder } from '../../../utils/commonCommand.utils.js';
 
 const command: ChatCommand =  {
     data: getLangSlashCommandBuilder(CommandLangKey.RE_REGISTER_NAME, CommandLangKey.RE_REGISTER_DESCRIPTION)

@@ -1,14 +1,14 @@
-import type { ChatCommand } from '../../../../interfaces/command';
+import type { ChatCommand } from '../../../../interfaces/command.js';
 import {
     getInteractionMetadata,
     getLangSlashCommandBuilder,
     getSoundSelection
-} from '../../../utils/commonCommand.utils';
-import { CommandLangKey } from '../../types/lang.types';
-import { databaseHelper } from '../../../../services/databaseHelper';
-import { getCommandLangKey } from '../../commandLang';
+} from '../../../utils/commonCommand.utils.js';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { databaseHelper } from '../../../../services/databaseHelper.js';
+import { getCommandLangKey } from '../../commandLang.js';
 import { createReadStream } from 'fs';
-import { AUDIO_CONTENT_TYPE } from '../../../constants';
+import { AUDIO_CONTENT_TYPE } from '../../../constants.js';
 import { MessageFlags } from 'discord.js';
 
 const { soundOption, soundCommandName, autocomplete } = getSoundSelection(true);

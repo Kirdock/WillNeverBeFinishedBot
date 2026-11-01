@@ -1,5 +1,5 @@
-import { DatabaseHelper } from '../services/databaseHelper';
-import type { IDatabaseMigrator } from '../interfaces/databaseMigrator';
+import { DatabaseHelper } from '../services/databaseHelper.js';
+import type { IDatabaseMigrator } from '../interfaces/databaseMigrator.js';
 
 export class To_0_1_1_PR_87 extends DatabaseHelper implements IDatabaseMigrator {
 

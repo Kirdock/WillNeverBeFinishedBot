@@ -1,6 +1,6 @@
 import type { Client, VoiceState } from 'discord.js';
 import { channelMention, Events, MessageFlags, userMention } from 'discord.js';
-import { databaseHelper } from '../../services/databaseHelper';
+import { databaseHelper } from '../../services/databaseHelper.js';
 
 enum VoiceStateStatus {
     USER_JOINED_CHANNEL,
@@ -26,8 +26,8 @@ const messages: Record<VoiceStateStatus, (oldState: VoiceState, newState: VoiceS
 
 export default async function onVoiceStateUpdate(client: Client<true>) {
     // prevent circular import
-    const { playIntro, playSound } = await import( '../../services/musicPlayer');
-    const { voiceHelper } = await import( '../../services/voiceHelper');
+    const { playIntro, playSound } = await import( '../../services/musicPlayer.js');
+    const { voiceHelper } = await import( '../../services/voiceHelper.js');
 
     client.on(Events.VoiceStateUpdate, async (oldState: VoiceState, newState: VoiceState) => {
         const status = getVoiceUpdateStatus(oldState, newState, client);

@@ -1,12 +1,12 @@
-import type { ChatCommand } from '../../../../interfaces/command';
-import { getDefaultCommandLang } from '../../commandLang';
-import { CommandLangKey } from '../../types/lang.types';
+import type { ChatCommand } from '../../../../interfaces/command.js';
+import { getDefaultCommandLang } from '../../commandLang.js';
+import { CommandLangKey } from '../../types/lang.types.js';
 import {
     getInteractionMetadata,
     getLangComponent,
     getLangSlashCommandBuilder
-} from '../../../utils/commonCommand.utils';
-import { DISCORD_MAX_MESSAGE_LENGTH } from '../../../constants';
+} from '../../../utils/commonCommand.utils.js';
+import { DISCORD_MAX_MESSAGE_LENGTH } from '../../../constants.js';
 
 const popText = '||pop||';
 const rowName = getDefaultCommandLang(CommandLangKey.BUBBLE_ROW_NAME);

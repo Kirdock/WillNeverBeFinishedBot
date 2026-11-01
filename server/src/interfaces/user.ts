@@ -1,5 +1,5 @@
 import type { ObjectId } from 'mongodb';
-import type { IUserToken } from './UserToken';
+import type { IUserToken } from './UserToken.js';
 
 export interface IUser {
     _id: ObjectId;

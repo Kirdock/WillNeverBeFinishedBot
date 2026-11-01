@@ -1,9 +1,9 @@
-import { databaseHelper } from './databaseHelper';
-import semver from 'semver/preload';
-import { To_0_1_1_PR_87 } from '../migratorStrategies/to_0_1_1__p_r_87';
-import type { IDatabaseMigrator } from '../interfaces/databaseMigrator';
-import { scopedLogger } from './logHelper';
-import { EnvironmentConfig } from './config';
+import { databaseHelper } from './databaseHelper.js';
+import { valid, gte, lt, compare } from 'semver';
+import { To_0_1_1_PR_87 } from '../migratorStrategies/to_0_1_1__p_r_87.js';
+import type { IDatabaseMigrator } from '../interfaces/databaseMigrator.js';
+import { scopedLogger } from './logHelper.js';
+import { EnvironmentConfig } from './config.js';
 
 const logger = scopedLogger('MIGRATOR');
 
@@ -14,7 +14,7 @@ interface IMigrateStrategy {
 
 export async function migrateCheck(): Promise<void> {
     const oldVersion = await databaseHelper.getVersion();
-    if (semver.valid(oldVersion) && (!semver.valid(EnvironmentConfig.VERSION) || semver.gte(oldVersion, EnvironmentConfig.VERSION))) {
+    if (valid(oldVersion) && (!valid(EnvironmentConfig.VERSION) || gte(oldVersion, EnvironmentConfig.VERSION))) {
         return;
     }
     logger.info('Old version detected. Starting migration...');
@@ -28,7 +28,7 @@ async function migrate(oldVersion: string): Promise<void> {
     let latestExecutedStrategy = undefined;
     try {
         for (const strategy of getMigrateStrategies()) {
-            if (semver.lt(oldVersion, strategy.version)) {
+            if (lt(oldVersion, strategy.version)) {
                 latestExecutedStrategy = strategy.version;
 
                 logger.info(`Migrating to version ${strategy.version}`);
@@ -53,7 +53,7 @@ function getMigrateStrategies(): IMigrateStrategy[] {
             version: '0.1.1-dev-PR-87',
             run: () => executeMigrator(new To_0_1_1_PR_87()),
         }
-    ].sort((a: IMigrateStrategy, b: IMigrateStrategy) => semver.compare(a.version, b.version));
+    ].sort((a: IMigrateStrategy, b: IMigrateStrategy) => compare(a.version, b.version));
 }
 
 async function executeMigrator(migrator: IDatabaseMigrator): Promise<void> {

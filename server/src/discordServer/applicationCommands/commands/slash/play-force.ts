@@ -3,11 +3,11 @@ import {
     getSoundSelection,
     getVolumeInput,
     playSoundThroughInteraction
-} from '../../../utils/commonCommand.utils';
-import type { ChatCommand } from '../../../../interfaces/command';
+} from '../../../utils/commonCommand.utils.js';
+import type { ChatCommand } from '../../../../interfaces/command.js';
 import { PermissionsBitField } from 'discord.js';
-import { CommandLangKey } from '../../types/lang.types';
-import { getCommandLangKey } from '../../commandLang';
+import { CommandLangKey } from '../../types/lang.types.js';
+import { getCommandLangKey } from '../../commandLang.js';
 
 const { soundCommandName, soundOption, autocomplete } = getSoundSelection();
 const { volumeCommandName, volumeOption } = getVolumeInput();
